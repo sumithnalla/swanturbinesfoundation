@@ -96,6 +96,30 @@ async def submit_request(
     }
 
 
+# ── Public: Track request status ──────────────────────────────────────────────
+
+@router.get("/track/{reference}")
+async def track_request(
+    reference: str,
+    db: AsyncIOMotorDatabase = Depends(get_db),
+):
+    """Public: Track a help request status by its reference code."""
+    repo = HelpRequestRepository(db)
+    doc = await repo.find_one({"reference": reference})
+    if not doc:
+        raise not_found_error("Help request")
+
+    req_data = doc.get("request", {})
+    return {
+        "reference": doc.get("reference"),
+        "status": doc.get("status"),
+        "support_type": req_data.get("support_type", doc.get("support_type", "")),
+        "urgency": req_data.get("urgency", doc.get("urgency", "")),
+        "created_at": doc.get("created_at"),
+        "updated_at": doc.get("updated_at"),
+    }
+
+
 # ── Public: Upload documents (Step 3) ─────────────────────────────────────────
 
 @router.post("/{request_id}/documents", status_code=201)

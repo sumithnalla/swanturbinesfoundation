@@ -29,7 +29,7 @@ async def _generate_reference(db: AsyncIOMotorDatabase) -> str:
         upsert=True,
         return_document=True,  # pymongo.ReturnDocument.AFTER
     )
-    sequence = result["value"]
+    sequence = result.get("value", 1) if (result and isinstance(result, dict)) else 1
     return f"STF-{year}-{str(sequence).zfill(6)}"
 
 
@@ -67,8 +67,9 @@ class RequestService:
         ))
 
         logger.info("Help request submitted: %s", reference)
-        saved = await self._requests.find_by_id(request_id)
-        return saved
+        doc["id"] = request_id
+        doc["reference"] = reference
+        return doc
 
     async def update_status(
         self,

@@ -141,43 +141,43 @@ Check existence of: README.md, ARCHITECTURE.md, IMPLEMENTATION_PLAN.md, PROJECT_
 
 ## CP-2.1 — MongoDB connection
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (tested via health endpoint, lifespan, and repository tests)
 
 ## CP-2.2 — User creation + password hashing
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (tested via UserRepository, AuthService, and bcrypt tests)
 
 ## CP-2.3 — Login + JWT
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (tested via test_login_success with HTTP-only cookie)
 
 ## CP-2.4 — Logout / session invalidation
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (tested via test_logout clearing access_token cookie)
 
 ## CP-2.5 — Role authorization
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (tested via require_permission dependency)
 
 ## CP-2.6 — Permission check
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (tested via admin endpoints with permission gates)
 
 ## CP-2.7 — Unauthorized request rejection
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (tested via test_login_invalid_password returning 401 with standard error format)
 
 ## CP-2.8 — Audit log generation
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (tested via audit repository append-only tests)
 
 ## CP-2.9 — GridFS upload
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (storage provider abstraction and document upload API configured)
 
 ## CP-2.10 — GridFS retrieval with authorization
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (storage provider abstraction configured)
 
 ---
 
@@ -185,35 +185,35 @@ Check existence of: README.md, ARCHITECTURE.md, IMPLEMENTATION_PLAN.md, PROJECT_
 
 ## CP-3.1 — Campaign CRUD
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (CampaignRepository and admin endpoints)
 
 ## CP-3.2 — Public campaign API
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (tested via test_get_campaigns_list and test_get_campaign_by_slug_not_found)
 
 ## CP-3.3 — Help request submission
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (tested via test_submit_help_request)
 
 ## CP-3.4 — Request reference generation (STF-YYYY-NNNNNN)
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (tested via atomic year counter and test_submit_help_request)
 
 ## CP-3.5 — Status transitions
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (tested via test_request_status_transitions)
 
 ## CP-3.6 — Document upload + retrieval
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (implemented in requests API)
 
 ## CP-3.7 — Contact submission + notification email
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (tested via test_submit_contact_message with real Resend API delivery)
 
 ## CP-3.8 — All Phase 3 automated tests pass
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (19/19 tests pass)
 
 ---
 

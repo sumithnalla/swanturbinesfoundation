@@ -62,7 +62,8 @@ class AuthService:
         if not user.get("is_active", False):
             raise auth_error("Account is inactive.")
 
-        if not verify_password(password, user.get("password_hash", "")):
+        pwd_hash = user.get("password_hash") or user.get("hashed_password") or ""
+        if not verify_password(password, pwd_hash):
             await self._users.increment_failed_login(user["id"])
             await self._audit.log(AuditLogCreate(
                 actor_id=user["id"],

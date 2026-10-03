@@ -4,7 +4,7 @@ Swan Turbines Foundation — FastAPI Application Entry Point
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -48,7 +48,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Global exception handler ──────────────────────────────────────────────────
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Normalize HTTPException to standard {error: {code, message}} schema."""
+    if isinstance(exc.detail, dict):
+        code = exc.detail.get("code", f"HTTP_{exc.status_code}")
+        message = exc.detail.get("message", str(exc.detail))
+    else:
+        code = f"HTTP_{exc.status_code}"
+        message = str(exc.detail)
+
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": {
+                "code": code,
+                "message": message,
+            }
+        },
+    )
+
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
