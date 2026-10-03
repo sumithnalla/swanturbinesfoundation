@@ -131,8 +131,14 @@ async def create_new_user(
         password=data["password"],
         role_ids=data.get("role_ids", []),
     )
-    user = await auth_service.create_user(user_create, actor_id=str(current_user["_id"]))
-    return {"user": user}
+    user_id = await auth_service.create_user(
+        full_name=user_create.full_name,
+        email=user_create.email,
+        password=user_create.password,
+        role_ids=user_create.role_ids,
+        actor_id=str(current_user["_id"]),
+    )
+    return {"user": {"id": user_id, "email": user_create.email, "full_name": user_create.full_name}}
 
 
 @router.patch("/users/{user_id}/status")

@@ -6,6 +6,7 @@ from app.core.errors import auth_error, forbidden_error
 from fastapi import Cookie, Depends, Request
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from typing import Optional
+from functools import lru_cache
 import logging
 
 logger = logging.getLogger(__name__)
@@ -44,6 +45,7 @@ async def get_current_user(
     return user
 
 
+@lru_cache(maxsize=None)
 def require_permission(permission: str):
     """
     Returns a dependency that checks if the current user has the given permission.

@@ -82,9 +82,9 @@ Five-phase implementation. Build locally first, deploy to production in Phase 5.
 | 3.13 | Contact submission API | ⬜ TODO |
 | 3.14 | Contact notification email (Resend) | ⬜ TODO |
 | 3.15 | Request acknowledgement email | ⬜ TODO |
-| 3.16 | Admin new-request notification email | ⬜ TODO |
-| 3.17 | Status-change notification email | ⬜ TODO |
-| 3.18 | Run Phase 3 tests | ⬜ TODO |
+| 3.16 | Admin new-request notification email | ✅ DONE |
+| 3.17 | Status-change notification email | ✅ DONE |
+| 3.18 | Run Phase 3 tests | ✅ DONE |
 
 ---
 
@@ -94,26 +94,26 @@ Five-phase implementation. Build locally first, deploy to production in Phase 5.
 
 | # | Task | Status |
 |---|---|---|
-| 4.1 | Public: campaigns list → API | ⬜ TODO |
-| 4.2 | Public: campaign detail → dynamic | ⬜ TODO |
-| 4.3 | Public: homepage featured campaigns → API | ⬜ TODO |
-| 4.4 | Public: request-help 3-step form → API | ⬜ TODO |
-| 4.5 | Public: document upload step | ⬜ TODO |
-| 4.6 | Public: success screen with request reference | ⬜ TODO |
-| 4.7 | Public: contact form → API | ⬜ TODO |
-| 4.8 | Foundation Admin: login page | ⬜ TODO |
-| 4.9 | Foundation Admin: dashboard | ⬜ TODO |
-| 4.10 | Foundation Admin: campaign management | ⬜ TODO |
-| 4.11 | Foundation Admin: request list + detail + status | ⬜ TODO |
-| 4.12 | Foundation Admin: document viewer | ⬜ TODO |
-| 4.13 | Foundation Admin: send email to applicant | ⬜ TODO |
-| 4.14 | Foundation Admin: profile/logout | ⬜ TODO |
-| 4.15 | WEBSITTER Manage: login | ⬜ TODO |
-| 4.16 | WEBSITTER Manage: dashboard | ⬜ TODO |
-| 4.17 | WEBSITTER Manage: user management | ⬜ TODO |
-| 4.18 | WEBSITTER Manage: role/permission management | ⬜ TODO |
-| 4.19 | WEBSITTER Manage: audit logs | ⬜ TODO |
-| 4.20 | Run Phase 4 integration tests | ⬜ TODO |
+| 4.1 | Public: campaigns list → API | ✅ DONE |
+| 4.2 | Public: campaign detail → dynamic | ✅ DONE |
+| 4.3 | Public: homepage featured campaigns → API | ✅ DONE |
+| 4.4 | Public: request-help 3-step form → API | ✅ DONE |
+| 4.5 | Public: document upload step | ✅ DONE |
+| 4.6 | Public: success screen with request reference | ✅ DONE |
+| 4.7 | Public: contact form → API | ✅ DONE |
+| 4.8 | Foundation Admin: login page | ✅ DONE |
+| 4.9 | Foundation Admin: dashboard | ✅ DONE |
+| 4.10 | Foundation Admin: campaign management | ✅ DONE |
+| 4.11 | Foundation Admin: request list + detail + status | ✅ DONE |
+| 4.12 | Foundation Admin: document viewer | ✅ DONE |
+| 4.13 | Foundation Admin: send email to applicant | ✅ DONE |
+| 4.14 | Foundation Admin: profile/logout | ✅ DONE |
+| 4.15 | WEBSITTER Manage: login | ✅ DONE |
+| 4.16 | WEBSITTER Manage: dashboard | ✅ DONE |
+| 4.17 | WEBSITTER Manage: user management | ✅ DONE |
+| 4.18 | WEBSITTER Manage: role/permission management | ✅ DONE |
+| 4.19 | WEBSITTER Manage: audit logs | ✅ DONE |
+| 4.20 | Run Phase 4 integration tests | ✅ DONE |
 
 ---
 

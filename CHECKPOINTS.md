@@ -221,27 +221,27 @@ Check existence of: README.md, ARCHITECTURE.md, IMPLEMENTATION_PLAN.md, PROJECT_
 
 ## CP-4.1 — Public campaigns load from database
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (Campaign API service and seed data configured)
 
 ## CP-4.2 — Request Help 3-step works end to end
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (Connected to /api/v1/requests with atomic reference STF-YYYY-NNNNNN generation)
 
 ## CP-4.3 — Admin login + dashboard works
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (SwanAuth login hooked to backend /api/v1/auth/login and /requests/admin/stats)
 
 ## CP-4.4 — Admin request management works
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (SwanAdmin hooked to /api/v1/requests/admin and status PATCH)
 
 ## CP-4.5 — WEBSITTER manage login + user management works
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (admin /users and /roles management endpoints verified)
 
 ## CP-4.6 — Unauthorized access blocked
 
-**Status:** NOT_STARTED
+**Status:** VERIFIED (tested via automated auth and permission tests)
 
 ---
 
