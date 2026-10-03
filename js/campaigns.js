@@ -23,7 +23,7 @@
                 if (!response.ok) return;
 
                 const data = await response.json();
-                const items = data.items || [];
+                const items = data.campaigns || data.items || [];
                 if (!items.length) return;
 
                 // Map live campaigns by slug for quick lookup

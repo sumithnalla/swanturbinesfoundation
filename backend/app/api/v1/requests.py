@@ -270,7 +270,7 @@ async def admin_update_status(
             admin_note=payload.admin_note,
         )
 
-    return {"message": f"Status updated to '{payload.status}'.", "reference": updated["reference"]}
+    return {"message": f"Status updated to '{payload.status}'.", "reference": updated["reference"], "status": payload.status}
 
 
 @router.get("/admin/{request_id}/documents")

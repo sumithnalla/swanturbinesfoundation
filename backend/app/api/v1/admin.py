@@ -99,7 +99,7 @@ async def list_users(
     users = []
     async for u in db.users.find({}, {"hashed_password": 0}):
         users.append({
-            "id": str(u["_id"]),
+            "id": str(u.get("_id") or u.get("id")),
             "full_name": u.get("full_name", ""),
             "email": u.get("email", ""),
             "is_active": u.get("is_active", True),
@@ -136,7 +136,7 @@ async def create_new_user(
         email=user_create.email,
         password=user_create.password,
         role_ids=user_create.role_ids,
-        actor_id=str(current_user["_id"]),
+        actor_id=str(current_user.get("_id") or current_user.get("id")),
     )
     return {"user": {"id": user_id, "email": user_create.email, "full_name": user_create.full_name}}
 
