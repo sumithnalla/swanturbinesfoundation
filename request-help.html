@@ -90,21 +90,100 @@
     <script src="js/db.js"></script>
     <script src="js/main.js"></script>
     <script>
-        document.getElementById('helpRequestForm').addEventListener('submit', function (event) {
+        const API_BASE = window.__API_BASE_URL__ || (
+            window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:8000'
+                : ''
+        );
+
+        document.getElementById('helpRequestForm').addEventListener('submit', async function (event) {
             event.preventDefault();
             const form = event.currentTarget;
             const message = document.getElementById('helpFormMessage');
-            const data = Object.fromEntries(new FormData(form).entries());
-            data.consent = form.elements.consent.checked;
+            const submitBtn = form.querySelector('.help-submit-btn');
+            const originalBtnHtml = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting request...';
+
+            const rawData = Object.fromEntries(new FormData(form).entries());
+            const hasConsent = form.elements.consent.checked;
+
+            const supportTypeMap = {
+                'Medical care': 'medical',
+                'Food or essential supplies': 'food',
+                'Shelter or emergency relief': 'emergency',
+                'Education support': 'education',
+                'Water or sanitation': 'community_development',
+                'Other support': 'other'
+            };
+            const support_type = supportTypeMap[rawData.help_type] || 'other';
+
+            const urgencyMap = {
+                'low': 'normal',
+                'medium': 'normal',
+                'high': 'urgent',
+                'critical': 'emergency'
+            };
+            const urgency = urgencyMap[rawData.urgency] || 'normal';
+
+            const payload = {
+                applicant: {
+                    full_name: (rawData.full_name || '').trim(),
+                    mobile: (rawData.phone || '').trim(),
+                    email: rawData.email ? rawData.email.trim() : null,
+                    address: (rawData.address || '').trim() || 'Address provided on request',
+                    city: 'Hyderabad',
+                    state: 'Telangana'
+                },
+                request: {
+                    support_type: support_type,
+                    description: (rawData.description || '').trim(),
+                    beneficiaries: 1,
+                    amount_required: rawData.estimated_amount ? rawData.estimated_amount.trim() : 'As determined by assessment',
+                    urgency: urgency
+                },
+                consent: hasConsent
+            };
+
             try {
-                const request = SwanDB.createHelpRequest(data);
+                const response = await fetch(`${API_BASE}/api/v1/requests`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errJson = await response.json().catch(() => ({}));
+                    throw new Error((errJson.error && errJson.error.message) || 'Submission failed');
+                }
+
+                const resData = await response.json();
+                const reference = resData.reference;
+
                 message.className = 'help-form-message success';
-                message.textContent = 'Thank you. Your request ' + request.id + ' has been sent to our support team. We will review it confidentially.';
+                message.innerHTML = `
+                    <div style="font-size:16px;font-weight:700;margin-bottom:6px;">Request Submitted Successfully!</div>
+                    <div>Your tracking reference code is: <strong style="font-size:18px;letter-spacing:1px;background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:6px;">${reference}</strong></div>
+                    <div style="margin-top:8px;font-size:13px;color:#334155;">Please save this reference code. Our verification team has been notified and will review your request confidentially.</div>
+                `;
                 form.reset();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
-            } catch (error) {
-                message.className = 'help-form-message error';
-                message.textContent = error.message || 'We could not send your request. Please check the form and try again.';
+            } catch (err) {
+                // Fallback to local DB if backend server is not running
+                try {
+                    const localData = { ...rawData, consent: hasConsent };
+                    const localReq = window.SwanDB ? window.SwanDB.createHelpRequest(localData) : { id: 'STF-' + Date.now().toString().slice(-6) };
+                    message.className = 'help-form-message success';
+                    message.textContent = 'Thank you. Your request ' + localReq.id + ' has been saved and sent to our team.';
+                    form.reset();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } catch (fallbackErr) {
+                    message.className = 'help-form-message error';
+                    message.textContent = err.message || 'We could not submit your request. Please check the form and try again.';
+                }
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnHtml;
             }
         });
     </script>

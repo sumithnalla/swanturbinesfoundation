@@ -682,17 +682,70 @@ function processDonation() {
    CONTACT FORM
 ========================================================= */
 
-function submitContact(event) {
-
+async function submitContact(event) {
     event.preventDefault();
+    const form = event.currentTarget;
+    const alertBox = document.getElementById('contactFormAlert');
+    const submitBtn = form.querySelector('.submit-btn');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending message...';
 
-    alert(
-        "Thank you for contacting Swan Turbines Foundation. " +
-        "Your message has been received."
+    const formData = new FormData(form);
+    const firstName = (formData.get('first_name') || '').trim();
+    const lastName = (formData.get('last_name') || '').trim();
+    const email = (formData.get('email') || '').trim();
+    const message = (formData.get('message') || '').trim();
+
+    const API_BASE = window.__API_BASE_URL__ || (
+        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:8000'
+            : ''
     );
 
-    event.target.reset();
+    try {
+        const response = await fetch(`${API_BASE}/api/v1/contact`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                first_name: firstName,
+                last_name: lastName,
+                email: email,
+                phone: '',
+                subject: 'General inquiry from website contact form',
+                message: message
+            })
+        });
 
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error((errData.error && errData.error.message) || 'Failed to send message');
+        }
+
+        if (alertBox) {
+            alertBox.style.display = 'block';
+            alertBox.style.background = '#ecfdf5';
+            alertBox.style.color = '#065f46';
+            alertBox.style.border = '1px solid #a7f3d0';
+            alertBox.textContent = 'Thank you for reaching out to Swan Turbines Foundation. We have received your message and will respond shortly.';
+        } else {
+            alert('Thank you for contacting Swan Turbines Foundation. Your message has been received.');
+        }
+        form.reset();
+    } catch (err) {
+        if (alertBox) {
+            alertBox.style.display = 'block';
+            alertBox.style.background = '#fef2f2';
+            alertBox.style.color = '#991b1b';
+            alertBox.style.border = '1px solid #fecaca';
+            alertBox.textContent = err.message || 'Unable to send message at this time. Please try again.';
+        } else {
+            alert(err.message || 'Unable to send message at this time.');
+        }
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+    }
 }
 
 

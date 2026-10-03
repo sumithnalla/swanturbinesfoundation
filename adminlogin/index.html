@@ -22,14 +22,32 @@
     </main>
     <script src="../js/db.js"></script><script src="../js/auth.js"></script><script src="../js/main.js"></script>
     <script>
-        function handleAdminLogin(event) {
+        async function handleAdminLogin(event) {
             event.preventDefault();
-            const error = document.getElementById('adminAuthError'); error.classList.remove('show');
+            const error = document.getElementById('adminAuthError');
+            error.classList.remove('show');
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Signing in...';
+
             try {
-                const user = SwanAuth.login(document.getElementById('adm_email').value, document.getElementById('adm_pass').value, true);
-                if (user.role !== 'admin') throw new Error('Access denied: this account does not have administrator permissions.');
+                const user = await SwanAuth.login(
+                    document.getElementById('adm_email').value,
+                    document.getElementById('adm_pass').value,
+                    true
+                );
+                if (user.role !== 'admin' && (!user.role_ids || !user.role_ids.length)) {
+                    throw new Error('Access denied: this account does not have administrator permissions.');
+                }
                 window.location.href = '../admin.html';
-            } catch (err) { error.textContent = err.message || 'Invalid administrator credentials.'; error.classList.add('show'); }
+            } catch (err) {
+                error.textContent = err.message || 'Invalid administrator credentials.';
+                error.classList.add('show');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
         }
         document.addEventListener('DOMContentLoaded', () => { if (SwanAuth.isAdmin()) window.location.href = '../admin.html'; });
     </script>

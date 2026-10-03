@@ -63,7 +63,15 @@ def require_permission(permission: str):
             for p in role.get("permissions", []):
                 perms.add(p)
 
-        if permission not in perms and "*" not in perms:
+        resource = permission.split(".")[0] if "." in permission else permission
+        has_perm = (
+            "*" in perms
+            or permission in perms
+            or f"{resource}.*" in perms
+            or f"{resource}.manage" in perms
+        )
+
+        if not has_perm:
             raise forbidden_error()
 
         return current_user

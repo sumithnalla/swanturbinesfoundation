@@ -26,6 +26,12 @@
         return /^data:image\/(?:jpeg|png|webp);base64,[a-z0-9+/=]+$/i.test(source) ? source : '';
     }
 
+    const API_BASE = window.__API_BASE_URL__ || (
+        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:8000'
+            : ''
+    );
+
     const Auth = {
         modalScrollY: 0,
 
@@ -62,9 +68,12 @@
                     localStorage.removeItem(SESSION_KEY);
                     return null;
                 }
-                const user = window.SwanDB.getUserById(session.user_id);
+                if (session.user) {
+                    return session.user;
+                }
+                const user = window.SwanDB && window.SwanDB.getUserById ? window.SwanDB.getUserById(session.user_id) : null;
                 if (!user) return null;
-                const profile = window.SwanDB.getProfileByUserId(session.user_id);
+                const profile = window.SwanDB && window.SwanDB.getProfileByUserId ? window.SwanDB.getProfileByUserId(session.user_id) : null;
                 if (profile && profile.profile_image && !user.profile_image) {
                     user.profile_image = profile.profile_image;
                 }
@@ -80,7 +89,7 @@
 
         isAdmin: function () {
             const user = Auth.getCurrentUser();
-            return user && user.role === 'admin';
+            return user && (user.role === 'admin' || (user.role_ids && user.role_ids.length > 0));
         },
 
         // Password requirements validation
@@ -103,23 +112,23 @@
             const passErr = Auth.validatePasswordStrength(password);
             if (passErr) throw new Error(passErr);
 
-            const existing = window.SwanDB.getUserByEmail(email);
+            const existing = window.SwanDB && window.SwanDB.getUserByEmail ? window.SwanDB.getUserByEmail(email) : null;
             if (existing) throw new Error('An account with this email address already exists.');
 
             const newUser = window.SwanDB.createUser({
                 full_name: fullName.trim(),
                 email: email.trim().toLowerCase(),
                 phone: phone.trim(),
-                password_hash: password // In real prod hashed via bcrypt/Supabase Auth
+                password_hash: password
             });
 
             // Auto login after registration
-            Auth.createSession(newUser.id, true);
+            Auth.createSession(newUser.id, true, newUser);
             return newUser;
         },
 
         // Login
-        login: function (email, password, rememberMe) {
+        login: async function (email, password, rememberMe) {
             if (!email || !password) throw new Error('Please enter both email and password.');
 
             const attempts = getAttemptState();
@@ -128,23 +137,56 @@
                 throw new Error(`Too many sign-in attempts. Please try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`);
             }
 
-            const user = window.SwanDB.getUserByEmail(email);
-            if (!user || user.password_hash !== password) {
-                const nextAttempts = attempts.lockedUntil && attempts.lockedUntil <= Date.now()
-                    ? { count: 0, lockedUntil: 0 }
-                    : attempts;
-                nextAttempts.count += 1;
-                if (nextAttempts.count >= MAX_LOGIN_ATTEMPTS) {
-                    nextAttempts.count = 0;
-                    nextAttempts.lockedUntil = Date.now() + LOCKOUT_DURATION_MS;
-                }
-                saveAttemptState(nextAttempts);
-                throw new Error('Invalid email or password. Please try again.');
-            }
+            // Attempt login against real backend API
+            try {
+                const response = await fetch(`${API_BASE}/api/v1/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ email: email.trim().toLowerCase(), password })
+                });
 
-            saveAttemptState({ count: 0, lockedUntil: 0 });
-            Auth.createSession(user.id, rememberMe);
-            return user;
+                if (response.ok) {
+                    const data = await response.json();
+                    saveAttemptState({ count: 0, lockedUntil: 0 });
+                    const user = {
+                        id: data.user.id,
+                        full_name: data.user.full_name,
+                        email: data.user.email,
+                        role: data.user.role_ids && data.user.role_ids.length ? 'admin' : 'donor',
+                        role_ids: data.user.role_ids
+                    };
+                    Auth.createSession(user.id, rememberMe, user);
+                    return user;
+                } else {
+                    const errData = await response.json().catch(() => ({}));
+                    const errMsg = (errData.error && errData.error.message) || 'Invalid email or password. Please try again.';
+                    
+                    const nextAttempts = attempts.lockedUntil && attempts.lockedUntil <= Date.now()
+                        ? { count: 0, lockedUntil: 0 }
+                        : attempts;
+                    nextAttempts.count += 1;
+                    if (nextAttempts.count >= MAX_LOGIN_ATTEMPTS) {
+                        nextAttempts.count = 0;
+                        nextAttempts.lockedUntil = Date.now() + LOCKOUT_DURATION_MS;
+                    }
+                    saveAttemptState(nextAttempts);
+                    throw new Error(errMsg);
+                }
+            } catch (networkErr) {
+                // If it was an explicit API error rethrow
+                if (networkErr.message && !networkErr.message.includes('fetch') && !networkErr.message.includes('Failed to fetch')) {
+                    throw networkErr;
+                }
+                // Fallback to local DB for offline mock testing
+                const user = window.SwanDB && window.SwanDB.getUserByEmail ? window.SwanDB.getUserByEmail(email) : null;
+                if (!user || user.password_hash !== password) {
+                    throw new Error('Invalid email or password. Please try again.');
+                }
+                saveAttemptState({ count: 0, lockedUntil: 0 });
+                Auth.createSession(user.id, rememberMe, user);
+                return user;
+            }
         },
 
         // Password Reset Request
@@ -152,18 +194,12 @@
             if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
                 throw new Error('Please enter a valid email address.');
             }
-            const user = window.SwanDB.getUserByEmail(email);
-            if (!user) {
-                // For security, don't disclose non-existent accounts, return true
-                return true;
-            }
-            // Simulated reset token sent
             return true;
         },
 
         // Reset password
         resetPassword: function (email, newPassword) {
-            const user = window.SwanDB.getUserByEmail(email);
+            const user = window.SwanDB ? window.SwanDB.getUserByEmail(email) : null;
             if (!user) throw new Error('User not found.');
             const passErr = Auth.validatePasswordStrength(newPassword);
             if (passErr) throw new Error(passErr);
@@ -173,10 +209,11 @@
         },
 
         // Session creation
-        createSession: function (userId, rememberMe) {
+        createSession: function (userId, rememberMe, userData = null) {
             const now = Date.now();
             const session = {
                 user_id: userId,
+                user: userData,
                 logged_at: new Date(now).toISOString(),
                 expires_at: new Date(now + SESSION_DURATION_MS).toISOString()
             };
@@ -189,8 +226,16 @@
         },
 
         // Logout
-        logout: function () {
+        logout: async function () {
             if (!window.confirm('Are you sure you want to log out?')) return;
+            try {
+                await fetch(`${API_BASE}/api/v1/auth/logout`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+            } catch (e) {
+                // ignore network error on logout
+            }
             sessionStorage.removeItem(SESSION_KEY);
             localStorage.removeItem(SESSION_KEY);
             window.location.href = 'index.html';
