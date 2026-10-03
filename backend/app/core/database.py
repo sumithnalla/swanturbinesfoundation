@@ -48,15 +48,21 @@ async def disconnect_db() -> None:
 
 def get_db() -> AsyncIOMotorDatabase:
     """Return the active database instance."""
+    global _client, _db, _gridfs
     if _db is None:
-        raise RuntimeError("Database not initialised. Call connect_db() first.")
+        _client = AsyncIOMotorClient(settings.MONGODB_URI, serverSelectionTimeoutMS=2000)
+        _db = _client[settings.DATABASE_NAME]
+        _gridfs = AsyncIOMotorGridFSBucket(_db, bucket_name="request_documents")
     return _db
 
 
 def get_gridfs() -> AsyncIOMotorGridFSBucket:
     """Return the GridFS bucket for request documents."""
+    global _client, _db, _gridfs
     if _gridfs is None:
-        raise RuntimeError("Database not initialised. Call connect_db() first.")
+        _client = AsyncIOMotorClient(settings.MONGODB_URI, serverSelectionTimeoutMS=2000)
+        _db = _client[settings.DATABASE_NAME]
+        _gridfs = AsyncIOMotorGridFSBucket(_db, bucket_name="request_documents")
     return _gridfs
 
 

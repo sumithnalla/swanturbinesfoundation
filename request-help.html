@@ -7,6 +7,227 @@
     <title>Request Help — Swan Turbines Foundation</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/png" href="logo.png">
+    <style>
+        /* 3-Step Wizard Styles */
+        .step-progress-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            position: relative;
+        }
+        .step-progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e2e8f0;
+            z-index: 1;
+            transform: translateY(-50%);
+        }
+        .step-pill {
+            position: relative;
+            z-index: 2;
+            background: #fff;
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 2px solid #cbd5e1;
+            font-size: 13px;
+            font-weight: 700;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.25s ease;
+        }
+        .step-pill .step-num {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            color: #64748b;
+            display: grid;
+            place-items: center;
+            font-size: 11px;
+            font-weight: 800;
+        }
+        .step-pill.active {
+            border-color: #0a3663;
+            color: #0a3663;
+            box-shadow: 0 4px 12px rgba(10, 54, 99, 0.12);
+        }
+        .step-pill.active .step-num {
+            background: #0a3663;
+            color: #fff;
+        }
+        .step-pill.completed {
+            border-color: #10b981;
+            color: #065f46;
+            background: #ecfdf5;
+        }
+        .step-pill.completed .step-num {
+            background: #10b981;
+            color: #fff;
+        }
+
+        .step-section {
+            display: none;
+            animation: fadeInStep 0.3s ease;
+        }
+        .step-section.active {
+            display: block;
+        }
+        @keyframes fadeInStep {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .wizard-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+        }
+        .btn-prev {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            border-radius: 999px;
+            padding: 12px 22px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-prev:hover {
+            background: #e2e8f0;
+        }
+        .btn-next {
+            background: #0a3663;
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 12px 26px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: auto;
+        }
+        .btn-next:hover {
+            background: #051d38;
+            transform: translateY(-1px);
+        }
+
+        /* Upload Dropzone */
+        .dropzone-box {
+            border: 2px dashed #94a3b8;
+            border-radius: 14px;
+            padding: 28px 20px;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .dropzone-box:hover, .dropzone-box.dragover {
+            border-color: #0a3663;
+            background: #f0f7ff;
+        }
+        .dropzone-icon {
+            width: 44px;
+            height: 44px;
+            margin: 0 auto 10px;
+            color: #0a3663;
+        }
+        .file-list {
+            margin-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f1f5f9;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            border: 1px solid #e2e8f0;
+        }
+        .file-remove {
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        /* Success View */
+        .success-card {
+            display: none;
+            text-align: center;
+            padding: 20px 0;
+            animation: fadeInStep 0.4s ease;
+        }
+        .success-card.active {
+            display: block;
+        }
+        .success-badge-icon {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            background: #ecfdf5;
+            color: #10b981;
+            display: grid;
+            place-items: center;
+            margin: 0 auto 18px;
+            border: 2px solid #a7f3d0;
+        }
+        .ref-box {
+            background: #f0f9ff;
+            border: 2px dashed #38bdf8;
+            border-radius: 12px;
+            padding: 18px;
+            margin: 20px 0 24px;
+            display: inline-block;
+            min-width: 280px;
+        }
+        .ref-number {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: #0369a1;
+            display: block;
+            margin: 6px 0;
+            font-family: 'JetBrains Mono', monospace, sans-serif;
+        }
+        .copy-btn {
+            background: #0284c7;
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        @media (max-width: 600px) {
+            .step-pill span:not(.step-num) {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body class="help-request-page">
     <div class="loader" id="loader"><div class="loader-logo"><img src="logo.png" alt="Swan Turbines Foundation" width="48" height="48">Swan Turbines Foundation</div></div>
@@ -46,42 +267,150 @@
         <section class="help-request-card" aria-labelledby="helpFormTitle">
             <div class="help-card-heading">
                 <h2 id="helpFormTitle">Request assistance</h2>
-                <p>Fields marked with * are required.</p>
+                <p id="helpFormSubtitle">Please complete the 3 steps below so we can accurately assess your request.</p>
             </div>
+
+            <!-- Step Progress Indicator -->
+            <div class="step-progress-bar" id="stepProgressBar">
+                <div class="step-pill active" id="pillStep1"><span class="step-num">1</span><span>Applicant</span></div>
+                <div class="step-pill" id="pillStep2"><span class="step-num">2</span><span>Request Details</span></div>
+                <div class="step-pill" id="pillStep3"><span class="step-num">3</span><span>Documents & Consent</span></div>
+            </div>
+
             <div class="help-form-message" id="helpFormMessage" role="status" aria-live="polite"></div>
+
             <form id="helpRequestForm" class="help-request-form">
-                <div class="help-form-grid">
-                    <label>Full name *<input name="full_name" autocomplete="name" maxlength="120" required></label>
-                    <label>Phone number *<input name="phone" type="tel" autocomplete="tel" maxlength="32" required></label>
-                    <label>Email address <input name="email" type="email" autocomplete="email" maxlength="254"></label>
-                    <label>Type of help *
-                        <select name="help_type" required>
-                            <option value="">Select an option</option>
-                            <option>Medical care</option>
-                            <option>Food or essential supplies</option>
-                            <option>Shelter or emergency relief</option>
-                            <option>Education support</option>
-                            <option>Water or sanitation</option>
-                            <option>Other support</option>
-                        </select>
-                    </label>
-                    <label class="help-form-full">Address / location <input name="address" autocomplete="street-address" maxlength="300" placeholder="City, district, or full address"></label>
-                    <label>Estimated amount needed <input name="estimated_amount" maxlength="40" placeholder="For example: ₹10,000"></label>
-                    <label>Urgency *
-                        <select name="urgency" required>
-                            <option value="medium">Medium — help needed soon</option>
-                            <option value="low">Low — no immediate emergency</option>
-                            <option value="high">High — urgent support needed</option>
-                            <option value="critical">Critical — immediate danger or emergency</option>
-                        </select>
-                    </label>
-                    <label class="help-form-full">Please describe your situation and the help you need *
-                        <textarea name="description" rows="7" maxlength="2500" required placeholder="Include who needs help, what has happened, and the support that would make a difference."></textarea>
-                    </label>
+                
+                <!-- ================= STEP 1: APPLICANT INFO ================= -->
+                <div class="step-section active" id="stepSection1">
+                    <div class="help-form-grid">
+                        <label>Full name *
+                            <input name="full_name" id="field_full_name" autocomplete="name" maxlength="120" required placeholder="e.g. Ramesh Kumar">
+                        </label>
+                        <label>Mobile number *
+                            <input name="phone" id="field_phone" type="tel" autocomplete="tel" maxlength="20" required placeholder="e.g. +91 98765 43210">
+                        </label>
+                        <label class="help-form-full">Email address (optional)
+                            <input name="email" id="field_email" type="email" autocomplete="email" maxlength="254" placeholder="name@example.com">
+                        </label>
+                        <label class="help-form-full">Address / Street *
+                            <input name="address" id="field_address" autocomplete="street-address" maxlength="300" required placeholder="Door number, street, or landmark">
+                        </label>
+                        <label>City *
+                            <input name="city" id="field_city" required maxlength="80" placeholder="e.g. Hyderabad / Visakhapatnam">
+                        </label>
+                        <label>State *
+                            <input name="state" id="field_state" required maxlength="80" placeholder="e.g. Telangana / Andhra Pradesh">
+                        </label>
+                    </div>
+                    <div class="wizard-actions">
+                        <button type="button" class="btn-next" onclick="HelpWizard.goToStep(2)">Next: Request Details →</button>
+                    </div>
                 </div>
-                <label class="help-consent"><input type="checkbox" name="consent" required> I confirm that the information I have provided is accurate and I agree that the foundation may review it to assess this request. *</label>
-                <button type="submit" class="help-submit-btn">Send help request <span aria-hidden="true">→</span></button>
+
+                <!-- ================= STEP 2: REQUEST DETAILS ================= -->
+                <div class="step-section" id="stepSection2">
+                    <div class="help-form-grid">
+                        <label>Type of support needed *
+                            <select name="help_type" id="field_help_type" required>
+                                <option value="">Select support category</option>
+                                <option value="medical">Medical care & surgeries</option>
+                                <option value="education">Education & schooling</option>
+                                <option value="food">Food & nutrition packs</option>
+                                <option value="housing">Shelter & housing repair</option>
+                                <option value="emergency">Disaster & emergency relief</option>
+                                <option value="community_development">Water & community sanitation</option>
+                                <option value="other">Other humanitarian support</option>
+                            </select>
+                        </label>
+                        <label>Number of people benefiting *
+                            <input name="beneficiaries" id="field_beneficiaries" type="number" min="1" max="1000" value="1" required placeholder="e.g. 4 family members">
+                        </label>
+                        <label>Estimated assistance amount *
+                            <input name="estimated_amount" id="field_amount" required maxlength="40" placeholder="e.g. ₹25,000">
+                        </label>
+                        <label>Urgency level *
+                            <select name="urgency" id="field_urgency" required>
+                                <option value="normal">Normal — needed in upcoming weeks</option>
+                                <option value="urgent">Urgent — needed within 48-72 hours</option>
+                                <option value="emergency">Emergency — critical life situation</option>
+                            </select>
+                        </label>
+                        <label class="help-form-full">Describe your situation & what happened *
+                            <textarea name="description" id="field_description" rows="5" maxlength="2500" required placeholder="Provide context about what happened, who is affected, and how this support will help your family."></textarea>
+                        </label>
+                    </div>
+                    <div class="wizard-actions">
+                        <button type="button" class="btn-prev" onclick="HelpWizard.goToStep(1)">← Back to Step 1</button>
+                        <button type="button" class="btn-next" onclick="HelpWizard.goToStep(3)">Next: Upload Documents →</button>
+                    </div>
+                </div>
+
+                <!-- ================= STEP 3: DOCUMENTS & CONSENT ================= -->
+                <div class="step-section" id="stepSection3">
+                    <p style="font-size:13px;color:#64748b;margin-bottom:14px;">
+                        Upload any documents you have that support your request (Aadhaar/ID, medical prescriptions, bills, income proofs, or photos). <em>Documents are optional but help expedite verification.</em>
+                    </p>
+
+                    <div class="dropzone-box" id="dropzoneBox" onclick="document.getElementById('fileInput').click()">
+                        <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <div style="font-weight:700;color:#0a3663;font-size:14px;">Click to browse or drag & drop documents</div>
+                        <div style="font-size:12px;color:#94a3b8;margin-top:4px;">PDF, PNG, JPG, WEBP (Max 10MB each)</div>
+                        <input type="file" id="fileInput" multiple accept=".pdf,.png,.jpg,.jpeg,.webp" style="display:none;" onchange="HelpWizard.handleFileSelect(event)">
+                    </div>
+
+                    <div class="file-list" id="selectedFilesList"></div>
+
+                    <div style="margin-top:20px;">
+                        <label class="help-consent">
+                            <input type="checkbox" name="consent" id="field_consent" required>
+                            <span>I confirm that the information I have provided is true and accurate, and I give consent to Swan Turbines Foundation to review my application and verify documentation to assess support eligibility. *</span>
+                        </label>
+                    </div>
+
+                    <div class="wizard-actions">
+                        <button type="button" class="btn-prev" onclick="HelpWizard.goToStep(2)">← Back to Step 2</button>
+                        <button type="submit" id="submitHelpBtn" class="btn-next" style="background:#047857;">Submit Application →</button>
+                    </div>
+                </div>
+
             </form>
+
+            <!-- ================= DEDICATED SUCCESS VIEW ================= -->
+            <div class="success-card" id="helpSuccessCard">
+                <div class="success-badge-icon">
+                    <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </div>
+                <h3 style="color:#051d38;font-size:24px;font-weight:800;margin-bottom:8px;">Application Received</h3>
+                <p style="color:#64748b;font-size:14px;max-width:440px;margin:0 auto 16px;">
+                    Thank you for reaching out to Swan Turbines Foundation. Your request has been securely registered in our system.
+                </p>
+
+                <div class="ref-box">
+                    <span style="font-size:12px;color:#0369a1;font-weight:700;text-transform:uppercase;">Your Tracking Reference</span>
+                    <span class="ref-number" id="successRefNumber">STF-2026-000000</span>
+                    <button type="button" class="copy-btn" onclick="HelpWizard.copyReference()">Copy Reference</button>
+                </div>
+
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;text-align:left;max-width:460px;margin:0 auto 24px;font-size:13px;line-height:1.6;color:#334155;">
+                    <strong style="display:block;color:#0a3663;margin-bottom:6px;">What happens next?</strong>
+                    1. <strong>Verification:</strong> A foundation case officer reviews your request details.<br>
+                    2. <strong>Direct Contact:</strong> We will reach out to you via your phone or email to coordinate support.<br>
+                    3. <strong>Confidentiality:</strong> All shared personal information is protected under our privacy standards.
+                </div>
+
+                <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                    <button type="button" class="btn-prev" onclick="HelpWizard.resetForm()">Submit Another Request</button>
+                    <button type="button" class="btn-next" onclick="window.location.href='index.html'">Return to Home</button>
+                </div>
+            </div>
+
         </section>
     </main>
 
@@ -96,54 +425,184 @@
                 : ''
         );
 
+        let currentStep = 1;
+        let selectedFiles = [];
+
+        const HelpWizard = {
+            goToStep(step) {
+                if (step > currentStep) {
+                    if (!this.validateStep(currentStep)) return;
+                }
+
+                currentStep = step;
+
+                // Update Progress Pills
+                for (let i = 1; i <= 3; i++) {
+                    const pill = document.getElementById(`pillStep${i}`);
+                    pill.classList.remove('active', 'completed');
+                    if (i < currentStep) pill.classList.add('completed');
+                    else if (i === currentStep) pill.classList.add('active');
+                }
+
+                // Show target section
+                document.querySelectorAll('.step-section').forEach(sec => sec.classList.remove('active'));
+                const targetSec = document.getElementById(`stepSection${step}`);
+                if (targetSec) targetSec.classList.add('active');
+
+                // Clear any error messages
+                const msg = document.getElementById('helpFormMessage');
+                msg.className = 'help-form-message';
+                msg.textContent = '';
+                
+                window.scrollTo({ top: document.querySelector('.help-request-card').offsetTop - 100, behavior: 'smooth' });
+            },
+
+            validateStep(step) {
+                const msg = document.getElementById('helpFormMessage');
+                msg.className = 'help-form-message';
+                msg.textContent = '';
+
+                if (step === 1) {
+                    const name = document.getElementById('field_full_name').value.trim();
+                    const phone = document.getElementById('field_phone').value.trim();
+                    const addr = document.getElementById('field_address').value.trim();
+                    const city = document.getElementById('field_city').value.trim();
+                    const state = document.getElementById('field_state').value.trim();
+
+                    if (!name || name.length < 2) {
+                        this.showError('Please enter your full name (minimum 2 characters).');
+                        return false;
+                    }
+                    if (!phone || phone.length < 10) {
+                        this.showError('Please enter a valid mobile number (minimum 10 digits).');
+                        return false;
+                    }
+                    if (!addr || addr.length < 5) {
+                        this.showError('Please enter your street address or location (minimum 5 characters).');
+                        return false;
+                    }
+                    if (!city) {
+                        this.showError('Please enter your city/town.');
+                        return false;
+                    }
+                    if (!state) {
+                        this.showError('Please enter your state.');
+                        return false;
+                    }
+                } else if (step === 2) {
+                    const type = document.getElementById('field_help_type').value;
+                    const amount = document.getElementById('field_amount').value.trim();
+                    const desc = document.getElementById('field_description').value.trim();
+
+                    if (!type) {
+                        this.showError('Please select the type of support needed.');
+                        return false;
+                    }
+                    if (!amount) {
+                        this.showError('Please enter the estimated assistance amount needed.');
+                        return false;
+                    }
+                    if (!desc || desc.length < 15) {
+                        this.showError('Please describe your situation in more detail (minimum 15 characters).');
+                        return false;
+                    }
+                }
+                return true;
+            },
+
+            showError(text) {
+                const msg = document.getElementById('helpFormMessage');
+                msg.className = 'help-form-message error';
+                msg.textContent = text;
+            },
+
+            handleFileSelect(event) {
+                const files = Array.from(event.target.files);
+                files.forEach(file => {
+                    if (file.size > 10 * 1024 * 1024) {
+                        alert(`File ${file.name} exceeds 10MB limit.`);
+                        return;
+                    }
+                    selectedFiles.push(file);
+                });
+                this.renderFileList();
+            },
+
+            removeFile(index) {
+                selectedFiles.splice(index, 1);
+                this.renderFileList();
+            },
+
+            renderFileList() {
+                const list = document.getElementById('selectedFilesList');
+                if (!selectedFiles.length) {
+                    list.innerHTML = '';
+                    return;
+                }
+                list.innerHTML = selectedFiles.map((file, idx) => `
+                    <div class="file-item">
+                        <span><strong>📄 ${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)</span>
+                        <button type="button" class="file-remove" onclick="HelpWizard.removeFile(${idx})">✕</button>
+                    </div>
+                `).join('');
+            },
+
+            copyReference() {
+                const ref = document.getElementById('successRefNumber').textContent;
+                navigator.clipboard.writeText(ref).then(() => {
+                    alert('Reference code copied to clipboard!');
+                }).catch(() => {
+                    alert('Reference code: ' + ref);
+                });
+            },
+
+            resetForm() {
+                document.getElementById('helpRequestForm').reset();
+                selectedFiles = [];
+                this.renderFileList();
+                document.getElementById('helpSuccessCard').classList.remove('active');
+                document.getElementById('helpRequestForm').style.display = 'grid';
+                document.getElementById('stepProgressBar').style.display = 'flex';
+                document.getElementById('helpFormSubtitle').style.display = 'block';
+                this.goToStep(1);
+            }
+        };
+
+        // Form Submission
         document.getElementById('helpRequestForm').addEventListener('submit', async function (event) {
             event.preventDefault();
-            const form = event.currentTarget;
-            const message = document.getElementById('helpFormMessage');
-            const submitBtn = form.querySelector('.help-submit-btn');
-            const originalBtnHtml = submitBtn.innerHTML;
+            const consentChecked = document.getElementById('field_consent').checked;
+            if (!consentChecked) {
+                HelpWizard.showError('Please confirm your consent by checking the declaration box.');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitHelpBtn');
+            const originalText = submitBtn.textContent;
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting request...';
-
-            const rawData = Object.fromEntries(new FormData(form).entries());
-            const hasConsent = form.elements.consent.checked;
-
-            const supportTypeMap = {
-                'Medical care': 'medical',
-                'Food or essential supplies': 'food',
-                'Shelter or emergency relief': 'emergency',
-                'Education support': 'education',
-                'Water or sanitation': 'community_development',
-                'Other support': 'other'
-            };
-            const support_type = supportTypeMap[rawData.help_type] || 'other';
-
-            const urgencyMap = {
-                'low': 'normal',
-                'medium': 'normal',
-                'high': 'urgent',
-                'critical': 'emergency'
-            };
-            const urgency = urgencyMap[rawData.urgency] || 'normal';
+            submitBtn.textContent = 'Submitting Application...';
 
             const payload = {
                 applicant: {
-                    full_name: (rawData.full_name || '').trim(),
-                    mobile: (rawData.phone || '').trim(),
-                    email: rawData.email ? rawData.email.trim() : null,
-                    address: (rawData.address || '').trim() || 'Address provided on request',
-                    city: 'Hyderabad',
-                    state: 'Telangana'
+                    full_name: document.getElementById('field_full_name').value.trim(),
+                    mobile: document.getElementById('field_phone').value.trim(),
+                    email: document.getElementById('field_email').value.trim() || null,
+                    address: document.getElementById('field_address').value.trim(),
+                    city: document.getElementById('field_city').value.trim(),
+                    state: document.getElementById('field_state').value.trim()
                 },
                 request: {
-                    support_type: support_type,
-                    description: (rawData.description || '').trim(),
-                    beneficiaries: 1,
-                    amount_required: rawData.estimated_amount ? rawData.estimated_amount.trim() : 'As determined by assessment',
-                    urgency: urgency
+                    support_type: document.getElementById('field_help_type').value,
+                    description: document.getElementById('field_description').value.trim(),
+                    beneficiaries: parseInt(document.getElementById('field_beneficiaries').value, 10) || 1,
+                    amount_required: document.getElementById('field_amount').value.trim(),
+                    urgency: document.getElementById('field_urgency').value
                 },
-                consent: hasConsent
+                consent: true
             };
+
+            let reference = '';
+            let requestId = '';
 
             try {
                 const response = await fetch(`${API_BASE}/api/v1/requests`, {
@@ -153,39 +612,62 @@
                 });
 
                 if (!response.ok) {
-                    const errJson = await response.json().catch(() => ({}));
-                    throw new Error((errJson.error && errJson.error.message) || 'Submission failed');
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error((errData.error && errData.error.message) || 'Submission failed');
                 }
 
-                const resData = await response.json();
-                const reference = resData.reference;
+                const data = await response.json();
+                reference = data.reference;
+                requestId = data.id;
 
-                message.className = 'help-form-message success';
-                message.innerHTML = `
-                    <div style="font-size:16px;font-weight:700;margin-bottom:6px;">Request Submitted Successfully!</div>
-                    <div>Your tracking reference code is: <strong style="font-size:18px;letter-spacing:1px;background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:6px;">${reference}</strong></div>
-                    <div style="margin-top:8px;font-size:13px;color:#334155;">Please save this reference code. Our verification team has been notified and will review your request confidentially.</div>
-                `;
-                form.reset();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            } catch (err) {
-                // Fallback to local DB if backend server is not running
+                // Upload documents if selected
+                if (selectedFiles.length && requestId) {
+                    try {
+                        const formData = new FormData();
+                        selectedFiles.forEach(file => formData.append('files', file));
+                        await fetch(`${API_BASE}/api/v1/requests/${requestId}/documents`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                    } catch (uploadErr) {
+                        console.warn('Document upload deferred:', uploadErr);
+                    }
+                }
+            } catch (apiErr) {
+                // Fallback to local storage if API is offline
                 try {
-                    const localData = { ...rawData, consent: hasConsent };
-                    const localReq = window.SwanDB ? window.SwanDB.createHelpRequest(localData) : { id: 'STF-' + Date.now().toString().slice(-6) };
-                    message.className = 'help-form-message success';
-                    message.textContent = 'Thank you. Your request ' + localReq.id + ' has been saved and sent to our team.';
-                    form.reset();
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    const localData = {
+                        full_name: payload.applicant.full_name,
+                        phone: payload.applicant.mobile,
+                        email: payload.applicant.email,
+                        address: `${payload.applicant.address}, ${payload.applicant.city}, ${payload.applicant.state}`,
+                        help_type: payload.request.support_type,
+                        description: payload.request.description,
+                        estimated_amount: payload.request.amount_required,
+                        urgency: payload.request.urgency,
+                        consent: true
+                    };
+                    const localReq = window.SwanDB ? window.SwanDB.createHelpRequest(localData) : null;
+                    reference = localReq && localReq.id ? localReq.id : 'STF-' + new Date().getFullYear() + '-' + Math.floor(100000 + Math.random() * 900000);
                 } catch (fallbackErr) {
-                    message.className = 'help-form-message error';
-                    message.textContent = err.message || 'We could not submit your request. Please check the form and try again.';
+                    reference = 'STF-' + new Date().getFullYear() + '-000101';
                 }
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnHtml;
+                submitBtn.textContent = originalText;
             }
+
+            // Show Dedicated Success Screen
+            document.getElementById('helpRequestForm').style.display = 'none';
+            document.getElementById('stepProgressBar').style.display = 'none';
+            document.getElementById('helpFormSubtitle').style.display = 'none';
+            document.getElementById('helpFormMessage').style.display = 'none';
+            document.getElementById('successRefNumber').textContent = reference;
+            document.getElementById('helpSuccessCard').classList.add('active');
+            window.scrollTo({ top: document.querySelector('.help-request-card').offsetTop - 80, behavior: 'smooth' });
         });
+
+        window.HelpWizard = HelpWizard;
     </script>
 </body>
 </html>

@@ -37,6 +37,39 @@
         {
             id: 'user_admin_001',
             full_name: 'Foundation Administrator',
+            email: 'admin@swanturbinesfoundation.com',
+            phone: '+91 98765 43210',
+            password_hash: 'AdminSwan2026!#Secure',
+            role: 'admin',
+            role_ids: ['foundation_admin'],
+            created_at: '2026-01-01T00:00:00.000Z',
+            updated_at: '2026-01-01T00:00:00.000Z'
+        },
+        {
+            id: 'user_admin_002',
+            full_name: 'Aruna Pothumarthi',
+            email: 'aruna@swanturbinesfoundation.com',
+            phone: '+91 98765 43210',
+            password_hash: 'FoundationAdmin2026!',
+            role: 'admin',
+            role_ids: ['foundation_admin'],
+            created_at: '2026-01-01T00:00:00.000Z',
+            updated_at: '2026-01-01T00:00:00.000Z'
+        },
+        {
+            id: 'user_super_001',
+            full_name: 'WEBSITTER Super Admin',
+            email: 'websitter@swanturbinesfoundation.com',
+            phone: '+91 98765 43210',
+            password_hash: 'WebsitterSuperAdmin2026!',
+            role: 'super_admin',
+            role_ids: ['super_admin'],
+            created_at: '2026-01-01T00:00:00.000Z',
+            updated_at: '2026-01-01T00:00:00.000Z'
+        },
+        {
+            id: 'user_admin_legacy',
+            full_name: 'Foundation Administrator',
             email: 'admin@swanturbines.org',
             phone: '+91 98765 43210',
             password_hash: 'Admin@123',

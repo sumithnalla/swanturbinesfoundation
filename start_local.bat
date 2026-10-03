@@ -22,11 +22,24 @@ echo   - Foundation Admin Login:    http://localhost:5500/adminlogin/index.html
 echo   - WEBSITTER Super-Admin:     http://localhost:5500/manage/index.html
 echo   - API Interactive Docs:      http://localhost:8000/docs
 echo.
+echo =========================================================================
+echo TEST CREDENTIALS:
+echo   [1] Foundation Admin Portal (http://localhost:5500/adminlogin/index.html):
+echo       Email:    admin@swanturbinesfoundation.com
+echo       Password: AdminSwan2026!#Secure
+echo.
+echo   [2] WEBSITTER Super-Admin (http://localhost:5500/manage/index.html):
+echo       Email:    websitter@swanturbinesfoundation.com
+echo       Password: WebsitterSuperAdmin2026!
+echo =========================================================================
+echo.
 
 start http://localhost:5500/index.html
+start http://localhost:5500/request-help.html
 start http://localhost:5500/adminlogin/index.html
 start http://localhost:5500/manage/index.html
 start http://localhost:8000/docs
+
 
 echo =========================================================================
 echo All servers are live! Keep the background command windows open while testing.

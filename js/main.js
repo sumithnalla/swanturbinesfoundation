@@ -53,8 +53,8 @@ window.addEventListener("load", () => window.setTimeout(hideLoader, 350), { once
 
 window.addEventListener("scroll", () => {
 
-    const nav =
-        document.getElementById("navbar");
+    const nav = document.getElementById("navbar");
+    if (!nav) return;
 
     const currentPath = window.location.pathname;
     const pageId = currentPath.split('/').pop().replace('.html', '') || 'home';
@@ -98,6 +98,7 @@ function setActiveNav() {
 
     // Force navbar background on inner pages
     const nav = document.getElementById("navbar");
+    if (!nav) return;
     if (navPageId !== "home") {
         nav.classList.add("scrolled");
     } else if (window.scrollY <= 40) {

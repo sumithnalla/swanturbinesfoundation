@@ -19,16 +19,21 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
+from datetime import datetime, timezone
+
+
 def _build_user_out(user: dict) -> UserOut:
+    now = datetime.now(timezone.utc)
     return UserOut(
-        id=user["id"],
-        full_name=user["full_name"],
-        email=user["email"],
+        id=str(user.get("id") or user.get("_id", "")),
+        full_name=user.get("full_name", ""),
+        email=user.get("email", ""),
         is_active=user.get("is_active", True),
         role_ids=[str(r) for r in user.get("role_ids", [])],
-        created_at=user["created_at"],
-        updated_at=user["updated_at"],
+        created_at=user.get("created_at") or now,
+        updated_at=user.get("updated_at") or now,
     )
+
 
 
 @router.post("/login", response_model=LoginResponse)

@@ -8,9 +8,14 @@ from pydantic import field_validator
 from typing import List
 
 
+from pathlib import Path
+
+_backend_env = Path(__file__).resolve().parent.parent.parent / ".env"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(_backend_env) if _backend_env.exists() else ".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
         extra="ignore",
@@ -30,7 +35,11 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 480  # 8 hours
 
     # CORS — parsed from comma-separated string
-    CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
+    CORS_ORIGINS: str = (
+        "http://localhost:5500,http://127.0.0.1:5500,http://localhost:3000,http://127.0.0.1:3000,"
+        "http://localhost:8000,http://127.0.0.1:8000,https://swanturbinesfoundation.com,"
+        "https://admin.swanturbinesfoundation.com,https://manage.swanturbinesfoundation.com"
+    )
 
     # Email
     RESEND_API_KEY: str = ""
