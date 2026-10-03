@@ -227,6 +227,12 @@ async def seed():
             "role_name": "foundation_admin",
         },
         {
+            "full_name": "Foundation Administrator",
+            "email": "admin@swanturbinesfoundation.com",
+            "password": "AdminSwan2026!#Secure",
+            "role_name": "foundation_admin",
+        },
+        {
             "full_name": "WEBSITTER Super Admin",
             "email": "websitter@swanturbinesfoundation.com",
             "password": "WebsitterSuperAdmin2026!",
