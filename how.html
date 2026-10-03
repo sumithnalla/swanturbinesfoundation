@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Brightaid — Impact Through Kindness</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="logo.png">
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+     LOADER
+===================================================== -->
+
+    <div class="loader" id="loader">
+
+        <div class="loader-logo" style="display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 700;">
+            <img src="logo.png" alt="Swan Turbans Foundation" width="48" height="48" style="object-fit: contain; display: block;">
+            Swan Turbans Foundation
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+     CUSTOM CURSOR
+===================================================== -->
+
+    
+
+
+    <!-- =====================================================
+     NAVIGATION
+===================================================== -->
+
+    <header class="site-nav" id="navbar">
+
+        <div class="nav-inner">
+
+            <a href="index.html" class="logo">
+                <img src="logo.png" alt="Swan Turbans Foundation Logo" width="50" height="50" style="object-fit: contain; display: block;">
+                Swan Turbans Foundation
+            </a>
+
+
+            <nav class="nav-links">
+
+                <button data-page="home" onclick="window.location.href='index.html'">
+                    Home
+                </button>
+
+                <button data-page="campaigns" onclick="window.location.href='campaigns.html'">
+                    Campaigns
+                </button>
+
+                <button data-page="how" onclick="window.location.href='how.html'">
+                    How It Works
+                </button>
+
+                <button data-page="resources" onclick="window.location.href='resources.html'">
+                    Resources
+                </button>
+
+                <button data-page="contact" onclick="window.location.href='contact.html'">
+                    Contact
+                </button>
+
+            </nav>
+
+
+            <button class="menu-btn" onclick="toggleMobileMenu()">
+                ☰
+            </button>
+
+
+            <button class="start-btn" onclick="openDonation()">
+
+                Get started
+
+                <span class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M5 12h14M13 6l6 6-6 6" />
+                    </svg>
+                </span>
+
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================================
+     MOBILE MENU
+===================================================== -->
+
+    <div id="mobileMenu">
+        <button onclick="window.location.href='index.html';closeMobileMenu()">Home</button>
+        <button onclick="window.location.href='campaigns.html';closeMobileMenu()">Campaigns</button>
+
+        <button onclick="window.location.href='how.html';closeMobileMenu()">How It Works</button>
+        <button onclick="window.location.href='resources.html';closeMobileMenu()">Resources</button>
+        <button onclick="window.location.href='contact.html';closeMobileMenu()">Contact</button>
+    </div>
+
+
+    <!-- =====================================================
+     HOME
+===================================================== -->
+
+    <section id="how" class="page active">
+
+        <div class="inner-page">
+
+            <div class="page-heading">
+
+                <div class="page-label">
+                    How it works
+                </div>
+
+                <h1>
+                    Small acts.
+                    Real impact.
+                </h1>
+
+                <p>
+                    Supporting a cause should be simple,
+                    transparent and meaningful.
+                </p>
+
+            </div>
+
+
+            <section class="stepper-section">
+
+                <div class="stepper-wrap">
+
+
+                    <!-- STEPPER -->
+
+                    <div class="stepper-progress">
+
+                        <div class="step-circle active" id="circle1">
+                            01
+                        </div>
+
+                        <div class="step-line active" id="line1">
+                        </div>
+
+                        <div class="step-circle" id="circle2">
+                            02
+                        </div>
+
+                        <div class="step-line" id="line2">
+                        </div>
+
+                        <div class="step-circle" id="circle3">
+                            03
+                        </div>
+
+                        <div class="step-line" id="line3">
+                        </div>
+
+                        <div class="step-circle" id="circle4">
+                            04
+                        </div>
+
+                    </div>
+
+
+                    <!-- STEP CONTENT -->
+
+                    <div class="step-content" id="stepContent">
+
+                        <div class="step-number">
+                            Step 01
+                        </div>
+
+                        <h2>
+                            Choose a cause
+                        </h2>
+
+                        <p>
+                            Explore campaigns and find a cause
+                            that connects with you.
+                        </p>
+
+                    </div>
+
+
+                    <div class="step-buttons">
+
+                        <button class="step-btn" onclick="previousStep()">
+                            Previous
+                        </button>
+
+                        <button class="step-btn next" onclick="nextStep()">
+                            Next
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+     RESOURCES
+===================================================== -->
+
+    <!-- =====================================================
+     FOOTER
+===================================================== -->
+
+    <footer class="footer">
+
+        <div class="footer-top">
+
+
+            <div class="footer-brand">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px; font-weight: 700; font-size: 24px; color: #fff;">
+                    <img src="logo.png" alt="Swan Turbans Foundation" width="48" height="48" style="object-fit: contain; display: block;">
+                    Swan Turbans Foundation
+                </div>
+                <p>
+                    Every act of kindness brings comfort,
+                    relief and hope to people who need it most.
+                </p>
+
+            </div>
+
+
+            <div class="footer-col">
+
+                <h4>
+                    EXPLORE
+                </h4>
+
+                <button onclick="window.location.href='index.html'">
+                    Home
+                </button>
+
+                <button onclick="window.location.href='campaigns.html'">
+                    Campaigns
+                </button>
+
+                <button onclick="window.location.href='about.html'">
+                    About Us
+                </button>
+
+            </div>
+
+
+            <div class="footer-col">
+
+                <h4>
+                    LEARN
+                </h4>
+
+                <button onclick="window.location.href='how.html'">
+                    How It Works
+                </button>
+
+                <button onclick="window.location.href='resources.html'">
+                    Resources
+                </button>
+
+                <button onclick="window.location.href='contact.html'">
+                    Contact
+                </button>
+
+            </div>
+
+
+            <div class="footer-col">
+
+                <h4>
+                    LEGAL & COMPLIANCE
+                </h4>
+
+                <button onclick="window.location.href='terms-and-conditions.html'">
+                    Terms & Conditions
+                </button>
+
+                <button onclick="window.location.href='privacy-policy.html'">
+                    Privacy Policy
+                </button>
+
+                <button onclick="window.location.href='refund-policy.html'">
+                    Refund Policy
+                </button>
+
+            </div>
+
+
+            <div class="footer-col">
+
+                <h4>
+                    SUPPORT
+                </h4>
+
+                <button onclick="openDonation()">
+                    Donate Now
+                </button>
+
+                <button onclick="window.location.href='campaigns.html'">
+                    View Campaigns
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="footer-bottom">
+
+            © 2026 Swan Turbines Foundation. Impact Through Kindness. &nbsp;|&nbsp; <a href="terms-and-conditions.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Terms & Conditions</a> &nbsp;|&nbsp; <a href="privacy-policy.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Privacy Policy</a> &nbsp;|&nbsp; <a href="refund-policy.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Refund/Cancellation Policy</a>
+
+        </div>
+
+    </footer>
+
+
+    <!-- =====================================================
+     DONATION MODAL
+===================================================== -->
+
+    <div class="modal" id="donationModal">
+
+        <div class="modal-box">
+
+            <div class="modal-header">
+
+                <h2>
+                    Make a Difference
+                </h2>
+
+                <button class="close-modal" onclick="closeDonation()">
+                    ×
+                </button>
+
+            </div>
+
+
+            <p style="
+                color:#777;
+                font-size:14px;
+                line-height:1.5;
+                margin-top:12px;
+            ">
+
+                Your contribution can help provide
+                meaningful support to children and families.
+
+            </p>
+
+
+            <div class="amount-options">
+
+                <button class="amount selected" onclick="selectAmount(this)">
+                    ₹500
+                </button>
+
+                <button class="amount" onclick="selectAmount(this)">
+                    ₹1,000
+                </button>
+
+                <button class="amount" onclick="selectAmount(this)">
+                    ₹2,500
+                </button>
+
+                <button class="amount" onclick="selectAmount(this)">
+                    ₹5,000
+                </button>
+
+            </div>
+
+
+            <input id="customAmount" type="number" placeholder="Enter custom amount" style="
+                width:100%;
+                height:45px;
+                border:1px solid #ddd;
+                border-radius:10px;
+                padding:0 15px;
+                outline:none;
+                margin-bottom:15px;
+            ">
+
+
+            <div class="donation-consent-container" style="margin-bottom:15px;">
+                <label class="donation-consent-label">
+                    <input type="checkbox" id="modalConsentCheck" onchange="document.getElementById('modalDonateSubmit').disabled = !this.checked">
+                    <span>I have read and agree to the <a href="terms-and-conditions.html" target="_blank">Terms & Conditions</a> and <a href="privacy-policy.html" target="_blank">Privacy Policy</a>.</span>
+                </label>
+                <div class="donation-disclaimer-text">
+                    Please review our <a href="terms-and-conditions.html" target="_blank">Terms & Conditions</a>, <a href="privacy-policy.html" target="_blank">Privacy Policy</a> and <a href="refund-policy.html" target="_blank">Refund/Cancellation Policy</a> before completing your donation.
+                </div>
+            </div>
+
+
+            <button class="donate-submit" id="modalDonateSubmit" disabled onclick="processDonation()">
+
+                Continue to Donation →
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <script src="js/db.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/receipt.js"></script>
+    <script src="js/main.js"></script>
+
+</body>
+
+</html>

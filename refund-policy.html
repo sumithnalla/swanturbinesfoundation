@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Refund & Cancellation Policy for Swan Turbines Foundation donations.">
+    <title>Refund & Cancellation Policy — Swan Turbines Foundation</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="logo.png">
+</head>
+
+<body>
+
+    <!-- LOADER -->
+    <div class="loader" id="loader">
+        <div class="loader-logo">
+            <img src="logo.png" alt="Swan Turbines Foundation" width="48" height="48">
+            Swan Turbines Foundation
+        </div>
+    </div>
+
+    <!-- NAVIGATION -->
+    <header class="site-nav" id="navbar">
+        <div class="nav-inner">
+            <a href="index.html" class="logo">
+                <img src="logo.png" alt="Swan Turbines Foundation Logo" width="50" height="50">
+                Swan Turbines Foundation
+            </a>
+
+            <nav class="nav-links" aria-label="Primary navigation">
+                <button data-page="home" onclick="window.location.href='index.html'">Home</button>
+                <button data-page="campaigns" onclick="window.location.href='campaigns.html'">Campaigns</button>
+                <button data-page="how" onclick="window.location.href='how.html'">How It Works</button>
+                <button data-page="resources" onclick="window.location.href='resources.html'">Resources</button>
+                <button data-page="contact" onclick="window.location.href='contact.html'">Contact</button>
+            </nav>
+
+            <button class="menu-btn" type="button" onclick="toggleMobileMenu()" aria-label="Open navigation menu">☰</button>
+
+            <button class="start-btn" type="button" onclick="openDonation(this)">
+                Get started
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MOBILE MENU -->
+    <div id="mobileMenu">
+        <button onclick="window.location.href='index.html';closeMobileMenu()">Home</button>
+        <button onclick="window.location.href='campaigns.html';closeMobileMenu()">Campaigns</button>
+        <button onclick="window.location.href='how.html';closeMobileMenu()">How It Works</button>
+        <button onclick="window.location.href='resources.html';closeMobileMenu()">Resources</button>
+        <button onclick="window.location.href='contact.html';closeMobileMenu()">Contact</button>
+    </div>
+
+    <main class="page active">
+        <div class="inner-page">
+            <div class="page-heading">
+                <div class="page-label">Legal & Compliance</div>
+                <h1>Refund & Cancellation Policy</h1>
+                <p>Transparent guidelines on donation cancellations, technical resolution, and refund eligibility.</p>
+            </div>
+
+            <div class="legal-container">
+                <div class="legal-content-card">
+                    <div class="legal-meta">
+                        <span class="legal-meta-badge">Donation Safeguards</span>
+                        <span>Effective Date: August 3, 2026</span>
+                        <span>·</span>
+                        <span>Swan Turbines Foundation</span>
+                    </div>
+
+                    <div class="legal-body">
+                        <section>
+                            <h2>1. General Principles</h2>
+                            <p><strong>Swan Turbines Foundation</strong> is a registered public charitable trust. Voluntary donations made to support our humanitarian programs are committed immediately to ongoing community relief projects, healthcare initiatives, and educational programs.</p>
+                            <p>Because contributed funds are deployed promptly for charitable purposes, donations are generally considered final and non-refundable, except under specific circumstances outlined below.</p>
+                        </section>
+
+                        <section>
+                            <h2>2. Eligible Circumstances for Refund Requests</h2>
+                            <p>We review refund requests in good faith under the following specific situations:</p>
+                            <ul>
+                                <li><strong>Technical Double Charge:</strong> Your bank account or payment card was debited multiple times for a single intended donation due to payment gateway lag or connection failure.</li>
+                                <li><strong>Incorrect Amount Entered:</strong> An inadvertent typographical error resulted in a donation amount higher than intended (e.g., entering ₹50,000 instead of ₹5,000).</li>
+                                <li><strong>Unauthorized Transaction:</strong> A transaction was executed using your payment instrument without your authorization or knowledge.</li>
+                            </ul>
+                        </section>
+
+                        <section>
+                            <h2>3. Refund Request Window & Conditions</h2>
+                            <div class="legal-highlight-box">
+                                <p><strong>Time Limit:</strong> All refund requests must be submitted in writing within <strong>7 calendar days</strong> from the date of the transaction. Requests received after 7 days will be reviewed at the sole discretion of the Board of Trustees.</p>
+                            </div>
+                            <p>To process a refund request, the following information must be provided:</p>
+                            <ul>
+                                <li>Donor Full Name, Email Address, and Phone Number.</li>
+                                <li>Date and exact amount of transaction.</li>
+                                <li>Transaction Reference ID / Payment Gateway Order ID.</li>
+                                <li>Detailed explanation of the technical error or reason for the request.</li>
+                                <li>Proof of transaction (bank statement snippet or gateway receipt).</li>
+                            </ul>
+                        </section>
+
+                        <section>
+                            <h2>4. How to Submit a Refund Request</h2>
+                            <p>Please send your request with all supporting details to our finance desk:</p>
+                            <p>Email: <a href="mailto:refunds@swanturbinesfoundation.org">refunds@swanturbinesfoundation.org</a> (Subject: <em>Donation Refund Request - [Transaction ID]</em>)</p>
+                        </section>
+
+                        <section>
+                            <h2>5. Processing Timelines & Method of Refund</h2>
+                            <p>Once a refund request is received and verified:</p>
+                            <ul>
+                                <li>Our finance team will acknowledge your request within 48 business hours.</li>
+                                <li>If approved, refunds will be initiated through the original payment method used during donation (Credit Card, Debit Card, Net Banking, or UPI).</li>
+                                <li>The refund amount will typically reflect in your account within <strong>7 to 10 working days</strong>, depending on your card issuer or banking institution.</li>
+                            </ul>
+                        </section>
+
+                        <section>
+                            <h2>6. Payment Gateway Charges & Taxes</h2>
+                            <p>Any non-refundable convenience fees or payment gateway processing surcharges imposed by third-party banks/gateways will be deducted from the refunded amount where applicable under payment gateway partner policies.</p>
+                        </section>
+
+                        <section>
+                            <h2>7. Tax Receipt Cancellation</h2>
+                            <p>If an official donation receipt (including any tax certificate) was already issued prior to refund processing, that receipt will be invalidated. The donor agrees not to claim any tax benefits or file deductions against invalidated receipts.</p>
+                        </section>
+
+                        <section>
+                            <h2>8. Contact Information</h2>
+                            <p>For questions regarding donation status, receipts, or refund resolution:</p>
+                            <p>
+                                <strong>Swan Turbines Foundation — Finance Desk</strong><br>
+                                Plot No. 28 & 29, CBCID Officers Colony, Lane-5, Hydernagar, Kukatpally, Hyderabad - 500085, Telangana, India.<br>
+                                Email: <a href="mailto:refunds@swanturbinesfoundation.org">refunds@swanturbinesfoundation.org</a> | Phone: +91 962207367969
+                            </p>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-top">
+            <div class="footer-brand">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:15px;font-weight:700;font-size:24px;color:#fff;">
+                    <img src="logo.png" alt="Swan Turbines Foundation" width="48" height="48" style="object-fit:contain;display:block;">
+                    Swan Turbines Foundation
+                </div>
+                <p>Every act of kindness brings comfort, relief and hope to people who need it most.</p>
+            </div>
+            <div class="footer-col">
+                <h4>EXPLORE</h4>
+                <button onclick="window.location.href='index.html'">Home</button>
+                <button onclick="window.location.href='campaigns.html'">Campaigns</button>
+                <button onclick="window.location.href='about.html'">About Us</button>
+            </div>
+            <div class="footer-col">
+                <h4>LEARN</h4>
+                <button onclick="window.location.href='how.html'">How It Works</button>
+                <button onclick="window.location.href='resources.html'">Resources</button>
+                <button onclick="window.location.href='contact.html'">Contact</button>
+            </div>
+            <div class="footer-col">
+                <h4>LEGAL & COMPLIANCE</h4>
+                <button onclick="window.location.href='terms-and-conditions.html'">Terms & Conditions</button>
+                <button onclick="window.location.href='privacy-policy.html'">Privacy Policy</button>
+                <button onclick="window.location.href='refund-policy.html'">Refund Policy</button>
+            </div>
+            <div class="footer-col">
+                <h4>SUPPORT</h4>
+                <button onclick="openDonation()">Donate Now</button>
+                <button onclick="window.location.href='campaigns.html'">View Campaigns</button>
+            </div>
+        </div>
+        <div class="footer-bottom">© 2026 Swan Turbines Foundation. Impact Through Kindness. &nbsp;|&nbsp; <a href="terms-and-conditions.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Terms & Conditions</a> &nbsp;|&nbsp; <a href="privacy-policy.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Privacy Policy</a> &nbsp;|&nbsp; <a href="refund-policy.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Refund/Cancellation Policy</a></div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+
+</html>

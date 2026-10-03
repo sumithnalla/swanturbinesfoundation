@@ -1,0 +1,348 @@
+                    <div class="auth-field full-width admin-signature-section" id="adminSignatureSection">
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>window.location.replace('index.html');</script>
+    <title>Donor Profile — Swan Turbines Foundation</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="logo.png">
+</head>
+
+<body class="profile-page">
+    <div class="loader" id="loader">
+        <div class="loader-logo" style="display:flex;align-items:center;gap:12px;font-size:24px;font-weight:700;">
+            <img src="logo.png" alt="Swan Turbines Foundation" width="48" height="48" style="object-fit:contain;display:block;">
+            Swan Turbines Foundation
+        </div>
+    </div>
+
+    <header class="site-nav" id="navbar">
+        <div class="nav-inner">
+            <a href="index.html" class="logo">
+                <img src="logo.png" alt="Swan Turbines Foundation Logo" width="50" height="50" style="object-fit:contain;display:block;">
+                Swan Turbines Foundation
+            </a>
+            <nav class="nav-links" aria-label="Primary navigation">
+                <button data-page="home" onclick="window.location.href='index.html'">Home</button>
+                <button data-page="campaigns" onclick="window.location.href='campaigns.html'">Campaigns</button>
+                <button data-page="how" onclick="window.location.href='how.html'">How It Works</button>
+                <button data-page="resources" onclick="window.location.href='resources.html'">Resources</button>
+                <button data-page="contact" onclick="window.location.href='contact.html'">Contact</button>
+            </nav>
+            <button class="menu-btn" type="button" onclick="toggleMobileMenu()" aria-label="Open navigation menu">☰</button>
+        </div>
+    </header>
+
+    <main class="app-container">
+        <div class="profile-form-card">
+            <div class="auth-header">
+                <h2>Donor Profile</h2>
+                <p>Manage your account details and receipt contact information.</p>
+            </div>
+
+            <div class="auth-success-banner" id="profileSuccess">Profile updated successfully!</div>
+            <div class="auth-error-banner" id="profileError"></div>
+
+            <form class="auth-form" id="profileForm" onsubmit="handleProfileSubmit(event)">
+                <div class="profile-form-grid">
+                    <div class="auth-field full-width">
+                        <label for="prof_photo">Profile photo</label>
+                        <div class="profile-photo-upload">
+                            <div class="profile-photo-preview" id="profilePhotoPreview" aria-label="Profile photo preview">S</div>
+                            <div class="profile-photo-upload-copy">
+                                <label class="profile-photo-select" for="prof_photo">Choose photo</label>
+                                <input type="file" id="prof_photo" accept="image/jpeg,image/png,image/webp" onchange="handleProfilePhotoChange(event)">
+                                <p>JPG, PNG, or WebP · maximum 1.5 MB</p>
+                                <button class="profile-photo-remove" id="profilePhotoRemove" type="button" onclick="removeProfilePhoto()">Remove photo</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="auth-field full-width">
+                        <label for="prof_name">Full Name</label>
+                        <div class="auth-input-wrapper"><input type="text" id="prof_name" required></div>
+                    </div>
+
+                    <div class="auth-field">
+                        <label for="prof_email">Email address (Primary ID - Cannot be changed)</label>
+                        <div class="auth-input-wrapper"><input type="email" id="prof_email" disabled style="background:#f8fafc;color:#64748b;"></div>
+                    </div>
+
+                    <div class="auth-field">
+                        <label for="prof_phone">Phone number</label>
+                        <div class="auth-input-wrapper"><input type="tel" id="prof_phone" required></div>
+                    </div>
+
+                    <div class="auth-field full-width">
+                        <label for="prof_address">Permanent Address (For Tax Receipts)</label>
+                        <div class="auth-input-wrapper"><input type="text" id="prof_address" placeholder="Street, City, State, Pincode"></div>
+                    </div>
+
+                    <div class="auth-field full-width">
+                        <label for="prof_pan">PAN Card Number (For 80G Tax Exemption Certificate)</label>
+                        <div class="auth-input-wrapper"><input type="text" id="prof_pan" placeholder="ABCDE1234F" style="text-transform:uppercase;"></div>
+                    </div>
+
+                    <!-- Signature Upload Section -->
+                    <div class="auth-field full-width">
+                        <label for="prof_signature">Official Signature (Printed on Legal Tax Receipt & Certificate)</label>
+                        <div class="profile-signature-upload" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:14px;">
+                            <div id="signaturePreviewBox" style="width:100%; height:90px; border:2px dashed #cbd5e1; border-radius:10px; display:flex; align-items:center; justify-content:center; background:#ffffff; overflow:hidden;">
+                                <span id="signaturePlaceholder" style="font-size:13px; color:#94a3b8;">No signature uploaded yet. Click choose below to upload PNG/JPG signature.</span>
+                                <img id="signaturePreviewImg" src="" alt="Signature Preview" style="display:none; max-height:80px; max-width:90%; object-fit:contain;">
+                            </div>
+                            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                                <label class="profile-photo-select" for="prof_signature" style="cursor:pointer; background:#0a3663; color:#fff; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600;">Choose Signature Image</label>
+                                <input type="file" id="prof_signature" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleSignatureChange(event)">
+                                <button type="button" id="signatureRemoveBtn" class="profile-photo-remove" style="display:none; background:#fee2e2; color:#b91c1c; border:none; padding:8px 14px; border-radius:8px; font-size:13px; cursor:pointer;" onclick="removeSignature()">Remove Signature</button>
+                                <span style="font-size:12px; color:#64748b;">Clear PNG/JPG on transparent or white background (Max 1.5MB)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:12px;margin-top:24px;">
+                    <button type="button" class="btn-secondary" onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
+                    <button type="submit" class="btn-primary-action" style="flex:1;">Save All Changes & Signature</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-top">
+            <div class="footer-brand">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:15px;font-weight:700;font-size:24px;color:#fff;">
+                    <img src="logo.png" alt="Swan Turbines Foundation" width="48" height="48" style="object-fit:contain;display:block;">
+                    Swan Turbines Foundation
+                </div>
+                <p>Every act of kindness brings comfort, relief and hope to people who need it most.</p>
+            </div>
+            <div class="footer-col">
+                <h4>EXPLORE</h4>
+                <button onclick="window.location.href='index.html'">Home</button>
+                <button onclick="window.location.href='campaigns.html'">Campaigns</button>
+                <button onclick="window.location.href='about.html'">About Us</button>
+            </div>
+            <div class="footer-col">
+                <h4>LEARN</h4>
+                <button onclick="window.location.href='how.html'">How It Works</button>
+                <button onclick="window.location.href='resources.html'">Resources</button>
+                <button onclick="window.location.href='contact.html'">Contact</button>
+            </div>
+            <div class="footer-col">
+                <h4>LEGAL & COMPLIANCE</h4>
+                <button onclick="window.location.href='terms-and-conditions.html'">Terms & Conditions</button>
+                <button onclick="window.location.href='privacy-policy.html'">Privacy Policy</button>
+                <button onclick="window.location.href='refund-policy.html'">Refund Policy</button>
+            </div>
+            <div class="footer-col">
+                <h4>SUPPORT</h4>
+                <button onclick="window.location.href='donate.html'">Donate Now</button>
+                <button onclick="window.location.href='dashboard.html'">My Dashboard</button>
+            </div>
+        </div>
+        <div class="footer-bottom">© 2026 Swan Turbines Foundation. Impact Through Kindness.</div>
+    </footer>
+
+    <script src="js/db.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        let profilePhotoData = '';
+        let profilePhotoRemoved = false;
+        let signatureData = '';
+        let signatureRemoved = false;
+
+        function setProfileError(message) {
+            const errBanner = document.getElementById('profileError');
+            if (!errBanner) return;
+            errBanner.textContent = message;
+            errBanner.classList.add('show');
+        }
+
+        function renderProfilePhoto() {
+            const preview = document.getElementById('profilePhotoPreview');
+            const removeButton = document.getElementById('profilePhotoRemove');
+            const name = document.getElementById('prof_name').value.trim();
+            const hasPhoto = Boolean(profilePhotoData) && !profilePhotoRemoved;
+
+            preview.innerHTML = '';
+            if (hasPhoto) {
+                const image = document.createElement('img');
+                image.src = profilePhotoData;
+                image.alt = 'Selected profile photo';
+                preview.appendChild(image);
+            } else {
+                preview.textContent = name ? name.charAt(0).toUpperCase() : 'S';
+            }
+            removeButton.hidden = !hasPhoto;
+        }
+
+        function renderSignature() {
+            const placeholder = document.getElementById('signaturePlaceholder');
+            const previewImg = document.getElementById('signaturePreviewImg');
+            const removeBtn = document.getElementById('signatureRemoveBtn');
+            const hasSig = Boolean(signatureData) && !signatureRemoved;
+
+            if (hasSig) {
+                placeholder.style.display = 'none';
+                previewImg.src = signatureData;
+                previewImg.style.display = 'block';
+                removeBtn.style.display = 'inline-block';
+            } else {
+                placeholder.style.display = 'inline-block';
+                previewImg.style.display = 'none';
+                previewImg.src = '';
+                removeBtn.style.display = 'none';
+            }
+        }
+
+        function handleProfilePhotoChange(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                event.target.value = '';
+                setProfileError('Please choose a JPG, PNG, or WebP image.');
+                return;
+            }
+            if (file.size > 1.5 * 1024 * 1024) {
+                event.target.value = '';
+                setProfileError('Please choose an image smaller than 1.5 MB.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                profilePhotoData = reader.result;
+                profilePhotoRemoved = false;
+                renderProfilePhoto();
+            };
+            reader.onerror = () => setProfileError('We could not read that image. Please try another file.');
+            reader.readAsDataURL(file);
+        }
+
+        function removeProfilePhoto() {
+            profilePhotoData = '';
+            profilePhotoRemoved = true;
+            document.getElementById('prof_photo').value = '';
+            renderProfilePhoto();
+        }
+
+        function handleSignatureChange(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                event.target.value = '';
+                setProfileError('Please choose a JPG, PNG, or WebP signature image.');
+                return;
+            }
+            if (file.size > 1.5 * 1024 * 1024) {
+                event.target.value = '';
+                setProfileError('Please choose a signature image smaller than 1.5 MB.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                signatureData = reader.result;
+                signatureRemoved = false;
+                renderSignature();
+            };
+            reader.onerror = () => setProfileError('We could not read signature image.');
+            reader.readAsDataURL(file);
+        }
+
+        function removeSignature() {
+            signatureData = '';
+            signatureRemoved = true;
+            document.getElementById('prof_signature').value = '';
+            renderSignature();
+        }
+
+        function loadProfile() {
+            const user = SwanAuth.getCurrentUser();
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            document.getElementById('adminSignatureSection').hidden = user.role !== 'admin';
+
+            const profile = SwanDB.getProfileByUserId(user.id);
+
+            document.getElementById('prof_name').value = user.full_name || '';
+            document.getElementById('prof_email').value = user.email || '';
+            document.getElementById('prof_phone').value = user.phone || '';
+
+            if (profile) {
+                document.getElementById('prof_address').value = profile.address || '';
+                document.getElementById('prof_pan').value = profile.pan_number || '';
+                profilePhotoData = profile.profile_image || '';
+                signatureData = profile.signature_image || '';
+            }
+            renderProfilePhoto();
+            renderSignature();
+        }
+
+        function handleProfileSubmit(e) {
+            e.preventDefault();
+            const succBanner = document.getElementById('profileSuccess');
+            const errBanner = document.getElementById('profileError');
+            if (succBanner) succBanner.classList.remove('show');
+            if (errBanner) errBanner.classList.remove('show');
+
+            try {
+                const user = SwanAuth.getCurrentUser();
+                const name = document.getElementById('prof_name').value.trim();
+                const phone = document.getElementById('prof_phone').value.trim();
+                const address = document.getElementById('prof_address').value.trim();
+                const pan = document.getElementById('prof_pan').value.trim().toUpperCase();
+
+                const updatedImg = profilePhotoRemoved ? '' : (profilePhotoData || '');
+
+                SwanDB.updateUser(user.id, { 
+                    full_name: name, 
+                    phone: phone,
+                    profile_image: updatedImg
+                });
+
+                const profileUpdates = {
+                    address: address,
+                    pan_number: pan,
+                    profile_image: updatedImg
+                };
+                if (user.role === 'admin') {
+                    profileUpdates.signature_image = signatureRemoved ? '' : (signatureData || '');
+                }
+                SwanDB.updateProfile(user.id, profileUpdates);
+
+                // Immediately refresh navbar avatar
+                if (window.SwanAuth && window.SwanAuth.updateHeaderUI) {
+                    window.SwanAuth.updateHeaderUI();
+                }
+
+                if (succBanner) {
+                    succBanner.classList.add('show');
+                    setTimeout(() => succBanner.classList.remove('show'), 4000);
+                }
+            } catch (err) {
+                if (errBanner) {
+                    errBanner.textContent = err.message || 'Error updating profile.';
+                    errBanner.classList.add('show');
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadProfile);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>window.location.replace('index.html');</script>
+    <title>Login & Registration — Swan Turbines Foundation</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="logo.png">
+</head>
+
+<body class="auth-page">
+    <div class="loader" id="loader">
+        <div class="loader-logo" style="display:flex;align-items:center;gap:12px;font-size:24px;font-weight:700;">
+            <img src="logo.png" alt="Swan Turbines Foundation" width="48" height="48" style="object-fit:contain;display:block;">
+            Swan Turbines Foundation
+        </div>
+    </div>
+
+    <header class="site-nav" id="navbar">
+        <div class="nav-inner">
+            <a href="index.html" class="logo">
+                <img src="logo.png" alt="Swan Turbines Foundation Logo" width="50" height="50" style="object-fit:contain;display:block;">
+                Swan Turbines Foundation
+            </a>
+            <nav class="nav-links" aria-label="Primary navigation">
+                <button data-page="home" onclick="window.location.href='index.html'">Home</button>
+                <button data-page="campaigns" onclick="window.location.href='campaigns.html'">Campaigns</button>
+                <button data-page="how" onclick="window.location.href='how.html'">How It Works</button>
+                <button data-page="resources" onclick="window.location.href='resources.html'">Resources</button>
+                <button data-page="contact" onclick="window.location.href='contact.html'">Contact</button>
+            </nav>
+            <button class="menu-btn" type="button" onclick="toggleMobileMenu()" aria-label="Open navigation menu">☰</button>
+            <button class="start-btn" type="button">Get Started / Login</button>
+        </div>
+    </header>
+
+    <main class="app-container" style="max-width:480px;">
+        <div class="auth-card" style="margin:0 auto;box-shadow:0 20px 45px rgba(0,0,0,0.06);">
+            <div id="pageAuthContainer">
+                <div class="auth-header">
+                    <h2>Sign In</h2>
+                    <p>Access your donor portal and donation history.</p>
+                </div>
+                <div class="auth-error-banner" id="pAuthError"></div>
+                <div class="auth-success-banner" id="pAuthSuccess"></div>
+
+                <form class="auth-form" id="pAuthForm" onsubmit="handlePageAuthSubmit(event)">
+                    <div class="auth-field">
+                        <label for="p_email">Email address</label>
+                        <div class="auth-input-wrapper">
+                            <input type="email" id="p_email" required placeholder="you@example.com">
+                        </div>
+                    </div>
+
+                    <div class="auth-field">
+                        <label for="p_password">Password</label>
+                        <div class="auth-input-wrapper">
+                            <input type="password" id="p_password" required placeholder="••••••••">
+                            <button type="button" class="toggle-password" onclick="SwanAuth.togglePass('p_password', this)">Show</button>
+                        </div>
+                    </div>
+
+                    <div class="auth-flex-row">
+                        <label class="auth-checkbox-label">
+                            <input type="checkbox" id="p_remember" checked> Remember me
+                        </label>
+                        <a href="javascript:void(0)" class="auth-link" onclick="switchPageAuthMode('forgot')">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="auth-submit-btn">Sign In</button>
+                </form>
+
+                <div class="auth-switch-text" id="pAuthSwitch">
+                    Don't have an account? <a href="javascript:void(0)" class="auth-link" onclick="switchPageAuthMode('register')">Create an account</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-top">
+            <div class="footer-brand">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:15px;font-weight:700;font-size:24px;color:#fff;">
+                    <img src="logo.png" alt="Swan Turbines Foundation" width="48" height="48" style="object-fit:contain;display:block;">
+                    Swan Turbines Foundation
+                </div>
+                <p>Every act of kindness brings comfort, relief and hope to people who need it most.</p>
+            </div>
+            <div class="footer-col">
+                <h4>EXPLORE</h4>
+                <button onclick="window.location.href='index.html'">Home</button>
+                <button onclick="window.location.href='campaigns.html'">Campaigns</button>
+                <button onclick="window.location.href='about.html'">About Us</button>
+            </div>
+            <div class="footer-col">
+                <h4>LEARN</h4>
+                <button onclick="window.location.href='how.html'">How It Works</button>
+                <button onclick="window.location.href='resources.html'">Resources</button>
+                <button onclick="window.location.href='contact.html'">Contact</button>
+            </div>
+            <div class="footer-col">
+                <h4>LEGAL & COMPLIANCE</h4>
+                <button onclick="window.location.href='terms-and-conditions.html'">Terms & Conditions</button>
+                <button onclick="window.location.href='privacy-policy.html'">Privacy Policy</button>
+                <button onclick="window.location.href='refund-policy.html'">Refund Policy</button>
+            </div>
+            <div class="footer-col">
+                <h4>SUPPORT</h4>
+                <button onclick="window.location.href='donate.html'">Donate Now</button>
+            </div>
+        </div>
+        <div class="footer-bottom">© 2026 Swan Turbines Foundation. Impact Through Kindness. &nbsp;|&nbsp; <a href="terms-and-conditions.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Terms & Conditions</a> &nbsp;|&nbsp; <a href="privacy-policy.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Privacy Policy</a> &nbsp;|&nbsp; <a href="refund-policy.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Refund/Cancellation Policy</a></div>
+    </footer>
+
+    <script src="js/db.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        let currentAuthMode = 'login';
+
+        function switchPageAuthMode(mode) {
+            currentAuthMode = mode;
+            const container = document.getElementById('pageAuthContainer');
+            const errBanner = document.getElementById('pAuthError');
+            const succBanner = document.getElementById('pAuthSuccess');
+            if (errBanner) { errBanner.classList.remove('show'); errBanner.textContent = ''; }
+            if (succBanner) { succBanner.classList.remove('show'); succBanner.textContent = ''; }
+
+            if (mode === 'login') {
+                container.querySelector('.auth-header h2').textContent = 'Sign In';
+                container.querySelector('.auth-header p').textContent = 'Access your donor portal and donation history.';
+                document.getElementById('pAuthForm').innerHTML = `
+                    <div class="auth-field">
+                        <label for="p_email">Email address</label>
+                        <div class="auth-input-wrapper"><input type="email" id="p_email" required placeholder="you@example.com"></div>
+                    </div>
+                    <div class="auth-field">
+                        <label for="p_password">Password</label>
+                        <div class="auth-input-wrapper">
+                            <input type="password" id="p_password" required placeholder="••••••••">
+                            <button type="button" class="toggle-password" onclick="SwanAuth.togglePass('p_password', this)">Show</button>
+                        </div>
+                    </div>
+                    <div class="auth-flex-row">
+                        <label class="auth-checkbox-label"><input type="checkbox" id="p_remember" checked> Remember me</label>
+                        <a href="javascript:void(0)" class="auth-link" onclick="switchPageAuthMode('forgot')">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="auth-submit-btn">Sign In</button>
+                `;
+                document.getElementById('pAuthSwitch').innerHTML = `Don't have an account? <a href="javascript:void(0)" class="auth-link" onclick="switchPageAuthMode('register')">Create an account</a>`;
+            } else if (mode === 'register') {
+                container.querySelector('.auth-header h2').textContent = 'Create Account';
+                container.querySelector('.auth-header p').textContent = 'Register to support Swan Turbines Foundation.';
+                document.getElementById('pAuthForm').innerHTML = `
+                    <div class="auth-field">
+                        <label for="p_name">Full Name</label>
+                        <div class="auth-input-wrapper"><input type="text" id="p_name" required placeholder="Full Name"></div>
+                    </div>
+                    <div class="auth-field">
+                        <label for="p_email">Email address</label>
+                        <div class="auth-input-wrapper"><input type="email" id="p_email" required placeholder="you@example.com"></div>
+                    </div>
+                    <div class="auth-field">
+                        <label for="p_phone">Phone number</label>
+                        <div class="auth-input-wrapper"><input type="tel" id="p_phone" required placeholder="+91 98765 43210"></div>
+                    </div>
+                    <div class="auth-field">
+                        <label for="p_pass">Password</label>
+                        <div class="auth-input-wrapper">
+                            <input type="password" id="p_pass" required placeholder="Min 8 chars, 1 uppercase, 1 digit">
+                            <button type="button" class="toggle-password" onclick="SwanAuth.togglePass('p_pass', this)">Show</button>
+                        </div>
+                    </div>
+                    <div class="auth-field">
+                        <label for="p_confirm">Confirm Password</label>
+                        <div class="auth-input-wrapper"><input type="password" id="p_confirm" required placeholder="Confirm Password"></div>
+                    </div>
+                    <label class="auth-checkbox-label" style="font-size:12.5px;">
+                        <input type="checkbox" id="p_agree" required> I agree to the <a href="terms-and-conditions.html" target="_blank" class="auth-link">Terms</a> & <a href="privacy-policy.html" target="_blank" class="auth-link">Privacy Policy</a>
+                    </label>
+                    <button type="submit" class="auth-submit-btn">Create Account</button>
+                `;
+                document.getElementById('pAuthSwitch').innerHTML = `Already have an account? <a href="javascript:void(0)" class="auth-link" onclick="switchPageAuthMode('login')">Sign In</a>`;
+            } else if (mode === 'forgot') {
+                container.querySelector('.auth-header h2').textContent = 'Reset Password';
+                container.querySelector('.auth-header p').textContent = 'Enter your email address to receive password reset instructions.';
+                document.getElementById('pAuthForm').innerHTML = `
+                    <div class="auth-field">
+                        <label for="p_email">Email address</label>
+                        <div class="auth-input-wrapper"><input type="email" id="p_email" required placeholder="you@example.com"></div>
+                    </div>
+                    <button type="submit" class="auth-submit-btn">Send Reset Link</button>
+                `;
+                document.getElementById('pAuthSwitch').innerHTML = `Back to <a href="javascript:void(0)" class="auth-link" onclick="switchPageAuthMode('login')">Sign In</a>`;
+            }
+        }
+
+        function handlePageAuthSubmit(e) {
+            e.preventDefault();
+            const errBanner = document.getElementById('pAuthError');
+            const succBanner = document.getElementById('pAuthSuccess');
+            if (errBanner) errBanner.classList.remove('show');
+            if (succBanner) succBanner.classList.remove('show');
+
+            try {
+                const urlRedirect = new URLSearchParams(window.location.search).get('redirect');
+                if (currentAuthMode === 'login') {
+                    const email = document.getElementById('p_email').value;
+                    const pass = document.getElementById('p_password').value;
+                    const rem = document.getElementById('p_remember').checked;
+                    const user = SwanAuth.login(email, pass, rem);
+                    if (urlRedirect) window.location.href = urlRedirect;
+                    else if (user.role === 'admin') window.location.href = 'admin.html';
+                    else window.location.href = 'dashboard.html';
+                } else if (currentAuthMode === 'register') {
+                    const name = document.getElementById('p_name').value;
+                    const email = document.getElementById('p_email').value;
+                    const phone = document.getElementById('p_phone').value;
+                    const pass = document.getElementById('p_pass').value;
+                    const conf = document.getElementById('p_confirm').value;
+                    const agree = document.getElementById('p_agree').checked;
+                    SwanAuth.register(name, email, phone, pass, conf, agree);
+                    if (urlRedirect) window.location.href = urlRedirect;
+                    else window.location.href = 'dashboard.html';
+                } else if (currentAuthMode === 'forgot') {
+                    const email = document.getElementById('p_email').value;
+                    SwanAuth.requestPasswordReset(email);
+                    if (succBanner) {
+                        succBanner.textContent = 'Password reset instructions have been sent to your email address.';
+                        succBanner.classList.add('show');
+                    }
+                }
+            } catch (err) {
+                if (errBanner) {
+                    errBanner.textContent = err.message || 'An error occurred.';
+                    errBanner.classList.add('show');
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (SwanAuth.isLoggedIn()) {
+                const user = SwanAuth.getCurrentUser();
+                const urlRedirect = new URLSearchParams(window.location.search).get('redirect');
+                if (urlRedirect) window.location.href = urlRedirect;
+                else if (user.role === 'admin') window.location.href = 'admin.html';
+                else window.location.href = 'dashboard.html';
+            }
+        });
+    </script>
+</body>
+
+</html>

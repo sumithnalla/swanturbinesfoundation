@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Swan Turbines Foundation — Impact Through Kindness</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="logo.png">
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+     LOADER
+===================================================== -->
+
+    <div class="loader" id="loader">
+
+        <div class="loader-logo"
+            style="display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 700;">
+            <img src="logo.png" alt="Swan Turbines Foundation" width="48" height="48"
+                style="object-fit: contain; display: block;">
+            Swan Turbines Foundation
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+     CUSTOM CURSOR
+===================================================== -->
+
+
+
+
+    <!-- =====================================================
+     NAVIGATION
+===================================================== -->
+
+    <header class="site-nav" id="navbar">
+
+        <div class="nav-inner">
+
+            <a href="index.html" class="logo">
+                <img src="logo.png" alt="Swan Turbines Foundation Logo" width="50" height="50"
+                    style="object-fit: contain; display: block;">
+                Swan Turbines Foundation
+            </a>
+
+
+            <nav class="nav-links">
+
+                <button data-page="home" onclick="window.location.href='index.html'">
+                    Home
+                </button>
+
+                <button data-page="campaigns" onclick="window.location.href='campaigns.html'">
+                    Campaigns
+                </button>
+
+                <button data-page="how" onclick="window.location.href='how.html'">
+                    How It Works
+                </button>
+
+                <button data-page="resources" onclick="window.location.href='resources.html'">
+                    Resources
+                </button>
+
+                <button data-page="contact" onclick="window.location.href='contact.html'">
+                    Contact
+                </button>
+
+            </nav>
+
+
+            <button class="menu-btn" type="button" aria-label="Open navigation menu" aria-controls="mobileMenu"
+                aria-expanded="false" onclick="toggleMobileMenu()">
+                <span class="menu-btn-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+            </button>
+
+
+            <button class="start-btn" onclick="openDonation(this)">
+
+                Get started
+
+                <span class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M5 12h14M13 6l6 6-6 6" />
+                    </svg>
+                </span>
+
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================================
+     MOBILE MENU
+===================================================== -->
+
+    <div id="mobileMenu">
+        <button onclick="window.location.href='index.html';closeMobileMenu()">Home</button>
+        <button onclick="window.location.href='campaigns.html';closeMobileMenu()">Campaigns</button>
+
+        <button onclick="window.location.href='how.html';closeMobileMenu()">How It Works</button>
+        <button onclick="window.location.href='resources.html';closeMobileMenu()">Resources</button>
+        <button onclick="window.location.href='contact.html';closeMobileMenu()">Contact</button>
+    </div>
+
+
+    <!-- =====================================================
+     HOME
+===================================================== -->
+
+    <main id="home" class="page active">
+
+
+        <section class="home-hero">
+
+            <div class="hero-frame">
+
+
+                <div class="hero-grid">
+
+
+                    <div>
+
+                        <h1 class="hero-title">
+
+                            <span>Impact</span>
+
+                            <span>Through Kindness</span>
+
+                        </h1>
+
+                    </div>
+
+
+                    <div class="hero-right">
+
+                        <p>
+                            Every act of kindness brings comfort, relief,
+                            and hope to children and families who need it
+                            most.
+                        </p>
+
+
+                        <button class="start-btn donate-btn" onclick="window.location.href='donation-details.html'">
+
+                            Donate Now
+
+                            <span class="icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M5 12h14M13 6l6 6-6 6" />
+                                </svg>
+                            </span>
+
+                        </button>
+
+                    </div>
+
+
+                </div>
+
+
+                <!-- SCROLL STACK HERO CARDS -->
+                <div class="scroll-stack-scroller">
+                    <div class="scroll-stack-inner">
+
+                        <!-- CARD 1 -->
+                        <div class="scroll-stack-card">
+                            <img class="scroll-stack-card-bg"
+                                src="heroimg1.jpeg"
+                                fetchpriority="high" decoding="async"
+                                alt="Children receiving support">
+                            <div class="scroll-stack-card-overlay"></div>
+                            <div class="donation-card" style="position: absolute; top: 20px; right: 20px; z-index: 10;">
+                                <div class="donation-label">Total Raised</div>
+                                <div class="donation-amount">$385,970</div>
+                                <div class="progress"><span></span></div>
+                                <div class="donation-meta">
+                                    <span>632 donors</span>
+                                    <span>86%</span>
+                                </div>
+                                <button class="donation-card-cta" type="button" onclick="window.location.href='donation-details.html'">
+                                    Donate Now
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- CARD 2 -->
+                        <div class="scroll-stack-card">
+                            <img class="scroll-stack-card-bg"
+                                src="cleanwaterhero.jpeg"
+                                loading="lazy" decoding="async"
+                                alt="Clean Water & Food">
+                            <div class="scroll-stack-card-overlay"></div>
+                            <div class="scroll-stack-card-content">
+                                <h2>Clean Water & Food Security</h2>
+                                <p>Delivering nutritious meals, clean drinking water, and sustainable relief supplies to
+                                    families in need.</p>
+                            </div>
+                        </div>
+
+                        <!-- CARD 3 -->
+                        <div class="scroll-stack-card">
+                            <img class="scroll-stack-card-bg"
+                                src="helthcarehero.jpeg"
+                                loading="lazy" decoding="async"
+                                alt="Healthcare & Medical Aid">
+                            <div class="scroll-stack-card-overlay"></div>
+                            <div class="scroll-stack-card-content">
+                                <h2>Healthcare & Emergency Support</h2>
+                                <p>Mobile health clinics and emergency medical aid bringing immediate healing to remote
+                                    communities.</p>
+                            </div>
+                        </div>
+
+                        <!-- CARD 4 -->
+                        <div class="scroll-stack-card">
+                            <img class="scroll-stack-card-bg"
+                                src="shelterhero.jpeg"
+                                loading="lazy" decoding="async"
+                                alt="Community Support">
+                            <div class="scroll-stack-card-overlay"></div>
+                            <div class="scroll-stack-card-content">
+                                <h2>Shelter & Rebuilding Lives</h2>
+                                <p>Reconstructing damaged shelters and fostering self-sustaining community development
+                                    for displaced families.</p>
+                            </div>
+                        </div>
+
+                        <div class="scroll-stack-end"></div>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- PARTNERS -->
+
+        <section class="partners reveal" aria-label="Foundation impact highlights">
+
+            <div class="partners-track">
+                <div class="partners-group">
+                    <div class="partner">Education &amp; Scholarships</div>
+                    <div class="partner">Clean Water &amp; Food Relief</div>
+                    <div class="partner">Healthcare &amp; Emergency Aid</div>
+                    <div class="partner">Transparent, Community-Led Impact</div>
+                    <div class="partner">Every Donation Creates Hope</div>
+                </div>
+                <div class="partners-group" aria-hidden="true">
+                    <div class="partner">Education &amp; Scholarships</div>
+                    <div class="partner">Clean Water &amp; Food Relief</div>
+                    <div class="partner">Healthcare &amp; Emergency Aid</div>
+                    <div class="partner">Transparent, Community-Led Impact</div>
+                    <div class="partner">Every Donation Creates Hope</div>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- ABOUT PREVIEW -->
+
+        <section class="about-preview">
+
+            <div class="about-card reveal">
+
+                <span class="pill">
+                    Who We Are
+                </span>
+
+                <div class="text-pressure-container" data-text="SWAN TURBINES"></div>
+                <div class="text-pressure-container" data-text="FOUNDATION" style="margin-top:-10px;"></div>
+
+
+                <div class="about-card-image">
+                    <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1000&q=90"
+                        alt="Children">
+
+                    <div class="tags">
+
+                        <span class="tag green">
+                            Transparent
+                        </span>
+
+                        <span class="tag">
+                            Emergency Relief
+                        </span>
+
+                        <span class="tag">
+                            Led Action
+                        </span>
+
+                        <span class="tag">
+                            Focused Aid
+                        </span>
+
+                        <span class="tag">
+                            Donors Worldwide
+                        </span>
+
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="about-text reveal">
+
+                <h2>
+                    With compassion at our core, we
+                        work for relief, education and health
+                        with people facing hardship.
+                </h2>
+
+
+                <p>
+                        Swan Turbines Foundation is a public charitable trust
+                        created to advance education, medical relief and support
+                        for people facing poverty and hardship. Our work is guided
+                        by dignity, practical care and long-term community benefit.
+                </p>
+
+
+                <div class="actions">
+
+                    <button class="black-btn" onclick="window.location.href='about.html'">
+
+                        Learn More
+
+                        <span class="black-arrow">
+                            →
+                        </span>
+
+                    </button>
+
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- HOME CAMPAIGNS -->
+
+        <section class="campaigns-section home-campaigns reveal">
+
+            <div class="section-title">
+
+                <h2>
+                    Featured Campaigns
+                </h2>
+
+                <p>
+                    Your contribution can help create meaningful
+                    change for children and families who need
+                    support the most.
+                </p>
+
+            </div>
+
+
+            <div class="gallery-wrapper-shell">
+                <button type="button" class="gallery-nav-btn gallery-nav-prev" onclick="window.swanCircularGallery?.prev()" aria-label="Previous Campaign Card">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+                <div id="circularGalleryContainer" class="circular-gallery" tabindex="0" role="region" aria-label="Campaign gallery. Swipe to explore campaigns."></div>
+                <button type="button" class="gallery-nav-btn gallery-nav-next" onclick="window.swanCircularGallery?.next()" aria-label="Next Campaign Card">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+            </div>
+
+            <div class="gallery-instruction-note">
+                <span class="gallery-desktop-instruction">✦ Use the left and right buttons to shift campaigns ✦</span>
+                <span class="gallery-mobile-instruction" aria-label="There are eight campaigns. Swipe left or right to explore them."><span aria-hidden="true">←</span> Swipe left or right for more campaigns <span aria-hidden="true">→</span></span>
+            </div>
+
+            <div class="view-all-campaigns-wrap">
+                <button class="start-btn" onclick="window.location.href='campaigns.html'">
+                    View All Campaigns
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M5 12h14M13 6l6 6-6 6" />
+                        </svg>
+                    </span>
+                </button>
+            </div>
+
+        </section>
+
+
+        <!-- TRUSTEES SPLIT SECTION -->
+
+        <section class="trustees-section reveal" aria-labelledby="trustees-title">
+
+            <div class="trustees-heading">
+                <div>
+                    <span class="pill">Our Trustees</span>
+                    <h2 id="trustees-title" class="blur-text-element" data-blur-text="People guiding our purpose.">People guiding our purpose.</h2>
+                </div>
+                <p>Meet the trustees named in the foundation’s registered trust deed.</p>
+            </div>
+
+            <div class="trustees-container">
+                <!-- LEFT SIDE: 3-Panel Accordion Gallery -->
+                <div class="trustees-left-col">
+                    <div class="trustee-gallery" data-default-index="0" role="list" aria-label="Foundation trustees">
+                        <article class="trustee-panel is-active" data-trustee-id="aruna" role="listitem" tabindex="0" aria-current="true">
+                            <img src="aruna_pothumarthi.jpeg" alt="Aruna Pothumarthi" loading="lazy">
+                            <div class="trustee-overlay"></div>
+                            <div class="trustee-label"><span></span><div><strong>Aruna Pothumarthi</strong><small>Author of the Trust & Trustee</small></div></div>
+                        </article>
+                        <article class="trustee-panel" data-trustee-id="satyanarayana" role="listitem" tabindex="0">
+                            <img src="satyanarayana_pothumarthi.jpeg" alt="Satyanarayana Pothumarthi" loading="lazy">
+                            <div class="trustee-overlay"></div>
+                            <div class="trustee-label"><span></span><div><strong>Satyanarayana Pothumarthi</strong><small>Trustee</small></div></div>
+                        </article>
+                        <article class="trustee-panel" data-trustee-id="dinesh" role="listitem" tabindex="0">
+                            <img src="dinesh_pothumarthi.jpeg" alt="Dinesh Nagendra Pothumarthi" loading="lazy">
+                            <div class="trustee-overlay"></div>
+                            <div class="trustee-label"><span></span><div><strong>Dinesh Nagendra Pothumarthi</strong><small>Trustee</small></div></div>
+                        </article>
+                    </div>
+                </div>
+
+                <!-- RIGHT SIDE: Dynamic Modern Trustee Details Card -->
+                <div class="trustees-right-col">
+                    <!-- Details for Aruna -->
+                    <div class="trustee-details-card is-active" data-details-for="aruna">
+                        <div class="trustee-badge">Author of the Trust & Life Trustee</div>
+                        <h3 class="trustee-name">Smt. Pothumarthi Aruna</h3>
+                        <p class="trustee-designation">Author of the Trust & Life Trustee — Swan Turbines Foundation</p>
+                        <div class="trustee-divider"></div>
+                        
+                        <div class="trustee-tags">
+                            <span class="trustee-tag">✦ Strategic Leadership</span>
+                            <span class="trustee-tag">✦ Foundation Governance</span>
+                            <span class="trustee-tag">✦ Community Aid</span>
+                        </div>
+
+                        <div class="trustee-vision-box">
+                            <svg class="vision-quote-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+                            </svg>
+                            <p>"Guided by empathy and commitment to humanitarian progress, leading strategic initiatives to uplift communities facing hardship."</p>
+                        </div>
+
+                        <div class="trustee-responsibilities">
+                            <h4>Leadership & Focus Areas</h4>
+                            <ul>
+                                <li>Directing foundation vision, governance standards, and public charitable objectives.</li>
+                                <li>Overseeing major relief allocation and healthcare partnership development.</li>
+                                <li>Fostering long-term donor transparency and sustainable community impact.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Details for Satyanarayana -->
+                    <div class="trustee-details-card" data-details-for="satyanarayana">
+                        <div class="trustee-badge">Managing Life Trustee</div>
+                        <h3 class="trustee-name">Sri Pothumarthi Satyanarayana</h3>
+                        <p class="trustee-designation">Life Trustee — Swan Turbines Foundation</p>
+                        <div class="trustee-divider"></div>
+                        
+                        <div class="trustee-tags">
+                            <span class="trustee-tag">✦ Relief Operations</span>
+                            <span class="trustee-tag">✦ Field Execution</span>
+                            <span class="trustee-tag">✦ Emergency Response</span>
+                        </div>
+
+                        <div class="trustee-vision-box">
+                            <svg class="vision-quote-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+                            </svg>
+                            <p>"Directing hands-on emergency relief, healthcare assistance, and essential resource deployment to ensure timely support for families in need."</p>
+                        </div>
+
+                        <div class="trustee-responsibilities">
+                            <h4>Leadership & Focus Areas</h4>
+                            <ul>
+                                <li>Managing operational logistics for food security and emergency aid programs.</li>
+                                <li>Coordinating field relief teams and local community engagement.</li>
+                                <li>Ensuring efficient resource deployment across featured charitable campaigns.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Details for Dinesh -->
+                    <div class="trustee-details-card" data-details-for="dinesh">
+                        <div class="trustee-badge">Executive Life Trustee</div>
+                        <h3 class="trustee-name">Sri Pothumarthi Dinesh Nagendra</h3>
+                        <p class="trustee-designation">Life Trustee — Swan Turbines Foundation</p>
+                        <div class="trustee-divider"></div>
+                        
+                        <div class="trustee-tags">
+                            <span class="trustee-tag">✦ Youth Programs</span>
+                            <span class="trustee-tag">✦ Educational Access</span>
+                            <span class="trustee-tag">✦ Digital Operations</span>
+                        </div>
+
+                        <div class="trustee-vision-box">
+                            <svg class="vision-quote-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+                            </svg>
+                            <p>"Driving educational access, youth empowerment, and modern digital transparency to connect compassionate donors with real-world impact."</p>
+                        </div>
+
+                        <div class="trustee-responsibilities">
+                            <h4>Leadership & Focus Areas</h4>
+                            <ul>
+                                <li>Leading educational access programs and youth-focused development initiatives.</li>
+                                <li>Managing foundation communications, web transparency, and digital outreach.</li>
+                                <li>Overseeing partnership workflows for long-term community empowerment projects.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =====================================================
+     CAMPAIGNS PAGE
+===================================================== -->
+
+    <!-- =====================================================
+     FOOTER
+===================================================== -->
+
+    <footer class="footer">
+
+        <div class="footer-top">
+
+
+            <div class="footer-brand">
+                <div
+                    style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px; font-weight: 700; font-size: 24px; color: #fff;">
+                    <img src="logo.png" alt="Swan Turbines Foundation" width="48" height="48"
+                        style="object-fit: contain; display: block;">
+                    Swan Turbans Foundation
+                </div>
+                <p>
+                    Every act of kindness brings comfort,
+                    relief and hope to people who need it most.
+                </p>
+
+            </div>
+
+
+            <div class="footer-col">
+
+                <h4>
+                    EXPLORE
+                </h4>
+
+                <button onclick="window.location.href='index.html'">
+                    Home
+                </button>
+
+                <button onclick="window.location.href='campaigns.html'">
+                    Campaigns
+                </button>
+
+                <button onclick="window.location.href='about.html'">
+                    About Us
+                </button>
+
+            </div>
+
+
+            <div class="footer-col">
+
+                <h4>
+                    LEARN
+                </h4>
+
+                <button onclick="window.location.href='how.html'">
+                    How It Works
+                </button>
+
+                <button onclick="window.location.href='resources.html'">
+                    Resources
+                </button>
+
+                <button onclick="window.location.href='contact.html'">
+                    Contact
+                </button>
+
+            </div>
+
+
+            <div class="footer-col">
+
+                <h4>
+                    LEGAL & COMPLIANCE
+                </h4>
+
+                <button onclick="window.location.href='terms-and-conditions.html'">
+                    Terms & Conditions
+                </button>
+
+                <button onclick="window.location.href='privacy-policy.html'">
+                    Privacy Policy
+                </button>
+
+                <button onclick="window.location.href='refund-policy.html'">
+                    Refund Policy
+                </button>
+
+            </div>
+
+
+            <div class="footer-col">
+
+                <h4>
+                    SUPPORT
+                </h4>
+
+                <button onclick="openDonation()">
+                    Donate Now
+                </button>
+
+                <button onclick="window.location.href='campaigns.html'">
+                    View Campaigns
+                </button>
+
+                <button onclick="window.location.href='admin-login.html'">
+                    Admin Portal
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="footer-bottom">
+
+            © 2026 Swan Turbines Foundation. Impact Through Kindness. &nbsp;|&nbsp; <a href="terms-and-conditions.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Terms & Conditions</a> &nbsp;|&nbsp; <a href="privacy-policy.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Privacy Policy</a> &nbsp;|&nbsp; <a href="refund-policy.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Refund/Cancellation Policy</a>
+
+        </div>
+
+    </footer>
+
+
+    <!-- =====================================================
+     DONATION MODAL
+===================================================== -->
+
+    <div class="modal" id="donationModal">
+
+        <div class="modal-box">
+
+            <div class="modal-header">
+
+                <h2>
+                    Make a Difference
+                </h2>
+
+                <button class="close-modal" onclick="closeDonation()">
+                    ×
+                </button>
+
+            </div>
+
+
+            <p style="
+                color:#777;
+                font-size:14px;
+                line-height:1.5;
+                margin-top:12px;
+            ">
+
+                Your contribution can help provide
+                meaningful support to children and families.
+
+            </p>
+
+
+            <div class="amount-options">
+
+                <button class="amount selected" onclick="selectAmount(this)">
+                    ₹500
+                </button>
+
+                <button class="amount" onclick="selectAmount(this)">
+                    ₹1,000
+                </button>
+
+                <button class="amount" onclick="selectAmount(this)">
+                    ₹2,500
+                </button>
+
+                <button class="amount" onclick="selectAmount(this)">
+                    ₹5,000
+                </button>
+
+            </div>
+
+
+            <input id="customAmount" type="number" placeholder="Enter custom amount" style="
+                width:100%;
+                height:45px;
+                border:1px solid #ddd;
+                border-radius:10px;
+                padding:0 15px;
+                outline:none;
+                margin-bottom:15px;
+            ">
+
+
+            <div class="donation-consent-container" style="margin-bottom:15px;">
+                <label class="donation-consent-label">
+                    <input type="checkbox" id="modalConsentCheck" onchange="document.getElementById('modalDonateSubmit').disabled = !this.checked">
+                    <span>I have read and agree to the <a href="terms-and-conditions.html" target="_blank">Terms & Conditions</a> and <a href="privacy-policy.html" target="_blank">Privacy Policy</a>.</span>
+                </label>
+                <div class="donation-disclaimer-text">
+                    Please review our <a href="terms-and-conditions.html" target="_blank">Terms & Conditions</a>, <a href="privacy-policy.html" target="_blank">Privacy Policy</a> and <a href="refund-policy.html" target="_blank">Refund/Cancellation Policy</a> before completing your donation.
+                </div>
+            </div>
+
+
+            <button class="donate-submit" id="modalDonateSubmit" disabled onclick="processDonation()">
+
+                Continue to Donation →
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <script src="js/db.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/receipt.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/circular-gallery.js"></script>
+
+</body>
+
+</html>

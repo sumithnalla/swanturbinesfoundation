@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Donation Details — Swan Turbines Foundation</title>
+    <meta name="description" content="Learn about our transparent donation programs and how your contributions support education, healthcare, nutrition, clean water, and community relief.">
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="logo.png">
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+     LOADER
+===================================================== -->
+
+    <div class="loader" id="loader">
+
+        <div class="loader-logo"
+            style="display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 700;">
+            <img src="logo.png" alt="Swan Turbines Foundation" width="48" height="48"
+                style="object-fit: contain; display: block;">
+            Swan Turbines Foundation
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+     NAVIGATION
+===================================================== -->
+
+    <header class="site-nav" id="navbar">
+
+        <div class="nav-inner">
+
+            <a href="index.html" class="logo">
+                <img src="logo.png" alt="Swan Turbines Foundation Logo" width="50" height="50"
+                    style="object-fit: contain; display: block;">
+                Swan Turbines Foundation
+            </a>
+
+
+            <nav class="nav-links">
+
+                <button data-page="home" onclick="window.location.href='index.html'">
+                    Home
+                </button>
+
+                <button data-page="campaigns" onclick="window.location.href='campaigns.html'">
+                    Campaigns
+                </button>
+
+                <button data-page="how" onclick="window.location.href='how.html'">
+                    How It Works
+                </button>
+
+                <button data-page="resources" onclick="window.location.href='resources.html'">
+                    Resources
+                </button>
+
+                <button data-page="contact" onclick="window.location.href='contact.html'">
+                    Contact
+                </button>
+
+            </nav>
+
+
+            <button class="menu-btn" onclick="toggleMobileMenu()">
+                ☰
+            </button>
+
+
+            <button class="start-btn" onclick="openDonation(this)">
+
+                Get started
+
+                <span class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M5 12h14M13 6l6 6-6 6" />
+                    </svg>
+                </span>
+
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================================
+     MOBILE MENU
+===================================================== -->
+
+    <div id="mobileMenu">
+        <button onclick="window.location.href='index.html';closeMobileMenu()">Home</button>
+        <button onclick="window.location.href='campaigns.html';closeMobileMenu()">Campaigns</button>
+        <button onclick="window.location.href='how.html';closeMobileMenu()">How It Works</button>
+        <button onclick="window.location.href='resources.html';closeMobileMenu()">Resources</button>
+        <button onclick="window.location.href='contact.html';closeMobileMenu()">Contact</button>
+    </div>
+
+
+    <!-- =====================================================
+     DONATION DETAILS PAGE (ABOUT PAGE DESIGN SYSTEM)
+===================================================== -->
+
+    <section id="donation-details" class="page active">
+
+        <div class="inner-page">
+
+            <div class="page-heading">
+
+                <div class="page-label">
+                    Our Donations
+                </div>
+
+                <div class="text-pressure-container" data-text="OUR DONATIONS"></div>
+
+                <p>
+                    Every contribution is a direct investment in human dignity,
+                    essential relief, and sustainable community empowerment.
+                </p>
+
+                <div style="margin-top: 28px;">
+                    <button class="start-btn donate-btn" onclick="window.location.href='donate.html'">
+                        Continue to Donate
+                        <span class="icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M5 12h14M13 6l6 6-6 6" />
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+
+            </div>
+
+
+            <section class="about-page-content">
+
+                <div>
+
+                    <h2>
+                        How your donations
+                        create meaningful
+                        change.
+                    </h2>
+
+                    <p style="margin-top:35px;">
+                        Swan Turbines Foundation is a registered public charitable trust
+                        dedicated to ensuring that donor support directly reaches
+                        vulnerable individuals, children, and families in need.
+                    </p>
+
+                    <p>
+                        Through structured humanitarian programs, our donations provide
+                        nutritious daily meals, school kits and digital classrooms,
+                        free medical camps and surgeries, clean water systems, and
+                        livelihood training for rural women.
+                    </p>
+
+                    <p>
+                        We operate with complete financial transparency and direct field execution,
+                        giving donors the confidence that their kindness is creating lasting,
+                        measurable progress on the ground.
+                    </p>
+
+                    <button class="start-btn donate-btn" onclick="window.location.href='donate.html'" style="margin-top:25px;">
+
+                        Continue to Donate
+
+                        <span class="icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M5 12h14M13 6l6 6-6 6" />
+                            </svg>
+                        </span>
+
+                    </button>
+
+                </div>
+
+
+                <div class="about-image">
+                    <div class="pixel-swap" data-trigger="hover" data-pixel-size="64" data-duration="1400"
+                        data-pixel-duration="450" data-pixel-scale="0.35" data-pattern="random" data-fade="true"
+                        style="height:100%;width:100%;border-radius:25px;">
+                        <div class="pixel-swap__layer" data-visible="true" style="z-index:2;">
+                            <div
+                                style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f4f4f4;">
+                                <img src="logo.png" alt="Swan Turbines Foundation"
+                                    style="max-width:55%;max-height:65%;object-fit:contain;">
+                            </div>
+                        </div>
+                        <div class="pixel-swap__layer" data-visible="false" style="z-index:1;" aria-hidden="true">
+                            <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1200&q=90"
+                                alt="Humanitarian relief" style="width:100%;height:100%;object-fit:cover;">
+                        </div>
+                        <div class="pixel-swap__grid" aria-hidden="true"></div>
+                    </div>
+                </div>
+
+            </section>
+
+            <section class="legal-profile">
+                <div>
+                    <span class="pill">Where donations go</span>
+                    <h2>Structured allocation across essential charitable causes.</h2>
+                </div>
+                <div class="legal-profile-copy">
+                    <p>Contributions support registered trust objectives including child nutrition and hunger relief, educational materials and school sponsorship, free diagnostic healthcare camps, emergency crisis aid, and sustainable solar and water infrastructure.</p>
+                    <div class="legal-profile-tags" aria-label="Donation distribution pillars">
+                        <span>Food &amp; Nutrition</span><span>Child Education</span><span>Healthcare Camps</span><span>Clean Water</span><span>Rural Livelihoods</span><span>Disaster Care</span>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+     FOOTER
+===================================================== -->
+
+    <footer class="footer">
+
+        <div class="footer-top">
+
+
+            <div class="footer-brand">
+                <div
+                    style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px; font-weight: 700; font-size: 24px; color: #fff;">
+                    <img src="logo.png" alt="Swan Turbines Foundation" width="48" height="48"
+                        style="object-fit: contain; display: block;">
+                    Swan Turbans Foundation
+                </div>
+                <p>
+                    Every act of kindness brings comfort,
+                    relief and hope to people who need it most.
+                </p>
+
+            </div>
+
+
+            <div class="footer-col">
+
+                <h4>
+                    EXPLORE
+                </h4>
+
+                <button onclick="window.location.href='index.html'">
+                    Home
+                </button>
+
+                <button onclick="window.location.href='campaigns.html'">
+                    Campaigns
+                </button>
+
+                <button onclick="window.location.href='about.html'">
+                    About Us
+                </button>
+
+            </div>
+
+
+            <div class="footer-col">
+
+                <h4>
+                    LEARN
+                </h4>
+
+                <button onclick="window.location.href='how.html'">
+                    How It Works
+                </button>
+
+                <button onclick="window.location.href='resources.html'">
+                    Resources
+                </button>
+
+                <button onclick="window.location.href='contact.html'">
+                    Contact
+                </button>
+
+            </div>
+
+
+            <div class="footer-col">
+
+                <h4>
+                    LEGAL &amp; COMPLIANCE
+                </h4>
+
+                <button onclick="window.location.href='terms-and-conditions.html'">
+                    Terms &amp; Conditions
+                </button>
+
+                <button onclick="window.location.href='privacy-policy.html'">
+                    Privacy Policy
+                </button>
+
+                <button onclick="window.location.href='refund-policy.html'">
+                    Refund Policy
+                </button>
+
+            </div>
+
+
+            <div class="footer-col">
+
+                <h4>
+                    SUPPORT
+                </h4>
+
+                <button onclick="openDonation()">
+                    Donate Now
+                </button>
+
+                <button onclick="window.location.href='campaigns.html'">
+                    View Campaigns
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="footer-bottom">
+
+            © 2026 Swan Turbines Foundation. Impact Through Kindness. &nbsp;|&nbsp; <a href="terms-and-conditions.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Terms &amp; Conditions</a> &nbsp;|&nbsp; <a href="privacy-policy.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Privacy Policy</a> &nbsp;|&nbsp; <a href="refund-policy.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Refund/Cancellation Policy</a>
+
+        </div>
+
+    </footer>
+
+
+    <script src="js/db.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/receipt.js"></script>
+    <script src="js/main.js"></script>
+
+</body>
+
+</html>

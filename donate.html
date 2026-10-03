@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Make a secure simulated donation to Swan Turbans Foundation.">
+    <title>Donate — Swan Turbans Foundation</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="logo.png">
+</head>
+
+<body class="donate-page">
+    <div class="loader" id="loader">
+        <div class="loader-logo" style="display:flex;align-items:center;gap:12px;font-size:24px;font-weight:700;">
+            <img src="logo.png" alt="Swan Turbans Foundation" width="48" height="48" style="object-fit:contain;display:block;">
+            Swan Turbans Foundation
+        </div>
+    </div>
+
+    <header class="site-nav" id="navbar">
+        <div class="nav-inner">
+            <a href="index.html" class="logo">
+                <img src="logo.png" alt="Swan Turbans Foundation Logo" width="50" height="50" style="object-fit:contain;display:block;">
+                Swan Turbans Foundation
+            </a>
+            <nav class="nav-links" aria-label="Primary navigation">
+                <button data-page="home" onclick="window.location.href='index.html'">Home</button>
+                <button data-page="campaigns" onclick="window.location.href='campaigns.html'">Campaigns</button>
+                <button data-page="how" onclick="window.location.href='how.html'">How It Works</button>
+                <button data-page="resources" onclick="window.location.href='resources.html'">Resources</button>
+                <button data-page="contact" onclick="window.location.href='contact.html'">Contact</button>
+            </nav>
+            <button class="menu-btn" type="button" onclick="toggleMobileMenu()" aria-label="Open navigation menu">☰</button>
+            <button class="start-btn" type="button" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                Donate now
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+            </button>
+        </div>
+    </header>
+
+    <div id="mobileMenu">
+        <button onclick="window.location.href='index.html';closeMobileMenu()">Home</button>
+        <button onclick="window.location.href='campaigns.html';closeMobileMenu()">Campaigns</button>
+        <button onclick="window.location.href='how.html';closeMobileMenu()">How It Works</button>
+        <button onclick="window.location.href='resources.html';closeMobileMenu()">Resources</button>
+        <button onclick="window.location.href='contact.html';closeMobileMenu()">Contact</button>
+    </div>
+
+    <main class="inner-page donation-page-content">
+        <section class="page-heading">
+            <div class="page-label">Make a donation</div>
+            <h1>Kindness starts<br>with you.</h1>
+            <p>Your generosity helps us bring comfort, relief, and opportunity to people who need it most.</p>
+        </section>
+
+        <section class="donation-shell">
+            <section class="donation-wizard" aria-label="Donation form">
+            <ol class="wizard-steps">
+                <li class="wizard-step is-active" data-wizard-step="1" aria-current="step"><span>01</span><strong>Amount</strong></li>
+                <li class="wizard-step" data-wizard-step="2"><span>02</span><strong>Your info</strong></li>
+                <li class="wizard-step" data-wizard-step="3"><span>03</span><strong>Payment</strong></li>
+                <li class="wizard-step" data-wizard-step="4"><span>04</span><strong>Receipt</strong></li>
+            </ol>
+
+            <div class="donation-panel" data-step-panel="1">
+                <span class="panel-eyebrow">Step 01</span>
+                <h2>Choose your donation</h2>
+                <p class="panel-copy">Every contribution, whatever its size, supports a more caring community.</p>
+                <div class="donation-amount-grid" role="group" aria-label="Donation amount">
+                    <button type="button" class="selected" data-donation-amount="500">₹500</button>
+                    <button type="button" data-donation-amount="1000">₹1,000</button>
+                    <button type="button" data-donation-amount="2500">₹2,500</button>
+                    <button type="button" data-donation-amount="5000">₹5,000</button>
+                </div>
+                <label class="wizard-field" for="donationAmount">Or enter a custom amount <span>(₹)</span>
+                    <input id="donationAmount" type="number" min="1" inputmode="numeric" value="500" required>
+                </label>
+            </div>
+
+            <div class="donation-panel" data-step-panel="2" hidden>
+                <span class="panel-eyebrow">Step 02</span>
+                <h2>Tell us about you</h2>
+                <p class="panel-copy">We’ll use these details only for your simulated donation receipt.</p>
+                <div class="wizard-form-grid">
+                    <label class="wizard-field wizard-field-wide" for="donorName">Full name
+                        <input id="donorName" type="text" autocomplete="name" required minlength="2" placeholder="Your full name">
+                    </label>
+                    <label class="wizard-field" for="donorEmail">Email address
+                        <input id="donorEmail" type="email" autocomplete="email" required placeholder="you@example.com">
+                    </label>
+                    <label class="wizard-field" for="donorPhone">Phone number
+                        <input id="donorPhone" type="tel" autocomplete="tel" inputmode="tel" required pattern="[0-9+() -]{7,}" placeholder="+91 00000 00000">
+                    </label>
+                </div>
+            </div>
+
+            <div class="donation-panel" data-step-panel="3" hidden>
+                <span class="panel-eyebrow">Step 03</span>
+                <h2>Payment details</h2>
+                <p class="panel-copy">This is a secure interface demo. No card information is sent, stored, or processed.</p>
+                <div class="wizard-form-grid">
+                    <label class="wizard-field wizard-field-wide" for="cardNumber">Card number
+                        <input id="cardNumber" type="text" inputmode="numeric" autocomplete="cc-number" required pattern="[0-9 ]{19}" placeholder="0000 0000 0000 0000">
+                    </label>
+                    <label class="wizard-field" for="cardExpiry">Expiry date
+                        <input id="cardExpiry" type="text" inputmode="numeric" autocomplete="cc-exp" required pattern="(0[1-9]|1[0-2])/[0-9]{2}" placeholder="MM/YY">
+                    </label>
+                    <label class="wizard-field" for="cardCvv">CVV
+                        <input id="cardCvv" type="password" inputmode="numeric" autocomplete="cc-csc" required pattern="[0-9]{3,4}" maxlength="4" placeholder="•••">
+                    </label>
+                    <label class="wizard-field wizard-field-wide" for="cardholderName">Cardholder name
+                        <input id="cardholderName" type="text" autocomplete="cc-name" required minlength="2" placeholder="Name on card">
+                    </label>
+                </div>
+
+                <div class="donation-consent-container">
+                    <label class="donation-consent-label">
+                        <input type="checkbox" id="donateConsentCheck">
+                        <span>I have read and agree to the <a href="terms-and-conditions.html" target="_blank">Terms & Conditions</a> and <a href="privacy-policy.html" target="_blank">Privacy Policy</a>.</span>
+                    </label>
+                    <div class="donation-disclaimer-text">
+                        Please review our <a href="terms-and-conditions.html" target="_blank">Terms & Conditions</a>, <a href="privacy-policy.html" target="_blank">Privacy Policy</a> and <a href="refund-policy.html" target="_blank">Refund/Cancellation Policy</a> before completing your donation.
+                    </div>
+                </div>
+            </div>
+
+            <div class="donation-panel receipt-panel" data-step-panel="4" hidden aria-live="polite">
+                <div class="receipt-check" aria-hidden="true">✓</div>
+                <span class="panel-eyebrow">Donation Completed</span>
+                <h2>Thank you for your generosity.</h2>
+                <p class="panel-copy">Your contribution supports vital community relief and empowerment projects.</p>
+                <dl class="receipt-details">
+                    <div><dt>Donation</dt><dd id="receiptAmount">₹500</dd></div>
+                    <div><dt>Donor</dt><dd id="receiptDonor"></dd></div>
+                    <div><dt>Email</dt><dd id="receiptEmail"></dd></div>
+                    <div><dt>Reference</dt><dd id="receiptNumber"></dd></div>
+                </dl>
+                <div style="margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center;">
+                    <button type="button" class="btn-primary-action" onclick="SwanReceipt.openReceiptModal(document.getElementById('receiptNumber').textContent || 'DON-12345')" style="padding: 12px 20px; font-size: 14px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        View Signed Legal Document & Terms
+                    </button>
+                    <a class="receipt-home" href="index.html" style="margin: 0;">Back to Home <span aria-hidden="true">→</span></a>
+                </div>
+            </div>
+
+            <div class="wizard-actions">
+                <button class="wizard-previous" id="wizardPrevious" type="button" hidden>← Previous</button>
+                <button class="wizard-next" id="wizardNext" type="button">Continue <span aria-hidden="true">→</span></button>
+            </div>
+            </section>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-top">
+            <div class="footer-brand">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:15px;font-weight:700;font-size:24px;color:#fff;">
+                    <img src="logo.png" alt="Swan Turbines Foundation" width="48" height="48" style="object-fit:contain;display:block;">
+                    Swan Turbines Foundation
+                </div>
+                <p>Every act of kindness brings comfort, relief and hope to people who need it most.</p>
+            </div>
+            <div class="footer-col">
+                <h4>EXPLORE</h4>
+                <button onclick="window.location.href='index.html'">Home</button>
+                <button onclick="window.location.href='campaigns.html'">Campaigns</button>
+                <button onclick="window.location.href='about.html'">About Us</button>
+            </div>
+            <div class="footer-col">
+                <h4>LEARN</h4>
+                <button onclick="window.location.href='how.html'">How It Works</button>
+                <button onclick="window.location.href='resources.html'">Resources</button>
+                <button onclick="window.location.href='contact.html'">Contact</button>
+            </div>
+            <div class="footer-col">
+                <h4>LEGAL & COMPLIANCE</h4>
+                <button onclick="window.location.href='terms-and-conditions.html'">Terms & Conditions</button>
+                <button onclick="window.location.href='privacy-policy.html'">Privacy Policy</button>
+                <button onclick="window.location.href='refund-policy.html'">Refund Policy</button>
+            </div>
+            <div class="footer-col">
+                <h4>SUPPORT</h4>
+                <button onclick="window.scrollTo({top:0,behavior:'smooth'})">Donate Now</button>
+                <button onclick="window.location.href='campaigns.html'">View Campaigns</button>
+            </div>
+        </div>
+        <div class="footer-bottom">© 2026 Swan Turbines Foundation. Impact Through Kindness. &nbsp;|&nbsp; <a href="terms-and-conditions.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Terms & Conditions</a> &nbsp;|&nbsp; <a href="privacy-policy.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Privacy Policy</a> &nbsp;|&nbsp; <a href="refund-policy.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Refund/Cancellation Policy</a></div>
+    </footer>
+    <script src="js/db.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/receipt.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.SwanAuth && !window.SwanAuth.isLoggedIn()) {
+                setTimeout(() => {
+                    window.SwanAuth.openAuthModal('login', 'donate');
+                }, 250);
+            }
+        });
+    </script>
+</body>
+
+</html>

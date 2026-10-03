@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Request assistance from Swan Turbines Foundation.">
+    <title>Request Help — Swan Turbines Foundation</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="logo.png">
+</head>
+<body class="help-request-page">
+    <div class="loader" id="loader"><div class="loader-logo"><img src="logo.png" alt="Swan Turbines Foundation" width="48" height="48">Swan Turbines Foundation</div></div>
+
+    <header class="site-nav" id="navbar">
+        <div class="nav-inner">
+            <a href="index.html" class="logo"><img src="logo.png" alt="Swan Turbines Foundation Logo" width="50" height="50">Swan Turbines Foundation</a>
+            <nav class="nav-links" aria-label="Primary navigation">
+                <button onclick="window.location.href='index.html'">Home</button>
+                <button onclick="window.location.href='campaigns.html'">Our work</button>
+                <button onclick="window.location.href='how.html'">How it works</button>
+                <button onclick="window.location.href='contact.html'">Contact</button>
+            </nav>
+            <button class="menu-btn" type="button" aria-label="Open navigation menu" aria-controls="mobileMenu" aria-expanded="false" onclick="toggleMobileMenu()"><span class="menu-btn-dots" aria-hidden="true"><span></span><span></span><span></span></span></button>
+        </div>
+    </header>
+
+    <div id="mobileMenu">
+        <button onclick="window.location.href='index.html';closeMobileMenu()">Home</button>
+        <button onclick="window.location.href='campaigns.html';closeMobileMenu()">Our work</button>
+        <button onclick="window.location.href='how.html';closeMobileMenu()">How it works</button>
+        <button onclick="window.location.href='contact.html';closeMobileMenu()">Contact</button>
+    </div>
+
+    <main class="help-request-main">
+        <section class="help-request-intro">
+            <span class="help-eyebrow">Confidential support request</span>
+            <h1>Tell us how we can help.</h1>
+            <p>Share your situation with our team. We will review it and connect it with the right support and giving resources where possible.</p>
+            <div class="help-steps" aria-label="What happens next">
+                <div><span>1</span> You submit your request</div>
+                <div><span>2</span> Our team reviews it</div>
+                <div><span>3</span> We contact you if we can help</div>
+            </div>
+        </section>
+
+        <section class="help-request-card" aria-labelledby="helpFormTitle">
+            <div class="help-card-heading">
+                <h2 id="helpFormTitle">Request assistance</h2>
+                <p>Fields marked with * are required.</p>
+            </div>
+            <div class="help-form-message" id="helpFormMessage" role="status" aria-live="polite"></div>
+            <form id="helpRequestForm" class="help-request-form">
+                <div class="help-form-grid">
+                    <label>Full name *<input name="full_name" autocomplete="name" maxlength="120" required></label>
+                    <label>Phone number *<input name="phone" type="tel" autocomplete="tel" maxlength="32" required></label>
+                    <label>Email address <input name="email" type="email" autocomplete="email" maxlength="254"></label>
+                    <label>Type of help *
+                        <select name="help_type" required>
+                            <option value="">Select an option</option>
+                            <option>Medical care</option>
+                            <option>Food or essential supplies</option>
+                            <option>Shelter or emergency relief</option>
+                            <option>Education support</option>
+                            <option>Water or sanitation</option>
+                            <option>Other support</option>
+                        </select>
+                    </label>
+                    <label class="help-form-full">Address / location <input name="address" autocomplete="street-address" maxlength="300" placeholder="City, district, or full address"></label>
+                    <label>Estimated amount needed <input name="estimated_amount" maxlength="40" placeholder="For example: ₹10,000"></label>
+                    <label>Urgency *
+                        <select name="urgency" required>
+                            <option value="medium">Medium — help needed soon</option>
+                            <option value="low">Low — no immediate emergency</option>
+                            <option value="high">High — urgent support needed</option>
+                            <option value="critical">Critical — immediate danger or emergency</option>
+                        </select>
+                    </label>
+                    <label class="help-form-full">Please describe your situation and the help you need *
+                        <textarea name="description" rows="7" maxlength="2500" required placeholder="Include who needs help, what has happened, and the support that would make a difference."></textarea>
+                    </label>
+                </div>
+                <label class="help-consent"><input type="checkbox" name="consent" required> I confirm that the information I have provided is accurate and I agree that the foundation may review it to assess this request. *</label>
+                <button type="submit" class="help-submit-btn">Send help request <span aria-hidden="true">→</span></button>
+            </form>
+        </section>
+    </main>
+
+    <footer class="footer"><div class="footer-bottom">© 2026 Swan Turbines Foundation. Support begins with listening.</div></footer>
+
+    <script src="js/db.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        document.getElementById('helpRequestForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const message = document.getElementById('helpFormMessage');
+            const data = Object.fromEntries(new FormData(form).entries());
+            data.consent = form.elements.consent.checked;
+            try {
+                const request = SwanDB.createHelpRequest(data);
+                message.className = 'help-form-message success';
+                message.textContent = 'Thank you. Your request ' + request.id + ' has been sent to our support team. We will review it confidentially.';
+                form.reset();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (error) {
+                message.className = 'help-form-message error';
+                message.textContent = error.message || 'We could not send your request. Please check the form and try again.';
+            }
+        });
+    </script>
+</body>
+</html>

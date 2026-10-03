@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>window.location.replace('index.html');</script>
+    <title>Donor Dashboard — Swan Turbines Foundation</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="logo.png">
+</head>
+
+<body class="dashboard-page">
+    <div class="loader" id="loader">
+        <div class="loader-logo" style="display:flex;align-items:center;gap:12px;font-size:24px;font-weight:700;">
+            <img src="logo.png" alt="Swan Turbines Foundation" width="48" height="48" style="object-fit:contain;display:block;">
+            Swan Turbines Foundation
+        </div>
+    </div>
+
+    <header class="site-nav" id="navbar">
+        <div class="nav-inner">
+            <a href="index.html" class="logo">
+                <img src="logo.png" alt="Swan Turbines Foundation Logo" width="50" height="50" style="object-fit:contain;display:block;">
+                Swan Turbines Foundation
+            </a>
+            <nav class="nav-links" aria-label="Primary navigation">
+                <button data-page="home" onclick="window.location.href='index.html'">Home</button>
+                <button data-page="campaigns" onclick="window.location.href='campaigns.html'">Campaigns</button>
+                <button data-page="how" onclick="window.location.href='how.html'">How It Works</button>
+                <button data-page="resources" onclick="window.location.href='resources.html'">Resources</button>
+                <button data-page="contact" onclick="window.location.href='contact.html'">Contact</button>
+            </nav>
+            <button class="menu-btn" type="button" onclick="toggleMobileMenu()" aria-label="Open navigation menu">☰</button>
+        </div>
+    </header>
+
+    <div id="mobileMenu" aria-label="Mobile navigation">
+        <button onclick="window.location.href='index.html';closeMobileMenu()">Home</button>
+        <button onclick="window.location.href='campaigns.html';closeMobileMenu()">Campaigns</button>
+        <button onclick="window.location.href='how.html';closeMobileMenu()">How It Works</button>
+        <button onclick="window.location.href='resources.html';closeMobileMenu()">Resources</button>
+        <button onclick="window.location.href='contact.html';closeMobileMenu()">Contact</button>
+    </div>
+
+    <main class="app-container">
+        <!-- Donor Header -->
+        <div class="dashboard-header-card">
+            <div class="donor-info-group">
+                <div class="circular-profile" aria-label="Swan Turbains Foundation">
+                    <div class="circular-text" data-text="SWAN TURBAINS FOUNDATION" aria-hidden="true"></div>
+                    <div class="donor-avatar" id="donorAvatar">S</div>
+                </div>
+                <div class="donor-details">
+                    <h1 id="donorName" class="blur-text-element" data-blur-text="Donor Name">Donor Name</h1>
+                    <p id="donorEmail">donor@example.com</p>
+                </div>
+            </div>
+            <div class="dashboard-header-actions">
+                <button class="btn-secondary" onclick="window.location.href='profile.html'">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Edit Profile
+                </button>
+                <button class="btn-primary-action" onclick="window.location.href='donate.html'">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                    Donate Again
+                </button>
+                <button class="btn-secondary" style="background:rgba(239,68,68,0.18);border-color:rgba(239,68,68,0.3);color:#ffffff;" onclick="SwanAuth.logout()">Logout</button>
+            </div>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="stat-cards-grid">
+            <div class="stat-card">
+                <span class="stat-card-title">Total Donated</span>
+                <span class="stat-card-value" id="statTotalDonated">₹0</span>
+                <span class="stat-card-sub">Lifetime contribution</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-card-title">Total Donations</span>
+                <span class="stat-card-value" id="statTotalCount">0</span>
+                <span class="stat-card-sub">Completed transactions</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-card-title">Last Donation</span>
+                <span class="stat-card-value" id="statLastDate" style="font-size:22px;">No donations yet</span>
+                <span class="stat-card-sub" id="statLastAmount">₹0</span>
+            </div>
+        </div>
+
+        <!-- Donation History Section -->
+        <div class="section-panel-header">
+            <h2>Donation History</h2>
+            <div class="filter-pills">
+                <button class="filter-btn active" data-filter="all" onclick="filterDonations('all', this)">All</button>
+                <button class="filter-btn" data-filter="successful" onclick="filterDonations('successful', this)">Successful</button>
+                <button class="filter-btn" data-filter="pending" onclick="filterDonations('pending', this)">Pending</button>
+                <button class="filter-btn" data-filter="failed" onclick="filterDonations('failed', this)">Failed</button>
+            </div>
+        </div>
+
+        <div class="table-card-shell">
+            <div class="table-responsive-wrapper">
+                <table class="custom-data-table">
+                    <thead>
+                        <tr>
+                            <th>Donation ID</th>
+                            <th>Campaign</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Payment Method</th>
+                            <th>Transaction ID</th>
+                            <th>Status</th>
+                            <th>Receipt</th>
+                        </tr>
+                    </thead>
+                    <tbody id="donorDonationsTableBody">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-top">
+            <div class="footer-brand">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:15px;font-weight:700;font-size:24px;color:#fff;">
+                    <img src="logo.png" alt="Swan Turbines Foundation" width="48" height="48" style="object-fit:contain;display:block;">
+                    Swan Turbines Foundation
+                </div>
+                <p>Every act of kindness brings comfort, relief and hope to people who need it most.</p>
+            </div>
+            <div class="footer-col">
+                <h4>EXPLORE</h4>
+                <button onclick="window.location.href='index.html'">Home</button>
+                <button onclick="window.location.href='campaigns.html'">Campaigns</button>
+                <button onclick="window.location.href='about.html'">About Us</button>
+            </div>
+            <div class="footer-col">
+                <h4>LEARN</h4>
+                <button onclick="window.location.href='how.html'">How It Works</button>
+                <button onclick="window.location.href='resources.html'">Resources</button>
+                <button onclick="window.location.href='contact.html'">Contact</button>
+            </div>
+            <div class="footer-col">
+                <h4>LEGAL & COMPLIANCE</h4>
+                <button onclick="window.location.href='terms-and-conditions.html'">Terms & Conditions</button>
+                <button onclick="window.location.href='privacy-policy.html'">Privacy Policy</button>
+                <button onclick="window.location.href='refund-policy.html'">Refund Policy</button>
+            </div>
+            <div class="footer-col">
+                <h4>SUPPORT</h4>
+                <button onclick="window.location.href='donate.html'">Donate Now</button>
+                <button onclick="window.location.href='campaigns.html'">View Campaigns</button>
+            </div>
+        </div>
+        <div class="footer-bottom">© 2026 Swan Turbines Foundation. Impact Through Kindness.</div>
+    </footer>
+
+    <script src="js/db.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/receipt.js"></script>
+    <script src="js/circular-text.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        let currentFilter = 'all';
+        const escapeHTML = (value) => String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+        const safeStatus = (value) => ['successful', 'pending', 'failed', 'refunded'].includes(value) ? value : 'pending';
+
+        function renderDashboard() {
+            if (!SwanAuth.requireAuth('donor')) return;
+
+            const user = SwanAuth.getCurrentUser();
+            const profile = SwanDB.getProfileByUserId(user.id);
+            document.getElementById('donorName').textContent = user.full_name;
+            document.getElementById('donorEmail').textContent = user.email;
+            const donorAvatar = document.getElementById('donorAvatar');
+            donorAvatar.innerHTML = '';
+            donorAvatar.classList.toggle('has-image', Boolean(profile && profile.profile_image));
+            if (profile && profile.profile_image) {
+                const profileImage = document.createElement('img');
+                profileImage.src = profile.profile_image;
+                profileImage.alt = user.full_name + ' profile photo';
+                donorAvatar.appendChild(profileImage);
+            } else {
+                donorAvatar.textContent = user.full_name.charAt(0).toUpperCase();
+            }
+
+            const donations = SwanDB.getDonationsByUserId(user.id);
+            const successful = donations.filter(d => d.payment_status === 'successful');
+            const totalDonated = successful.reduce((sum, d) => sum + Number(d.amount), 0);
+
+            const formatINR = (amt) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amt);
+
+            document.getElementById('statTotalDonated').textContent = formatINR(totalDonated);
+            document.getElementById('statTotalCount').textContent = successful.length;
+
+            if (donations.length > 0) {
+                const last = donations[0];
+                document.getElementById('statLastDate').textContent = new Date(last.donation_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                document.getElementById('statLastAmount').textContent = formatINR(last.amount) + ' (' + last.payment_status + ')';
+            }
+
+            renderTable(donations, currentFilter);
+        }
+
+        function renderTable(donations, filter) {
+            const tbody = document.getElementById('donorDonationsTableBody');
+            let filtered = donations;
+            if (filter !== 'all') {
+                filtered = donations.filter(d => d.payment_status === filter);
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8">
+                            <div class="table-empty-state">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                                <p>No donation records found.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(d => {
+                const formattedDate = new Date(d.donation_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                const formattedAmt = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(d.amount);
+                const status = safeStatus(d.payment_status);
+
+                return `
+                    <tr>
+                        <td><strong>${escapeHTML(d.id)}</strong></td>
+                        <td><span class="campaign-donation-label"><span>Donated to</span>${escapeHTML(d.campaign || 'General Donation')}</span></td>
+                        <td>${formattedDate}</td>
+                        <td><strong>${formattedAmt}</strong></td>
+                        <td>${escapeHTML(d.payment_method || 'UPI / Card')}</td>
+                        <td style="font-family:monospace;font-size:12px;">${escapeHTML(d.transaction_id || 'N/A')}</td>
+                        <td><span class="status-pill ${status}"><span class="status-dot"></span>${escapeHTML(status)}</span></td>
+                        <td>
+                            ${status === 'successful' ? `<button class="btn-icon-text" onclick="SwanReceipt.openReceiptModal('${escapeHTML(d.id)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Legal Receipt & Terms</button>` : '<span style="color:#94a3b8;font-size:12px;">Unavailable</span>'}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterDonations(filter, btn) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-pills .filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const user = SwanAuth.getCurrentUser();
+            if (user) {
+                renderTable(SwanDB.getDonationsByUserId(user.id), filter);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', renderDashboard);
+    </script>
+</body>
+
+</html>

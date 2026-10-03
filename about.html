@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Swan Turbines Foundation — Impact Through Kindness</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="logo.png">
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+     LOADER
+===================================================== -->
+
+    <div class="loader" id="loader">
+
+        <div class="loader-logo"
+            style="display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 700;">
+            <img src="logo.png" alt="Swan Turbines Foundation" width="48" height="48"
+                style="object-fit: contain; display: block;">
+            Swan Turbines Foundation
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+     CUSTOM CURSOR
+===================================================== -->
+
+
+
+
+    <!-- =====================================================
+     NAVIGATION
+===================================================== -->
+
+    <header class="site-nav" id="navbar">
+
+        <div class="nav-inner">
+
+            <a href="index.html" class="logo">
+                <img src="logo.png" alt="Swan Turbines Foundation Logo" width="50" height="50"
+                    style="object-fit: contain; display: block;">
+                Swan Turbines Foundation
+            </a>
+
+
+            <nav class="nav-links">
+
+                <button data-page="home" onclick="window.location.href='index.html'">
+                    Home
+                </button>
+
+                <button data-page="campaigns" onclick="window.location.href='campaigns.html'">
+                    Campaigns
+                </button>
+
+                <button data-page="how" onclick="window.location.href='how.html'">
+                    How It Works
+                </button>
+
+                <button data-page="resources" onclick="window.location.href='resources.html'">
+                    Resources
+                </button>
+
+                <button data-page="contact" onclick="window.location.href='contact.html'">
+                    Contact
+                </button>
+
+            </nav>
+
+
+            <button class="menu-btn" onclick="toggleMobileMenu()">
+                ☰
+            </button>
+
+
+            <button class="start-btn" onclick="openDonation(this)">
+
+                Get started
+
+                <span class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M5 12h14M13 6l6 6-6 6" />
+                    </svg>
+                </span>
+
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================================
+     MOBILE MENU
+===================================================== -->
+
+    <div id="mobileMenu">
+        <button onclick="window.location.href='index.html';closeMobileMenu()">Home</button>
+        <button onclick="window.location.href='campaigns.html';closeMobileMenu()">Campaigns</button>
+
+        <button onclick="window.location.href='how.html';closeMobileMenu()">How It Works</button>
+        <button onclick="window.location.href='resources.html';closeMobileMenu()">Resources</button>
+        <button onclick="window.location.href='contact.html';closeMobileMenu()">Contact</button>
+    </div>
+
+
+    <!-- =====================================================
+     HOME
+===================================================== -->
+
+    <section id="about" class="page active">
+
+        <div class="inner-page">
+
+            <div class="page-heading">
+
+                <div class="page-label">
+                    Who we are
+                </div>
+
+                <div class="text-pressure-container" data-text="SWAN TURBINES"></div>
+
+                <p>
+                    We believe giving is more than charity —
+                    it is a shared promise of humanity.
+                </p>
+
+            </div>
+
+
+            <section class="about-page-content">
+
+                <div>
+
+                    <h2>Helping people starts with understanding.</h2>
+
+                    <p>
+                        Swan Turbines Foundation is a public charitable trust established to create meaningful, lasting support for people and communities in need.
+                    </p>
+
+                    <p>
+                        Its registered objects include relief of poverty, education, medical relief, food and financial support, healthcare, and assistance for vulnerable people.
+                    </p>
+
+                    <p>
+                        The trust is registered as Document No. 204 of 2026, Book IV, at the Sub-Registrar Office, Kukatpally.
+                    </p>
+
+                    <button class="start-btn donate-btn" onclick="openDonation(this)">
+
+                        Support Our Mission
+
+                        <span class="icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M5 12h14M13 6l6 6-6 6" />
+                            </svg>
+                        </span>
+
+                    </button>
+
+                </div>
+
+
+                <div class="about-image">
+                    <div class="pixel-swap" data-trigger="hover" data-pixel-size="64" data-duration="1400"
+                        data-pixel-duration="450" data-pixel-scale="0.35" data-pattern="random" data-fade="true"
+                        style="height:100%;width:100%;border-radius:25px;">
+                        <div class="pixel-swap__layer" data-visible="true" style="z-index:2;">
+                            <div
+                                style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f4f4f4;">
+                                <img src="logo.png" alt="Swan Turbines Foundation"
+                                    style="max-width:55%;max-height:65%;object-fit:contain;">
+                            </div>
+                        </div>
+                        <div class="pixel-swap__layer" data-visible="false" style="z-index:1;" aria-hidden="true">
+                            <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1200&q=90"
+                                alt="Children" style="width:100%;height:100%;object-fit:cover;">
+                        </div>
+                        <div class="pixel-swap__grid" aria-hidden="true"></div>
+                    </div>
+                </div>
+
+            </section>
+
+            <section class="legal-profile">
+                <div>
+                    <span class="pill">Registered purpose</span>
+                    <h2>Charitable action with a broad public benefit.</h2>
+                </div>
+                <div class="legal-profile-copy">
+                    <p>The deed authorises initiatives for education, healthcare, food and financial assistance, hospitals and health services, awareness programmes, and support for women, children, older people and persons with disabilities.</p>
+                    <div class="legal-profile-tags" aria-label="Foundation focus areas">
+                        <span>Education</span><span>Medical relief</span><span>Food support</span><span>Community welfare</span><span>Inclusive care</span>
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="impact">
+
+                <div class="impact-label">
+                    Our values
+                </div>
+
+                <h2>Compassion in action.</h2>
+
+                <p>
+                    Everything we do is built around dignity, transparency, and meaningful impact.
+                </p>
+
+
+                <div class="impact-grid">
+
+                    <div class="impact-box">
+
+                        <div class="impact-number">
+                            01
+                        </div>
+
+                        <h4>Transparency</h4>
+
+                        <p>
+                            We believe donors deserve clarity about where their support goes.
+                        </p>
+
+                    </div>
+
+
+                    <div class="impact-box">
+
+                        <div class="impact-number">
+                            02
+                        </div>
+
+                        <h4>
+                            Humanity
+                        </h4>
+
+                        <p>
+                            People remain at the center of
+                            everything we do.
+                        </p>
+
+                    </div>
+
+
+                    <div class="impact-box">
+
+                        <div class="impact-number">
+                            03
+                        </div>
+
+                        <h4>
+                            Lasting Impact
+                        </h4>
+
+                        <p>
+                            We focus on meaningful change that
+                            continues beyond immediate relief.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+     HOW IT WORKS
+===================================================== -->
+
+    <!-- =====================================================
+     FOOTER
+===================================================== -->
+
+    <footer class="footer">
+
+        <div class="footer-top">
+
+
+            <div class="footer-brand">
+                <div
+                    style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px; font-weight: 700; font-size: 24px; color: #fff;">
+                    <img src="logo.png" alt="Swan Turbines Foundation" width="48" height="48"
+                        style="object-fit: contain; display: block;">
+                    Swan Turbines Foundation
+                </div>
+                <p>
+                    Every act of kindness brings comfort,
+                    relief and hope to people who need it most.
+                </p>
+
+            </div>
+
+
+            <div class="footer-col">
+
+                <h4>
+                    EXPLORE
+                </h4>
+
+                <button onclick="window.location.href='index.html'">
+                    Home
+                </button>
+
+                <button onclick="window.location.href='campaigns.html'">
+                    Campaigns
+                </button>
+
+                <button onclick="window.location.href='about.html'">
+                    About Us
+                </button>
+
+            </div>
+
+
+            <div class="footer-col">
+
+                <h4>
+                    LEARN
+                </h4>
+
+                <button onclick="window.location.href='how.html'">
+                    How It Works
+                </button>
+
+                <button onclick="window.location.href='resources.html'">
+                    Resources
+                </button>
+
+                <button onclick="window.location.href='contact.html'">
+                    Contact
+                </button>
+
+            </div>
+
+
+            <div class="footer-col">
+
+                <h4>
+                    LEGAL & COMPLIANCE
+                </h4>
+
+                <button onclick="window.location.href='terms-and-conditions.html'">
+                    Terms & Conditions
+                </button>
+
+                <button onclick="window.location.href='privacy-policy.html'">
+                    Privacy Policy
+                </button>
+
+                <button onclick="window.location.href='refund-policy.html'">
+                    Refund Policy
+                </button>
+
+            </div>
+
+
+            <div class="footer-col">
+
+                <h4>
+                    SUPPORT
+                </h4>
+
+                <button onclick="openDonation()">
+                    Donate Now
+                </button>
+
+                <button onclick="window.location.href='campaigns.html'">
+                    View Campaigns
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="footer-bottom">
+
+            © 2026 Swan Turbines Foundation. Impact Through Kindness. &nbsp;|&nbsp; <a href="terms-and-conditions.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Terms & Conditions</a> &nbsp;|&nbsp; <a href="privacy-policy.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Privacy Policy</a> &nbsp;|&nbsp; <a href="refund-policy.html" style="color:rgba(255,255,255,0.7);text-decoration:underline;">Refund/Cancellation Policy</a>
+
+        </div>
+
+    </footer>
+
+
+    <!-- =====================================================
+     DONATION MODAL
+===================================================== -->
+
+    <div class="modal" id="donationModal">
+
+        <div class="modal-box">
+
+            <div class="modal-header">
+
+                <h2>
+                    Make a Difference
+                </h2>
+
+                <button class="close-modal" onclick="closeDonation()">
+                    ×
+                </button>
+
+            </div>
+
+
+            <p style="
+                color:#777;
+                font-size:14px;
+                line-height:1.5;
+                margin-top:12px;
+            ">
+
+                Your contribution can help provide
+                meaningful support to children and families.
+
+            </p>
+
+
+            <div class="amount-options">
+
+                <button class="amount selected" onclick="selectAmount(this)">
+                    ₹500
+                </button>
+
+                <button class="amount" onclick="selectAmount(this)">
+                    ₹1,000
+                </button>
+
+                <button class="amount" onclick="selectAmount(this)">
+                    ₹2,500
+                </button>
+
+                <button class="amount" onclick="selectAmount(this)">
+                    ₹5,000
+                </button>
+
+            </div>
+
+
+            <input id="customAmount" type="number" placeholder="Enter custom amount" style="
+                width:100%;
+                height:45px;
+                border:1px solid #ddd;
+                border-radius:10px;
+                padding:0 15px;
+                outline:none;
+                margin-bottom:15px;
+            ">
+
+
+            <div class="donation-consent-container" style="margin-bottom:15px;">
+                <label class="donation-consent-label">
+                    <input type="checkbox" id="modalConsentCheck" onchange="document.getElementById('modalDonateSubmit').disabled = !this.checked">
+                    <span>I have read and agree to the <a href="terms-and-conditions.html" target="_blank">Terms & Conditions</a> and <a href="privacy-policy.html" target="_blank">Privacy Policy</a>.</span>
+                </label>
+                <div class="donation-disclaimer-text">
+                    Please review our <a href="terms-and-conditions.html" target="_blank">Terms & Conditions</a>, <a href="privacy-policy.html" target="_blank">Privacy Policy</a> and <a href="refund-policy.html" target="_blank">Refund/Cancellation Policy</a> before completing your donation.
+                </div>
+            </div>
+
+
+            <button class="donate-submit" id="modalDonateSubmit" disabled onclick="processDonation()">
+
+                Continue to Donation →
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <script src="js/db.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/receipt.js"></script>
+    <script src="js/main.js"></script>
+
+</body>
+
+</html>
