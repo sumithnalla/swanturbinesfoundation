@@ -419,255 +419,285 @@
     <script src="js/db.js"></script>
     <script src="js/main.js"></script>
     <script>
-        const API_BASE = window.__API_BASE_URL__ || (
-            window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                ? 'http://localhost:8000'
-                : ''
-        );
+        (function () {
+            const API_BASE = window.__API_BASE_URL__ || (
+                window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                    ? 'http://localhost:8000'
+                    : ''
+            );
 
-        let currentStep = 1;
-        let selectedFiles = [];
+            let wizardCurrentStep = 1;
+            let selectedFiles = [];
 
-        const HelpWizard = {
-            goToStep(step) {
-                if (step > currentStep) {
-                    if (!this.validateStep(currentStep)) return;
-                }
-
-                currentStep = step;
-
-                // Update Progress Pills
-                for (let i = 1; i <= 3; i++) {
-                    const pill = document.getElementById(`pillStep${i}`);
-                    pill.classList.remove('active', 'completed');
-                    if (i < currentStep) pill.classList.add('completed');
-                    else if (i === currentStep) pill.classList.add('active');
-                }
-
-                // Show target section
-                document.querySelectorAll('.step-section').forEach(sec => sec.classList.remove('active'));
-                const targetSec = document.getElementById(`stepSection${step}`);
-                if (targetSec) targetSec.classList.add('active');
-
-                // Clear any error messages
-                const msg = document.getElementById('helpFormMessage');
-                msg.className = 'help-form-message';
-                msg.textContent = '';
-                
-                window.scrollTo({ top: document.querySelector('.help-request-card').offsetTop - 100, behavior: 'smooth' });
-            },
-
-            validateStep(step) {
-                const msg = document.getElementById('helpFormMessage');
-                msg.className = 'help-form-message';
-                msg.textContent = '';
-
-                if (step === 1) {
-                    const name = document.getElementById('field_full_name').value.trim();
-                    const phone = document.getElementById('field_phone').value.trim();
-                    const addr = document.getElementById('field_address').value.trim();
-                    const city = document.getElementById('field_city').value.trim();
-                    const state = document.getElementById('field_state').value.trim();
-
-                    if (!name || name.length < 2) {
-                        this.showError('Please enter your full name (minimum 2 characters).');
-                        return false;
+            const HelpWizard = {
+                goToStep(step) {
+                    if (step > wizardCurrentStep) {
+                        if (!this.validateStep(wizardCurrentStep)) return;
                     }
-                    if (!phone || phone.length < 10) {
-                        this.showError('Please enter a valid mobile number (minimum 10 digits).');
-                        return false;
-                    }
-                    if (!addr || addr.length < 5) {
-                        this.showError('Please enter your street address or location (minimum 5 characters).');
-                        return false;
-                    }
-                    if (!city) {
-                        this.showError('Please enter your city/town.');
-                        return false;
-                    }
-                    if (!state) {
-                        this.showError('Please enter your state.');
-                        return false;
-                    }
-                } else if (step === 2) {
-                    const type = document.getElementById('field_help_type').value;
-                    const amount = document.getElementById('field_amount').value.trim();
-                    const desc = document.getElementById('field_description').value.trim();
 
-                    if (!type) {
-                        this.showError('Please select the type of support needed.');
-                        return false;
-                    }
-                    if (!amount) {
-                        this.showError('Please enter the estimated assistance amount needed.');
-                        return false;
-                    }
-                    if (!desc || desc.length < 15) {
-                        this.showError('Please describe your situation in more detail (minimum 15 characters).');
-                        return false;
-                    }
-                }
-                return true;
-            },
+                    wizardCurrentStep = step;
 
-            showError(text) {
-                const msg = document.getElementById('helpFormMessage');
-                msg.className = 'help-form-message error';
-                msg.textContent = text;
-            },
+                    // Update Progress Pills
+                    for (let i = 1; i <= 3; i++) {
+                        const pill = document.getElementById(`pillStep${i}`);
+                        if (!pill) continue;
+                        pill.classList.remove('active', 'completed');
+                        if (i < wizardCurrentStep) pill.classList.add('completed');
+                        else if (i === wizardCurrentStep) pill.classList.add('active');
+                    }
 
-            handleFileSelect(event) {
-                const files = Array.from(event.target.files);
-                files.forEach(file => {
-                    if (file.size > 10 * 1024 * 1024) {
-                        alert(`File ${file.name} exceeds 10MB limit.`);
+                    // Show target section
+                    document.querySelectorAll('.step-section').forEach(sec => sec.classList.remove('active'));
+                    const targetSec = document.getElementById(`stepSection${step}`);
+                    if (targetSec) targetSec.classList.add('active');
+
+                    // Clear any error messages
+                    const msg = document.getElementById('helpFormMessage');
+                    if (msg) {
+                        msg.className = 'help-form-message';
+                        msg.textContent = '';
+                    }
+
+                    const card = document.querySelector('.help-request-card');
+                    if (card) {
+                        window.scrollTo({ top: card.offsetTop - 100, behavior: 'smooth' });
+                    }
+                },
+
+                validateStep(step) {
+                    const msg = document.getElementById('helpFormMessage');
+                    if (msg) {
+                        msg.className = 'help-form-message';
+                        msg.textContent = '';
+                    }
+
+                    if (step === 1) {
+                        const name = (document.getElementById('field_full_name')?.value || '').trim();
+                        const phone = (document.getElementById('field_phone')?.value || '').trim();
+                        const addr = (document.getElementById('field_address')?.value || '').trim();
+                        const city = (document.getElementById('field_city')?.value || '').trim();
+                        const state = (document.getElementById('field_state')?.value || '').trim();
+
+                        if (!name || name.length < 2) {
+                            this.showError('Please enter your full name (minimum 2 characters).');
+                            return false;
+                        }
+                        if (!phone || phone.length < 10) {
+                            this.showError('Please enter a valid mobile number (minimum 10 digits).');
+                            return false;
+                        }
+                        if (!addr || addr.length < 3) {
+                            this.showError('Please enter your street address or location.');
+                            return false;
+                        }
+                        if (!city) {
+                            this.showError('Please enter your city/town.');
+                            return false;
+                        }
+                        if (!state) {
+                            this.showError('Please enter your state.');
+                            return false;
+                        }
+                    } else if (step === 2) {
+                        const type = document.getElementById('field_help_type')?.value;
+                        const amount = (document.getElementById('field_amount')?.value || '').trim();
+                        const desc = (document.getElementById('field_description')?.value || '').trim();
+
+                        if (!type) {
+                            this.showError('Please select the type of support needed.');
+                            return false;
+                        }
+                        if (!amount) {
+                            this.showError('Please enter the estimated assistance amount needed.');
+                            return false;
+                        }
+                        if (!desc || desc.length < 10) {
+                            this.showError('Please describe your situation in more detail (minimum 10 characters).');
+                            return false;
+                        }
+                    }
+                    return true;
+                },
+
+                showError(text) {
+                    const msg = document.getElementById('helpFormMessage');
+                    if (msg) {
+                        msg.className = 'help-form-message error';
+                        msg.textContent = text;
+                    }
+                },
+
+                handleFileSelect(event) {
+                    const files = Array.from(event.target.files || []);
+                    files.forEach(file => {
+                        if (file.size > 10 * 1024 * 1024) {
+                            alert(`File ${file.name} exceeds 10MB limit.`);
+                            return;
+                        }
+                        selectedFiles.push(file);
+                    });
+                    this.renderFileList();
+                },
+
+                removeFile(index) {
+                    selectedFiles.splice(index, 1);
+                    this.renderFileList();
+                },
+
+                renderFileList() {
+                    const list = document.getElementById('selectedFilesList');
+                    if (!list) return;
+                    if (!selectedFiles.length) {
+                        list.innerHTML = '';
                         return;
                     }
-                    selectedFiles.push(file);
-                });
-                this.renderFileList();
-            },
+                    list.innerHTML = selectedFiles.map((file, idx) => `
+                        <div class="file-item">
+                            <span><strong>📄 ${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)</span>
+                            <button type="button" class="file-remove" onclick="HelpWizard.removeFile(${idx})">✕</button>
+                        </div>
+                    `).join('');
+                },
 
-            removeFile(index) {
-                selectedFiles.splice(index, 1);
-                this.renderFileList();
-            },
+                copyReference() {
+                    const ref = document.getElementById('successRefNumber')?.textContent || '';
+                    navigator.clipboard.writeText(ref).then(() => {
+                        alert('Reference code copied to clipboard!');
+                    }).catch(() => {
+                        alert('Reference code: ' + ref);
+                    });
+                },
 
-            renderFileList() {
-                const list = document.getElementById('selectedFilesList');
-                if (!selectedFiles.length) {
-                    list.innerHTML = '';
-                    return;
+                resetForm() {
+                    const form = document.getElementById('helpRequestForm');
+                    if (form) form.reset();
+                    selectedFiles = [];
+                    this.renderFileList();
+                    document.getElementById('helpSuccessCard')?.classList.remove('active');
+                    if (form) form.style.display = 'grid';
+                    const prog = document.getElementById('stepProgressBar');
+                    if (prog) prog.style.display = 'flex';
+                    const sub = document.getElementById('helpFormSubtitle');
+                    if (sub) sub.style.display = 'block';
+                    this.goToStep(1);
                 }
-                list.innerHTML = selectedFiles.map((file, idx) => `
-                    <div class="file-item">
-                        <span><strong>📄 ${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)</span>
-                        <button type="button" class="file-remove" onclick="HelpWizard.removeFile(${idx})">✕</button>
-                    </div>
-                `).join('');
-            },
-
-            copyReference() {
-                const ref = document.getElementById('successRefNumber').textContent;
-                navigator.clipboard.writeText(ref).then(() => {
-                    alert('Reference code copied to clipboard!');
-                }).catch(() => {
-                    alert('Reference code: ' + ref);
-                });
-            },
-
-            resetForm() {
-                document.getElementById('helpRequestForm').reset();
-                selectedFiles = [];
-                this.renderFileList();
-                document.getElementById('helpSuccessCard').classList.remove('active');
-                document.getElementById('helpRequestForm').style.display = 'grid';
-                document.getElementById('stepProgressBar').style.display = 'flex';
-                document.getElementById('helpFormSubtitle').style.display = 'block';
-                this.goToStep(1);
-            }
-        };
-
-        // Form Submission
-        document.getElementById('helpRequestForm').addEventListener('submit', async function (event) {
-            event.preventDefault();
-            const consentChecked = document.getElementById('field_consent').checked;
-            if (!consentChecked) {
-                HelpWizard.showError('Please confirm your consent by checking the declaration box.');
-                return;
-            }
-
-            const submitBtn = document.getElementById('submitHelpBtn');
-            const originalText = submitBtn.textContent;
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting Application...';
-
-            const payload = {
-                applicant: {
-                    full_name: document.getElementById('field_full_name').value.trim(),
-                    mobile: document.getElementById('field_phone').value.trim(),
-                    email: document.getElementById('field_email').value.trim() || null,
-                    address: document.getElementById('field_address').value.trim(),
-                    city: document.getElementById('field_city').value.trim(),
-                    state: document.getElementById('field_state').value.trim()
-                },
-                request: {
-                    support_type: document.getElementById('field_help_type').value,
-                    description: document.getElementById('field_description').value.trim(),
-                    beneficiaries: parseInt(document.getElementById('field_beneficiaries').value, 10) || 1,
-                    amount_required: document.getElementById('field_amount').value.trim(),
-                    urgency: document.getElementById('field_urgency').value
-                },
-                consent: true
             };
 
-            let reference = '';
-            let requestId = '';
+            // Expose globally so onclick handlers work
+            window.HelpWizard = HelpWizard;
 
-            try {
-                const response = await fetch(`${API_BASE}/api/v1/requests`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    const errData = await response.json().catch(() => ({}));
-                    throw new Error((errData.error && errData.error.message) || 'Submission failed');
-                }
-
-                const data = await response.json();
-                reference = data.reference;
-                requestId = data.id;
-
-                // Upload documents if selected
-                if (selectedFiles.length && requestId) {
-                    try {
-                        const formData = new FormData();
-                        selectedFiles.forEach(file => formData.append('files', file));
-                        await fetch(`${API_BASE}/api/v1/requests/${requestId}/documents`, {
-                            method: 'POST',
-                            body: formData
-                        });
-                    } catch (uploadErr) {
-                        console.warn('Document upload deferred:', uploadErr);
+            // Form Submission
+            const helpForm = document.getElementById('helpRequestForm');
+            if (helpForm) {
+                helpForm.addEventListener('submit', async function (event) {
+                    event.preventDefault();
+                    const consentChecked = document.getElementById('field_consent')?.checked;
+                    if (!consentChecked) {
+                        HelpWizard.showError('Please confirm your consent by checking the declaration box.');
+                        return;
                     }
-                }
-            } catch (apiErr) {
-                // Fallback to local storage if API is offline
-                try {
-                    const localData = {
-                        full_name: payload.applicant.full_name,
-                        phone: payload.applicant.mobile,
-                        email: payload.applicant.email,
-                        address: `${payload.applicant.address}, ${payload.applicant.city}, ${payload.applicant.state}`,
-                        help_type: payload.request.support_type,
-                        description: payload.request.description,
-                        estimated_amount: payload.request.amount_required,
-                        urgency: payload.request.urgency,
+
+                    const submitBtn = document.getElementById('submitHelpBtn');
+                    const originalText = submitBtn ? submitBtn.textContent : 'Send Request';
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = 'Submitting Application...';
+                    }
+
+                    const payload = {
+                        applicant: {
+                            full_name: (document.getElementById('field_full_name')?.value || '').trim(),
+                            mobile: (document.getElementById('field_phone')?.value || '').trim(),
+                            email: (document.getElementById('field_email')?.value || '').trim() || null,
+                            address: (document.getElementById('field_address')?.value || '').trim(),
+                            city: (document.getElementById('field_city')?.value || '').trim(),
+                            state: (document.getElementById('field_state')?.value || '').trim()
+                        },
+                        request: {
+                            support_type: document.getElementById('field_help_type')?.value || 'other',
+                            description: (document.getElementById('field_description')?.value || '').trim(),
+                            beneficiaries: parseInt(document.getElementById('field_beneficiaries')?.value, 10) || 1,
+                            amount_required: (document.getElementById('field_amount')?.value || '').trim(),
+                            urgency: document.getElementById('field_urgency')?.value || 'medium'
+                        },
                         consent: true
                     };
-                    const localReq = window.SwanDB ? window.SwanDB.createHelpRequest(localData) : null;
-                    reference = localReq && localReq.id ? localReq.id : 'STF-' + new Date().getFullYear() + '-' + Math.floor(100000 + Math.random() * 900000);
-                } catch (fallbackErr) {
-                    reference = 'STF-' + new Date().getFullYear() + '-000101';
-                }
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
+
+                    let reference = '';
+                    let requestId = '';
+
+                    try {
+                        const response = await fetch(`${API_BASE}/api/v1/requests`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            const errData = await response.json().catch(() => ({}));
+                            throw new Error((errData.error && errData.error.message) || 'Submission failed');
+                        }
+
+                        const data = await response.json();
+                        reference = data.reference;
+                        requestId = data.id;
+
+                        // Upload documents if selected
+                        if (selectedFiles.length && requestId) {
+                            try {
+                                const formData = new FormData();
+                                selectedFiles.forEach(file => formData.append('files', file));
+                                await fetch(`${API_BASE}/api/v1/requests/${requestId}/documents`, {
+                                    method: 'POST',
+                                    body: formData
+                                });
+                            } catch (uploadErr) {
+                                console.warn('Document upload deferred:', uploadErr);
+                            }
+                        }
+                    } catch (apiErr) {
+                        // Fallback to local storage if API is offline
+                        try {
+                            const localData = {
+                                full_name: payload.applicant.full_name,
+                                phone: payload.applicant.mobile,
+                                email: payload.applicant.email,
+                                address: `${payload.applicant.address}, ${payload.applicant.city}, ${payload.applicant.state}`,
+                                help_type: payload.request.support_type,
+                                description: payload.request.description,
+                                estimated_amount: payload.request.amount_required,
+                                urgency: payload.request.urgency,
+                                consent: true
+                            };
+                            const localReq = window.SwanDB ? window.SwanDB.createHelpRequest(localData) : null;
+                            reference = localReq && localReq.id ? localReq.id : 'STF-' + new Date().getFullYear() + '-' + Math.floor(100000 + Math.random() * 900000);
+                        } catch (fallbackErr) {
+                            reference = 'STF-' + new Date().getFullYear() + '-000101';
+                        }
+                    } finally {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = originalText;
+                        }
+                    }
+
+                    // Show Dedicated Success Screen
+                    document.getElementById('helpRequestForm').style.display = 'none';
+                    document.getElementById('stepProgressBar').style.display = 'none';
+                    const subTitle = document.getElementById('helpFormSubtitle');
+                    if (subTitle) subTitle.style.display = 'none';
+                    const fMsg = document.getElementById('helpFormMessage');
+                    if (fMsg) fMsg.style.display = 'none';
+                    const refNum = document.getElementById('successRefNumber');
+                    if (refNum) refNum.textContent = reference;
+                    document.getElementById('helpSuccessCard')?.classList.add('active');
+                    const cardEl = document.querySelector('.help-request-card');
+                    if (cardEl) {
+                        window.scrollTo({ top: cardEl.offsetTop - 80, behavior: 'smooth' });
+                    }
+                });
             }
-
-            // Show Dedicated Success Screen
-            document.getElementById('helpRequestForm').style.display = 'none';
-            document.getElementById('stepProgressBar').style.display = 'none';
-            document.getElementById('helpFormSubtitle').style.display = 'none';
-            document.getElementById('helpFormMessage').style.display = 'none';
-            document.getElementById('successRefNumber').textContent = reference;
-            document.getElementById('helpSuccessCard').classList.add('active');
-            window.scrollTo({ top: document.querySelector('.help-request-card').offsetTop - 80, behavior: 'smooth' });
-        });
-
-        window.HelpWizard = HelpWizard;
+        })();
     </script>
 </body>
 </html>
