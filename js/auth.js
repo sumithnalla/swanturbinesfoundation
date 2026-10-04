@@ -149,6 +149,10 @@
                 if (response.ok) {
                     const data = await response.json();
                     saveAttemptState({ count: 0, lockedUntil: 0 });
+                    // Store JWT token for cross-origin header auth (dev: port 5500 → 8000)
+                    if (data.access_token) {
+                        try { localStorage.setItem('swan_admin_token', data.access_token); } catch (_) {}
+                    }
                     const user = {
                         id: data.user.id,
                         full_name: data.user.full_name,
@@ -187,6 +191,11 @@
                 Auth.createSession(user.id, rememberMe, user);
                 return user;
             }
+        },
+
+        // Get stored admin JWT token (for Authorization header usage)
+        getAdminToken: function () {
+            try { return localStorage.getItem('swan_admin_token') || null; } catch (_) { return null; }
         },
 
         // Password Reset Request

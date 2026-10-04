@@ -17,11 +17,23 @@ async def get_current_user(
     db: AsyncIOMotorDatabase = Depends(get_db),
 ) -> dict:
     """
-    Dependency: extracts and validates the JWT from the request cookie.
+    Dependency: extracts and validates the JWT from either:
+      1. Authorization: Bearer <token> header (for cross-origin JS clients)
+      2. access_token cookie (for same-origin browser sessions)
     Returns the user document from the database.
     Raises 401 if the token is missing or invalid.
     """
-    token: Optional[str] = request.cookies.get("access_token")
+    token: Optional[str] = None
+
+    # 1. Try Authorization header first (works across origins)
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:].strip()
+
+    # 2. Fall back to HTTP-only cookie
+    if not token:
+        token = request.cookies.get("access_token")
+
     if not token:
         raise auth_error()
 

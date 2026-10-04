@@ -59,6 +59,7 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     message: str = "Login successful."
     user: UserOut
+    access_token: Optional[str] = None  # Also returned in body for cross-origin JS clients
 
 
 class PasswordChangeRequest(BaseModel):

@@ -26,6 +26,17 @@
         ['localhost', '127.0.0.1'].includes(window.location.hostname) ? 'http://localhost:8000' : ''
     );
 
+    // Fetch wrapper that always attaches the admin JWT token as Authorization header
+    function apiFetch(url, options) {
+        options = options || {};
+        options.credentials = 'include';
+        const token = window.SwanAuth && window.SwanAuth.getAdminToken ? window.SwanAuth.getAdminToken() : null;
+        if (token) {
+            options.headers = Object.assign({ 'Authorization': 'Bearer ' + token }, options.headers || {});
+        }
+        return fetch(url, options);
+    }
+
     // SVGs helper
     const ICONS = {
         water: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>',
@@ -174,7 +185,7 @@
                 });
             } else {
                 try {
-                    const r = await fetch(API_BASE + '/api/v1/requests/admin/stats', { credentials: 'include' });
+                    const r = await apiFetch(API_BASE + '/api/v1/requests/admin/stats');
                     if (r.ok) {
                         const d = await r.json();
                         const c = d.by_status || {};
@@ -279,7 +290,7 @@
                 if (statusFilter !== 'all') url.searchParams.set('status', statusFilter);
                 if (searchQuery.trim()) url.searchParams.set('search', searchQuery.trim());
 
-                const r = await fetch(url.toString(), { credentials: 'include' });
+                const r = await apiFetch(url.toString());
                 if (r.ok) {
                     const d = await r.json();
                     apiRequests = d.requests || [];
@@ -479,7 +490,7 @@
 
             let req = null;
             try {
-                const r = await fetch(API_BASE + '/api/v1/requests/admin/' + encodeURIComponent(id), { credentials: 'include' });
+                const r = await apiFetch(API_BASE + '/api/v1/requests/admin/' + encodeURIComponent(id));
                 if (r.ok) req = await r.json();
             } catch (_) {}
 
@@ -659,10 +670,9 @@
             }
 
             try {
-                const r = await fetch(API_BASE + '/api/v1/requests/admin/' + encodeURIComponent(id) + '/status', {
+                const r = await apiFetch(API_BASE + '/api/v1/requests/admin/' + encodeURIComponent(id) + '/status', {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
                     body: JSON.stringify({ status: newStatus, admin_note: noteVal })
                 });
                 if (!r.ok) throw new Error('API update failed');

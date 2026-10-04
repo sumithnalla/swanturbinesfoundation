@@ -68,7 +68,7 @@ async def login(
         max_age=60 * 60 * 8,  # 8 hours
     )
 
-    return LoginResponse(user=_build_user_out(user))
+    return LoginResponse(user=_build_user_out(user), access_token=token)
 
 
 @router.post("/logout")
