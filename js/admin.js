@@ -56,7 +56,13 @@
         search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
         xCircle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
         fileText: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>',
-        save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>'
+        save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>',
+        paperclip: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>',
+        download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+        users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+        rupee: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12"/><path d="M6 8h12"/><path d="m6 13 8.5 8"/><path d="M6 13h3"/><path d="M9 13c6.667 0 6.667-10 0-10"/></svg>',
+        alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
+        calender: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
     };
 
     let cachedRequests = [];
@@ -509,7 +515,11 @@
             const name = ap.full_name || req.full_name || 'Applicant';
             const phone = ap.mobile || req.phone || '';
             const email = ap.email || req.email || '';
-            const address = [ap.address, ap.city, ap.state, ap.pincode].filter(Boolean).join(', ') || req.address || 'Address not specified';
+            const addrStreet = ap.address || req.address || '';
+            const addrCity   = ap.city || '';
+            const addrState  = ap.state || '';
+            const addrPin    = ap.pincode || '';
+            const fullAddr   = [addrStreet, addrCity, addrState, addrPin].filter(Boolean).join(', ') || 'Address not specified';
             const type = ri.support_type || req.support_type || req.help_type || 'General Support';
             const urgency = (ri.urgency || req.urgency || 'normal').toLowerCase();
             const amount = ri.amount_required || req.estimated_amount || req.amount_required || '';
@@ -518,6 +528,8 @@
             const status = (req.status || 'pending').toLowerCase();
             const adminNote = req.admin_note || '';
             const created = req.created_at ? fmt(req.created_at) : '--';
+            const updated = req.updated_at ? fmt(req.updated_at) : '--';
+            const docCount = req.document_count || (req.document_ids ? req.document_ids.length : 0);
             const targetId = req.id || id;
 
             // Set header badge
@@ -543,6 +555,10 @@
                 return m[v] || '';
             }
 
+            function field(label, value, full) {
+                return '<div class="adm-info-field' + (full ? ' full' : '') + '"><div class="adm-field-label">' + label + '</div><div class="adm-field-value">' + (value || '<span style="color:var(--text-muted);font-style:italic;">Not provided</span>') + '</div></div>';
+            }
+
             const statusOptions = [
                 { val: 'pending', label: 'Pending / Initial Review', desc: 'Case received and queued for investigation.' },
                 { val: 'under_review', label: 'Under Review & Verification', desc: 'Document verification and volunteer visit scheduled.' },
@@ -550,46 +566,62 @@
                 { val: 'rejected', label: 'Rejected / Ineligible', desc: 'Application does not meet trust charter or funding requirements.' }
             ];
 
+            const helpTypeLabels = {
+                medical: 'Medical Aid', education: 'Education Support', disaster_relief: 'Disaster Relief',
+                nutrition: 'Nutrition / Food', water: 'Water & Sanitation', livelihood: 'Livelihood Support',
+                women_empowerment: 'Women Empowerment', environment: 'Environmental Aid', other: 'General / Other'
+            };
+            const typeLabel = helpTypeLabels[type] || type;
+
             container.innerHTML =
                 '<div class="adm-detail-grid">'
-                // Left Column: Applicant & Request Details
+
+                // ── LEFT COLUMN ──────────────────────────────────────────
                 + '<div class="adm-detail-main-col">'
-                // Applicant Card
+
+                // STEP 1 — Applicant Personal Details
                 + '<div class="adm-card">'
-                + '<div class="adm-card-title">' + ICONS.user + ' Applicant Personal Details</div>'
+                + '<div class="adm-card-title">' + ICONS.user + ' Step 1 &mdash; Applicant Personal Details</div>'
                 + '<div class="adm-info-grid">'
-                + '<div class="adm-info-field"><div class="adm-field-label">Full Name</div><div class="adm-field-value">' + esc(name) + '</div></div>'
-                + '<div class="adm-info-field"><div class="adm-field-label">Contact Number</div><div class="adm-field-value">'
-                + (phone ? '<a href="tel:' + esc(phone) + '" style="display:inline-flex;align-items:center;gap:6px;">' + ICONS.phone + ' ' + esc(phone) + '</a>' : '--')
-                + '</div></div>'
-                + '<div class="adm-info-field"><div class="adm-field-label">Email Address</div><div class="adm-field-value">'
-                + (email ? '<a href="mailto:' + esc(email) + '" style="display:inline-flex;align-items:center;gap:6px;">' + ICONS.mail + ' ' + esc(email) + '</a>' : '--')
-                + '</div></div>'
-                + '<div class="adm-info-field"><div class="adm-field-label">Beneficiaries Impacted</div><div class="adm-field-value">' + esc(benefics) + ' person(s)</div></div>'
-                + '<div class="adm-info-field full"><div class="adm-field-label">Residential Address</div><div class="adm-field-value" style="display:flex;align-items:flex-start;gap:6px;">'
-                + ICONS.mapPin + ' ' + esc(address)
-                + '</div></div>'
+                + field('Full Name', esc(name))
+                + field('Contact Number', phone ? '<a href="tel:' + esc(phone) + '" style="display:inline-flex;align-items:center;gap:6px;">' + ICONS.phone + esc(phone) + '</a>' : '')
+                + field('Email Address', email ? '<a href="mailto:' + esc(email) + '" style="display:inline-flex;align-items:center;gap:6px;">' + ICONS.mail + esc(email) + '</a>' : '')
+                + field('Street / Address', esc(addrStreet))
+                + field('City', esc(addrCity))
+                + field('State', esc(addrState))
+                + (addrPin ? field('PIN Code', esc(addrPin)) : '')
+                + field('Full Address', '<span style="display:flex;align-items:flex-start;gap:6px;">' + ICONS.mapPin + esc(fullAddr) + '</span>', true)
                 + '</div></div>'
 
-                // Request Data Card
+                // STEP 2 — Request Details
                 + '<div class="adm-card">'
-                + '<div class="adm-card-title">' + ICONS.fileText + ' Case Circumstances &amp; Financial Need</div>'
+                + '<div class="adm-card-title">' + ICONS.fileText + ' Step 2 &mdash; Request Details &amp; Financial Need</div>'
                 + '<div class="adm-info-grid">'
-                + '<div class="adm-info-field"><div class="adm-field-label">Aid Category</div><div class="adm-field-value"><span class="support-tag">' + esc(type) + '</span></div></div>'
-                + '<div class="adm-info-field"><div class="adm-field-label">Urgency Level</div><div class="adm-field-value"><span class="urgency-badge ' + esc(urgency) + '">' + esc(urgency) + '</span></div></div>'
-                + '<div class="adm-info-field"><div class="adm-field-label">Aid Amount Requested</div><div class="adm-field-value" style="color:var(--primary);font-size:18px;font-weight:700;">'
-                + (amount ? '₹ ' + Number(amount).toLocaleString('en-IN') : 'Unspecified')
+                + field('Aid Category', '<span class="support-tag">' + esc(typeLabel) + '</span>')
+                + field('Urgency Level', '<span class="urgency-badge ' + esc(urgency) + '">' + esc(urgency) + '</span>')
+                + field('Estimated Aid Amount', amount ? '<span style="color:var(--primary);font-size:18px;font-weight:700;">&#8377; ' + Number(amount).toLocaleString('en-IN') + '</span>' : '')
+                + field('Beneficiaries', '<span style="display:inline-flex;align-items:center;gap:6px;">' + ICONS.users + esc(benefics) + ' person(s)</span>')
+                + field('Date Submitted', '<span style="display:inline-flex;align-items:center;gap:6px;">' + ICONS.calender + esc(created) + '</span>')
+                + field('Last Updated', esc(updated))
+                + '<div class="adm-info-field full"><div class="adm-field-label">Detailed Case Description</div><div class="adm-desc-box">' + esc(desc) + '</div></div>'
                 + '</div></div>'
-                + '<div class="adm-info-field"><div class="adm-field-label">Date Submitted</div><div class="adm-field-value">' + created + '</div></div>'
-                + '<div class="adm-info-field full">'
-                + '<div class="adm-field-label">Detailed Case Description</div>'
-                + '<div class="adm-desc-box">' + esc(desc) + '</div>'
-                + '</div>'
+
+                // STEP 3 — Documents (placeholder, filled async below)
+                + '<div class="adm-card" id="docsSection">'
+                + '<div class="adm-card-title">' + ICONS.paperclip + ' Step 3 &mdash; Supporting Documents</div>'
+                + '<div id="docsContent" style="padding:4px 0;">'
+                + (docCount === 0
+                    ? '<div style="display:flex;align-items:center;gap:10px;padding:14px;border-radius:8px;background:var(--surface-raised);color:var(--text-muted);font-size:13px;">' + ICONS.paperclip + ' No documents were uploaded with this request.</div>'
+                    : '<div style="display:flex;align-items:center;gap:8px;color:var(--text-secondary);font-size:13px;">' + ICONS.clock + ' Loading ' + docCount + ' document(s)&hellip;</div>'
+                  )
                 + '</div></div>'
+
                 + '</div>'
 
-                // Right Column: Decision Action Center
+                // ── RIGHT COLUMN ─────────────────────────────────────────
                 + '<div class="adm-detail-sidebar-col">'
+
+                // Decision card
                 + '<div class="adm-decision-card">'
                 + '<h3>' + ICONS.check + ' Case Adjudication</h3>'
                 + '<div style="margin-bottom:14px;font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.6px;">Select New Status</div>'
@@ -597,26 +629,20 @@
                 + statusOptions.map(function (opt) {
                     const active = isSel(opt.val);
                     return '<label class="adm-status-choice ' + (active ? selCls(opt.val) : '') + '" id="choice-' + opt.val + '">'
-                        + '<input type="radio" name="detailReqStatus" value="' + opt.val + '" ' + (active ? 'checked' : '') + ' onchange="AdminApp.onStatusChoiceChange(\'' + opt.val + '\')">'
+                        + '<input type="radio" name="detailReqStatus" value="' + opt.val + '" ' + (active ? 'checked' : '') + ' onchange="AdminApp.onStatusChoiceChange(\'' + opt.val + '\')">' 
                         + '<div><div style="font-weight:700;">' + esc(opt.label) + '</div><div style="font-size:11.5px;color:inherit;opacity:0.8;">' + esc(opt.desc) + '</div></div>'
                         + '</label>';
                 }).join('')
                 + '</div>'
-
                 + '<div style="margin-bottom:6px;font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.6px;">Internal Case Notes</div>'
                 + '<textarea class="adm-textarea" id="adminCaseNotes" rows="4" placeholder="Record verification remarks, interview outcomes, or reasons for decision...">' + esc(adminNote) + '</textarea>'
-
                 + '<div style="display:flex;flex-direction:column;gap:10px;">'
-                + '<button class="btn-primary" id="saveDecisionBtn" style="width:100%;height:44px;justify-content:center;" onclick="AdminApp.saveDecision(\'' + esc(targetId) + '\')">'
-                + ICONS.save + ' Save Case Decision'
-                + '</button>'
-                + '<button class="btn-secondary" style="width:100%;height:38px;justify-content:center;" onclick="AdminApp.navigate(\'requests\')">'
-                + 'Cancel &amp; Return'
-                + '</button>'
+                + '<button class="btn-primary" id="saveDecisionBtn" style="width:100%;height:44px;justify-content:center;" onclick="AdminApp.saveDecision(\'' + esc(targetId) + '\')">' + ICONS.save + ' Save Case Decision</button>'
+                + '<button class="btn-secondary" style="width:100%;height:38px;justify-content:center;" onclick="AdminApp.navigate(\'requests\')">Cancel &amp; Return</button>'
                 + '</div>'
                 + '</div>'
 
-                // File Reference Summary
+                // Meta summary card
                 + '<div class="adm-card" style="margin-top:20px;">'
                 + '<div style="display:flex;flex-direction:column;gap:12px;font-size:13px;">'
                 + '<div style="display:flex;justify-content:space-between;align-items:center;">'
@@ -631,10 +657,86 @@
                 + '<span style="color:var(--text-muted);font-weight:700;text-transform:uppercase;font-size:11px;">Urgency</span>'
                 + '<span class="urgency-badge ' + esc(urgency) + '">' + esc(urgency) + '</span>'
                 + '</div>'
+                + '<div style="display:flex;justify-content:space-between;align-items:center;">'
+                + '<span style="color:var(--text-muted);font-weight:700;text-transform:uppercase;font-size:11px;">Documents</span>'
+                + '<span style="font-weight:600;">' + docCount + ' file(s)</span>'
+                + '</div>'
                 + '</div></div>'
                 + '</div>'
 
                 + '</div>';
+
+            // Asynchronously load documents list if there might be any
+            if (docCount > 0) {
+                App._loadDocuments(targetId, refId);
+            }
+        },
+
+        _loadDocuments: async function (requestId, refId) {
+            const docsContent = document.getElementById('docsContent');
+            if (!docsContent) return;
+            let docs = [];
+            try {
+                const r = await apiFetch(API_BASE + '/api/v1/requests/admin/' + encodeURIComponent(requestId) + '/documents');
+                if (r.ok) docs = await r.json();
+            } catch (_) {}
+
+            if (!docs || !docs.length) {
+                docsContent.innerHTML = '<div style="display:flex;align-items:center;gap:10px;padding:14px;border-radius:8px;background:var(--surface-raised);color:var(--text-muted);font-size:13px;">' + ICONS.paperclip + ' No documents found for this request.</div>';
+                return;
+            }
+
+            function fileIcon(ct) {
+                if (!ct) return ICONS.fileText;
+                if (ct.includes('pdf')) return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/><polyline points="9 9 10 9 11 9"/></svg>';
+                if (ct.includes('image')) return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+                return ICONS.fileText;
+            }
+
+            function fmtSize(bytes) {
+                if (!bytes) return '';
+                if (bytes < 1024) return bytes + ' B';
+                if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+                return (bytes / 1048576).toFixed(1) + ' MB';
+            }
+
+            docsContent.innerHTML = '<div style="display:flex;flex-direction:column;gap:10px;">'
+                + docs.map(function (doc) {
+                    const dlUrl = API_BASE + '/api/v1/requests/admin/' + encodeURIComponent(requestId) + '/documents/' + encodeURIComponent(doc.id || doc._id || '') + '/download';
+                    const fname = esc(doc.original_filename || 'document');
+                    const fsize = fmtSize(doc.size_bytes);
+                    const ftype = esc(doc.content_type || '');
+                    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:10px;background:var(--surface-raised);border:1px solid var(--border-subtle);gap:12px;">'
+                        + '<div style="display:flex;align-items:center;gap:12px;min-width:0;">'
+                        + '<span style="flex-shrink:0;width:36px;height:36px;border-radius:8px;background:var(--primary-alpha,rgba(16,120,220,0.1));display:flex;align-items:center;justify-content:center;color:var(--primary);">' + fileIcon(doc.content_type) + '</span>'
+                        + '<div style="min-width:0;">'
+                        + '<div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + fname + '">' + fname + '</div>'
+                        + '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">' + ftype + (fsize ? ' &bull; ' + fsize : '') + '</div>'
+                        + '</div></div>'
+                        + '<a href="' + dlUrl + '" target="_blank" onclick="AdminApp._authDownload(event, \'' + dlUrl + '\', \'' + fname + '\')" title="Download" style="flex-shrink:0;display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;background:var(--primary);color:#fff;font-size:12px;font-weight:600;text-decoration:none;border:none;cursor:pointer;">'
+                        + ICONS.download + ' Download</a>'
+                        + '</div>';
+                }).join('')
+                + '</div>';
+        },
+
+        _authDownload: async function (evt, url, filename) {
+            evt.preventDefault();
+            try {
+                const r = await apiFetch(url);
+                if (!r.ok) throw new Error('Download failed');
+                const blob = await r.blob();
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = filename || 'document';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(a.href);
+                toast('Document downloaded successfully', 'success');
+            } catch (e) {
+                toast('Download failed — ' + e.message, 'error');
+            }
         },
 
         onStatusChoiceChange: function (val) {
