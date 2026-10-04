@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -13,7 +13,7 @@
 <!-- Loader -->
 <div class="adm-loader" id="admLoader">
     <div class="adm-loader-spinner"></div>
-    <p class="adm-loader-text">Loading Admin Portal...</p>
+    <p style="font-weight:600;color:var(--primary);font-size:14px;">Loading Admin Portal...</p>
 </div>
 
 <!-- Toast Container -->
@@ -28,33 +28,43 @@
             <img src="logo.png" alt="Swan Turbines Foundation">
             <div class="adm-sidebar-logo-text">
                 <span class="brand-name">Swan Turbines</span>
-                <span class="brand-sub">Admin Portal</span>
+                <span class="brand-sub">Foundation Admin</span>
             </div>
         </div>
 
         <nav class="adm-sidebar-nav">
-            <span class="adm-nav-label">Main Menu</span>
+            <span class="adm-nav-label">Navigation</span>
 
             <button class="adm-nav-item active" id="navCampaigns" onclick="AdminApp.navigate('campaigns')">
-                <span class="nav-icon">📢</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
+                </svg>
                 <span class="nav-text">Campaigns</span>
             </button>
 
             <button class="adm-nav-item" id="navRequests" onclick="AdminApp.navigate('requests')">
-                <span class="nav-icon">📋</span>
-                <span class="nav-text">Requests</span>
-                <span class="nav-badge" id="sidebarRequestsBadge">0</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                    <path d="M9 12h6"/><path d="M9 16h6"/>
+                </svg>
+                <span class="nav-text">Help Requests</span>
+                <span class="adm-nav-badge" id="sidebarRequestsBadge">0</span>
             </button>
 
             <span class="adm-nav-label">Settings</span>
 
             <button class="adm-nav-item" id="navProfile" onclick="AdminApp.navigate('profile')">
-                <span class="nav-icon">👤</span>
-                <span class="nav-text">My Profile</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span class="nav-text">Admin Profile</span>
             </button>
 
             <button class="adm-nav-item" onclick="window.open('index.html','_blank')">
-                <span class="nav-icon">🌐</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
                 <span class="nav-text">View Website</span>
             </button>
         </nav>
@@ -64,7 +74,7 @@
                 <div class="adm-user-avatar" id="sidebarUserInitial">A</div>
                 <div class="adm-user-info">
                     <div class="user-name" id="sidebarUserName">Administrator</div>
-                    <div class="user-role">Admin</div>
+                    <div class="user-role">System Administrator</div>
                 </div>
             </div>
         </div>
@@ -75,262 +85,325 @@
 
         <!-- Top Bar -->
         <header class="adm-topbar">
-            <div class="adm-topbar-title" id="admTopbarTitle">Campaigns</div>
+            <div class="adm-topbar-title" id="admTopbarTitle">
+                <span>Campaigns</span>
+            </div>
             <div class="adm-topbar-actions">
-                <button class="adm-icon-btn" title="Refresh" onclick="AdminApp.refresh()">🔄</button>
-                <button class="adm-icon-btn" title="Export CSV" onclick="AdminApp.exportCSV()">⬇️</button>
-                <button class="adm-topbar-profile" id="topbarProfileBtn" title="My Profile" onclick="AdminApp.navigate('profile')">A</button>
-                <button class="btn-ghost" onclick="SwanAuth.logout()" style="margin-left:4px;">Log out</button>
+                <button class="adm-icon-btn" title="Refresh Data" onclick="AdminApp.refresh()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+                    </svg>
+                </button>
+                <button class="adm-icon-btn" title="Export CSV Report" onclick="AdminApp.exportCSV()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                </button>
+                <button class="adm-topbar-profile" id="topbarProfileBtn" title="View Profile" onclick="AdminApp.navigate('profile')">A</button>
+                <button class="btn-secondary" onclick="SwanAuth.logout()" style="height:36px;padding:0 14px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    Logout
+                </button>
             </div>
         </header>
 
         <!-- Content -->
         <main class="adm-content" id="admContent">
 
-            <!-- ===== PAGE: CAMPAIGNS ===== -->
+            <!-- =======================================================
+                 PAGE: CAMPAIGNS
+                 ======================================================= -->
             <div class="adm-page active" id="page-campaigns">
                 <div class="adm-page-header">
                     <div>
-                        <h1>Campaigns</h1>
-                        <p>Manage all active and upcoming campaigns run by Swan Turbines Foundation.</p>
+                        <h1>Foundation Campaigns</h1>
+                        <p>Overview of active impact campaigns and philanthropic initiatives.</p>
                     </div>
-                    <div class="adm-page-header-actions">
-                        <button class="btn-secondary" onclick="AdminApp.refresh()">🔄 Refresh</button>
-                    </div>
-                </div>
-
-                <div class="adm-stat-grid" id="campaignStats">
-                    <div class="adm-stat-card">
-                        <div class="adm-stat-icon blue">📢</div>
-                        <div class="adm-stat-label">Total Campaigns</div>
-                        <div class="adm-stat-value" id="statCampaignsTotal">8</div>
-                        <div class="adm-stat-sub">All programs</div>
-                    </div>
-                    <div class="adm-stat-card">
-                        <div class="adm-stat-icon green">✅</div>
-                        <div class="adm-stat-label">Active</div>
-                        <div class="adm-stat-value" id="statCampaignsActive">8</div>
-                        <div class="adm-stat-sub">Currently running</div>
-                    </div>
-                    <div class="adm-stat-card">
-                        <div class="adm-stat-icon yellow">🌍</div>
-                        <div class="adm-stat-label">Categories</div>
-                        <div class="adm-stat-value">8</div>
-                        <div class="adm-stat-sub">Impact areas</div>
-                    </div>
-                    <div class="adm-stat-card">
-                        <div class="adm-stat-icon blue">👥</div>
-                        <div class="adm-stat-label">Beneficiaries</div>
-                        <div class="adm-stat-value">500+</div>
-                        <div class="adm-stat-sub">Lives impacted</div>
+                    <div style="display:flex;gap:10px;">
+                        <button class="btn-secondary" onclick="AdminApp.refresh()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                            Refresh
+                        </button>
                     </div>
                 </div>
 
-                <div class="adm-campaign-grid" id="campaignsGrid"></div>
+                <!-- Campaign Stats -->
+                <div class="adm-stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-card-title">Active Campaigns
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 11 18-5v12L3 14v-3z"/></svg>
+                        </span>
+                        <span class="stat-card-value">8</span>
+                        <span class="stat-card-sub">Active programs running across India</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card-title">Aid Categories
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                        </span>
+                        <span class="stat-card-value">6</span>
+                        <span class="stat-card-sub">Water, Education, Healthcare &amp; more</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card-title">Pending Requests
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </span>
+                        <span class="stat-card-value accent" id="statCampPendingReq">0</span>
+                        <span class="stat-card-sub">Waiting for administrative review</span>
+                    </div>
+                </div>
+
+                <!-- Campaigns Grid -->
+                <div class="adm-campaigns-grid" id="campaignsGrid">
+                    <!-- Populated dynamically -->
+                </div>
             </div>
 
-            <!-- ===== PAGE: REQUESTS ===== -->
+            <!-- =======================================================
+                 PAGE: REQUESTS OVERVIEW (Google Ads Style)
+                 ======================================================= -->
             <div class="adm-page" id="page-requests">
                 <div class="adm-page-header">
                     <div>
                         <h1>Help Requests</h1>
-                        <p>Review and manage incoming help requests from community members.</p>
+                        <p>Search, sort, filter, and review applications submitted by individuals and communities.</p>
                     </div>
-                    <div class="adm-page-header-actions">
-                        <button class="btn-secondary" onclick="AdminApp.exportCSV()">⬇️ Export CSV</button>
-                        <button class="btn-primary" onclick="AdminApp.loadRequests()">🔄 Refresh</button>
-                    </div>
-                </div>
-
-                <div class="adm-stat-grid">
-                    <div class="adm-stat-card">
-                        <div class="adm-stat-icon blue">📋</div>
-                        <div class="adm-stat-label">Total Requests</div>
-                        <div class="adm-stat-value" id="statReqTotal">0</div>
-                        <div class="adm-stat-sub">All submissions</div>
-                    </div>
-                    <div class="adm-stat-card">
-                        <div class="adm-stat-icon yellow">⏳</div>
-                        <div class="adm-stat-label">Pending</div>
-                        <div class="adm-stat-value" id="statReqPending">0</div>
-                        <div class="adm-stat-sub">Awaiting review</div>
-                    </div>
-                    <div class="adm-stat-card">
-                        <div class="adm-stat-icon blue">🔍</div>
-                        <div class="adm-stat-label">Under Review</div>
-                        <div class="adm-stat-value" id="statReqReviewing">0</div>
-                        <div class="adm-stat-sub">Being assessed</div>
-                    </div>
-                    <div class="adm-stat-card">
-                        <div class="adm-stat-icon green">✅</div>
-                        <div class="adm-stat-label">Accepted</div>
-                        <div class="adm-stat-value" id="statReqAccepted">0</div>
-                        <div class="adm-stat-sub">Aid approved</div>
+                    <div style="display:flex;gap:10px;">
+                        <button class="btn-secondary" onclick="AdminApp.exportCSV()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Export CSV
+                        </button>
+                        <button class="btn-primary" onclick="AdminApp.loadRequests()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                            Refresh
+                        </button>
                     </div>
                 </div>
 
-                <div class="adm-card">
-                    <!-- Toolbar: Search + Sort + Filter -->
-                    <div class="adm-toolbar">
-                        <div class="adm-search-wrap">
-                            <span class="adm-search-icon">🔍</span>
-                            <input type="search" class="adm-search-input" id="reqSearchInput"
-                                placeholder="Search by name, ID, or support type..."
-                                oninput="AdminApp.onSearch(this.value)">
+                <!-- Request Stat Cards -->
+                <div class="adm-stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-card-title">Total Applications
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+                        </span>
+                        <span class="stat-card-value" id="statReqTotal">0</span>
+                        <span class="stat-card-sub">Total received since inception</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card-title">Pending Review
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </span>
+                        <span class="stat-card-value accent" id="statReqPending">0</span>
+                        <span class="stat-card-sub">Requires admin evaluation</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card-title">Under Review
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        </span>
+                        <span class="stat-card-value" id="statReqReviewing" style="color:var(--info);">0</span>
+                        <span class="stat-card-sub">Verification in progress</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card-title">Approved for Aid
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </span>
+                        <span class="stat-card-value" id="statReqAccepted" style="color:var(--success);">0</span>
+                        <span class="stat-card-sub">Allocated support funds</span>
+                    </div>
+                </div>
+
+                <!-- Google Ads-style Search, Sort & Date Filters Card -->
+                <div class="adm-toolbar-card">
+                    <div class="adm-toolbar-primary">
+                        <!-- Search -->
+                        <div class="adm-search-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            </svg>
+                            <input type="text" class="adm-search-input" id="reqSearchInput"
+                                   placeholder="Search by Request ID, applicant name, or support category..."
+                                   oninput="AdminApp.onSearch(this.value)">
                         </div>
 
-                        <div class="adm-toolbar-sep"></div>
+                        <div class="adm-toolbar-controls">
+                            <!-- Sorting -->
+                            <div class="adm-control-group">
+                                <span class="adm-control-label">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                                    Sort:
+                                </span>
+                                <select class="adm-select" id="reqSortSelect" onchange="AdminApp.onSort(this.value)">
+                                    <option value="newest">Newest to Oldest</option>
+                                    <option value="oldest">Oldest to Newest</option>
+                                </select>
+                            </div>
 
-                        <select class="adm-select" id="reqSortSelect" onchange="AdminApp.onSort(this.value)" title="Sort requests">
-                            <option value="newest">Newest First</option>
-                            <option value="oldest">Oldest First</option>
-                        </select>
+                            <!-- Date Range Filtering -->
+                            <div class="adm-control-group">
+                                <span class="adm-control-label">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                    Date:
+                                </span>
+                                <input type="date" class="adm-date-input" id="reqDateFrom" title="Start date" onchange="AdminApp.onDateFilter()">
+                                <span style="color:var(--text-muted);font-weight:600;">to</span>
+                                <input type="date" class="adm-date-input" id="reqDateTo" title="End date" onchange="AdminApp.onDateFilter()">
+                            </div>
 
-                        <select class="adm-select" id="reqStatusSelect" onchange="AdminApp.onStatusFilter(this.value)" title="Filter by status">
-                            <option value="all">All Status</option>
-                            <option value="pending">Pending</option>
-                            <option value="under_review">Under Review</option>
-                            <option value="accepted">Accepted</option>
-                            <option value="rejected">Rejected</option>
-                        </select>
-
-                        <div class="adm-toolbar-sep"></div>
-
-                        <div class="adm-date-group">
-                            <label for="reqDateFrom">From</label>
-                            <input type="date" id="reqDateFrom" onchange="AdminApp.onDateFilter()">
+                            <!-- Clear -->
+                            <button class="btn-ghost" onclick="AdminApp.clearFilters()" title="Reset all filters">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                Reset
+                            </button>
                         </div>
-                        <div class="adm-date-group">
-                            <label for="reqDateTo">To</label>
-                            <input type="date" id="reqDateTo" onchange="AdminApp.onDateFilter()">
-                        </div>
-
-                        <button class="btn-ghost" onclick="AdminApp.clearFilters()">✕ Clear</button>
                     </div>
 
-                    <div class="adm-card-header" style="border-top: none;">
-                        <span class="adm-card-title">All Requests</span>
-                        <span id="reqCountLabel" style="font-size:13px;color:var(--text-secondary);">Loading...</span>
-                    </div>
+                    <!-- Status Filter Pills -->
+                    <div class="filter-pills-bar">
+                        <button class="filter-pill active" data-status="all" onclick="AdminApp.onStatusFilter('all', this)">
+                            All Requests <span class="pill-count" id="pillCountAll">0</span>
+                        </button>
+                        <button class="filter-pill" data-status="pending" onclick="AdminApp.onStatusFilter('pending', this)">
+                            Pending <span class="pill-count" id="pillCountPending">0</span>
+                        </button>
+                        <button class="filter-pill" data-status="under_review" onclick="AdminApp.onStatusFilter('under_review', this)">
+                            Under Review <span class="pill-count" id="pillCountReviewing">0</span>
+                        </button>
+                        <button class="filter-pill" data-status="accepted" onclick="AdminApp.onStatusFilter('accepted', this)">
+                            Accepted <span class="pill-count" id="pillCountAccepted">0</span>
+                        </button>
+                        <button class="filter-pill" data-status="rejected" onclick="AdminApp.onStatusFilter('rejected', this)">
+                            Rejected <span class="pill-count" id="pillCountRejected">0</span>
+                        </button>
 
-                    <div class="adm-table-wrap">
-                        <table class="adm-table">
+                        <div style="margin-left:auto;font-size:12.5px;color:var(--text-secondary);font-weight:600;" id="reqCountLabel">
+                            Showing 0 requests
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Requests Table Shell -->
+                <div class="table-card-shell">
+                    <div class="table-responsive-wrapper">
+                        <table class="custom-data-table">
                             <thead>
                                 <tr>
                                     <th>Request ID</th>
-                                    <th>Applicant</th>
+                                    <th>Applicant Details</th>
                                     <th>Support Type</th>
                                     <th>Urgency</th>
-                                    <th>Submitted</th>
+                                    <th>Submitted Date</th>
                                     <th>Status</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody id="reqTableBody">
-                                <tr><td colspan="7"><div class="adm-empty"><div class="empty-icon">⏳</div><h3>Loading requests...</h3></div></td></tr>
+                                <!-- Populated dynamically -->
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- ===== PAGE: REQUEST DETAIL ===== -->
+            <!-- =======================================================
+                 PAGE: INDIVIDUAL REQUEST DETAIL
+                 ======================================================= -->
             <div class="adm-page" id="page-request-detail">
-                <button class="adm-detail-back" onclick="AdminApp.navigate('requests')">← Back to Requests</button>
-
-                <div id="requestDetailContent">
-                    <!-- Populated by JS -->
+                <div class="adm-detail-header-card">
+                    <div class="adm-detail-headline">
+                        <button class="btn-secondary" onclick="AdminApp.navigate('requests')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                            Back to Requests
+                        </button>
+                        <div>
+                            <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.6px;">Help Request File</div>
+                            <h1 style="font-size:20px;font-weight:700;color:var(--text-primary);margin:0;" id="detailHeaderTitle">Request Details</h1>
+                        </div>
+                    </div>
+                    <div id="detailHeaderBadge"></div>
                 </div>
+
+                <!-- Full Request Content populated dynamically -->
+                <div id="requestDetailContent"></div>
             </div>
 
-            <!-- ===== PAGE: PROFILE ===== -->
+            <!-- =======================================================
+                 PAGE: ADMIN PROFILE
+                 ======================================================= -->
             <div class="adm-page" id="page-profile">
-                <div class="adm-page-header">
-                    <div>
-                        <h1>My Profile</h1>
-                        <p>Your administrator account details.</p>
-                    </div>
-                    <div class="adm-page-header-actions">
-                        <button class="btn-danger" onclick="SwanAuth.logout()">🚪 Log Out</button>
-                    </div>
-                </div>
-
-                <div class="adm-profile-hero">
-                    <div class="adm-profile-avatar" id="profileAvatar">A</div>
-                    <div class="adm-profile-hero-info">
-                        <h2 id="profileName">Administrator</h2>
-                        <p id="profileEmail">admin@swanturbinesfoundation.org</p>
-                        <div class="adm-profile-badge">🛡️ Super Admin</div>
-                    </div>
-                </div>
-
-                <div class="adm-profile-grid">
-                    <div class="adm-profile-section">
-                        <h3>Account Information</h3>
-                        <div class="adm-profile-row">
-                            <span class="adm-profile-row-label">Role</span>
-                            <span class="adm-profile-row-value">Super Administrator</span>
-                        </div>
-                        <div class="adm-profile-row">
-                            <span class="adm-profile-row-label">Username</span>
-                            <span class="adm-profile-row-value" id="profileUsername">admin</span>
-                        </div>
-                        <div class="adm-profile-row">
-                            <span class="adm-profile-row-label">Email</span>
-                            <span class="adm-profile-row-value" id="profileEmailRow">admin@swanturbinesfoundation.org</span>
-                        </div>
-                        <div class="adm-profile-row">
-                            <span class="adm-profile-row-label">Access Level</span>
-                            <span class="adm-profile-row-value">Full Access</span>
+                <div class="adm-profile-container">
+                    <div class="adm-profile-banner">
+                        <div class="adm-profile-avatar-big" id="profileAvatar">A</div>
+                        <div>
+                            <h2 id="profileName">Administrator</h2>
+                            <p id="profileEmail">admin@swanturbinesfoundation.com</p>
+                            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+                                <span style="background:rgba(255,255,255,0.2);padding:3px 12px;border-radius:999px;font-size:12px;font-weight:700;">Role: System Admin</span>
+                                <span style="background:rgba(22,163,74,0.3);padding:3px 12px;border-radius:999px;font-size:12px;font-weight:700;">Status: Active Session</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="adm-profile-section">
-                        <h3>Organization</h3>
-                        <div class="adm-profile-row">
-                            <span class="adm-profile-row-label">Organization</span>
-                            <span class="adm-profile-row-value">Swan Turbines Foundation</span>
+                    <!-- Profile Info Card -->
+                    <div class="adm-card">
+                        <div class="adm-card-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            Administrator Credentials &amp; Role Details
                         </div>
-                        <div class="adm-profile-row">
-                            <span class="adm-profile-row-label">Department</span>
-                            <span class="adm-profile-row-value">Administration</span>
-                        </div>
-                        <div class="adm-profile-row">
-                            <span class="adm-profile-row-label">Portal Version</span>
-                            <span class="adm-profile-row-value">v2.0 — 2026</span>
-                        </div>
-                        <div class="adm-profile-row">
-                            <span class="adm-profile-row-label">Status</span>
-                            <span class="adm-profile-row-value" style="color:var(--success);font-weight:700;">● Active</span>
-                        </div>
-                    </div>
-
-                    <div class="adm-profile-section">
-                        <h3>Quick Actions</h3>
-                        <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
-                            <button class="btn-primary" onclick="AdminApp.navigate('requests')" style="justify-content:flex-start;">📋 View All Requests</button>
-                            <button class="btn-secondary" onclick="AdminApp.navigate('campaigns')" style="justify-content:flex-start;">📢 Manage Campaigns</button>
-                            <button class="btn-ghost" onclick="AdminApp.exportCSV()" style="justify-content:flex-start;">⬇️ Export Requests CSV</button>
+                        <div class="adm-info-grid">
+                            <div class="adm-info-field">
+                                <div class="adm-field-label">Username</div>
+                                <div class="adm-field-value" id="profileUsername">admin</div>
+                            </div>
+                            <div class="adm-info-field">
+                                <div class="adm-field-label">Email Address</div>
+                                <div class="adm-field-value" id="profileEmailRow">admin@swanturbinesfoundation.com</div>
+                            </div>
+                            <div class="adm-info-field">
+                                <div class="adm-field-label">Access Level</div>
+                                <div class="adm-field-value">Full Administrative Authority</div>
+                            </div>
+                            <div class="adm-info-field">
+                                <div class="adm-field-label">Foundation Division</div>
+                                <div class="adm-field-value">Swan Turbines Foundation Operations</div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="adm-profile-section">
-                        <h3>Portal Statistics</h3>
-                        <div class="adm-profile-row">
-                            <span class="adm-profile-row-label">Total Requests</span>
-                            <span class="adm-profile-row-value" id="profileStatTotal">—</span>
+                    <!-- Workload Overview -->
+                    <div class="adm-card">
+                        <div class="adm-card-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            Case Management Overview
                         </div>
-                        <div class="adm-profile-row">
-                            <span class="adm-profile-row-label">Pending Review</span>
-                            <span class="adm-profile-row-value" id="profileStatPending">—</span>
+                        <div class="adm-stats-grid" style="margin-bottom:0;">
+                            <div class="stat-card" style="padding:16px;">
+                                <span class="stat-card-title">Total Applications</span>
+                                <span class="stat-card-value" id="profileStatTotal" style="font-size:24px;">0</span>
+                            </div>
+                            <div class="stat-card" style="padding:16px;">
+                                <span class="stat-card-title">Pending Action</span>
+                                <span class="stat-card-value accent" id="profileStatPending" style="font-size:24px;">0</span>
+                            </div>
+                            <div class="stat-card" style="padding:16px;">
+                                <span class="stat-card-title">Approved Cases</span>
+                                <span class="stat-card-value" id="profileStatAccepted" style="font-size:24px;color:var(--success);">0</span>
+                            </div>
                         </div>
-                        <div class="adm-profile-row">
-                            <span class="adm-profile-row-label">Accepted</span>
-                            <span class="adm-profile-row-value" id="profileStatAccepted">—</span>
+                    </div>
+
+                    <!-- Security & Logout -->
+                    <div class="adm-card">
+                        <div class="adm-card-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            Security &amp; Session Management
                         </div>
-                        <div class="adm-profile-row">
-                            <span class="adm-profile-row-label">Active Campaigns</span>
-                            <span class="adm-profile-row-value">8</span>
+                        <p style="color:var(--text-secondary);margin-bottom:16px;">You are currently logged into the administrative console. Always sign out after finishing your review sessions.</p>
+                        <div style="display:flex;gap:12px;">
+                            <button class="btn-accent" onclick="SwanAuth.logout()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                                Terminate Session &amp; Logout
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -340,12 +413,15 @@
     </div>
 </div>
 
-<script src="js/db.js"></script>
+<!-- Scripts -->
 <script src="js/auth.js"></script>
 <script src="js/admin.js"></script>
-<script src="js/main.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', () => AdminApp.init());
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.AdminApp && typeof window.AdminApp.init === 'function') {
+            window.AdminApp.init();
+        }
+    });
 </script>
 </body>
 </html>

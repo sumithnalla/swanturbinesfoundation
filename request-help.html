@@ -640,7 +640,10 @@
 
                         const data = await response.json();
                         reference = data.reference;
-                        requestId = data.id;
+                        requestId = data.id || data.request_id;
+
+                        // Note: do NOT save to SwanDB here — the API is the source of truth.
+                        // SwanDB local save is only used as a fallback when the API is offline.
 
                         // Upload documents if selected
                         if (selectedFiles.length && requestId) {

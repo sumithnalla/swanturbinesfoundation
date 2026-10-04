@@ -1,22 +1,52 @@
-﻿/**
- * Swan Turbines Foundation - Admin Portal v2.0
- * Google Ads-style dashboard: Campaigns + Requests + Profile
+/**
+ * Swan Turbines Foundation — Admin Dashboard v3.0
+ * Pure SVG icons, Google Ads-style UI/UX, Website CSS aligned
  */
 (function () {
     'use strict';
 
-    const esc = v => String(v == null ? '' : v)
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-        .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    const esc = function(v) {
+        return String(v == null ? '' : v)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    };
 
-    const fmt = v => {
-        try { return new Date(v).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}); }
-        catch(_) { return String(v||'--'); }
+    const fmt = function(v) {
+        try {
+            return new Date(v).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        } catch (_) {
+            return String(v || '--');
+        }
     };
 
     const API_BASE = window.__API_BASE_URL__ || (
-        ['localhost','127.0.0.1'].includes(window.location.hostname) ? 'http://localhost:8000' : ''
+        ['localhost', '127.0.0.1'].includes(window.location.hostname) ? 'http://localhost:8000' : ''
     );
+
+    // SVGs helper
+    const ICONS = {
+        water: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>',
+        education: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+        eco: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>',
+        hunger: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>',
+        medical: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
+        nutrition: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5c0 4 5 10 5 10s5-6 5-10a5 5 0 0 0-5-5z"/><circle cx="12" cy="7" r="1.5"/></svg>',
+        relief: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+        women: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+        user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+        phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+        mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+        mapPin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+        check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+        clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+        search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+        xCircle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+        fileText: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>',
+        save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>'
+    };
 
     let cachedRequests = [];
     let currentPage = 'campaigns';
@@ -28,413 +58,670 @@
     let dateTo = '';
 
     function toast(msg, type, dur) {
-        type = type || 'default'; dur = dur || 3000;
+        type = type || 'default';
+        dur = dur || 3200;
         const c = document.getElementById('admToastContainer');
         if (!c) return;
         const el = document.createElement('div');
         el.className = 'adm-toast ' + type;
-        const icons = {success:'check_circle',error:'error',info:'info',default:'notifications'};
-        el.textContent = msg;
+        el.innerHTML = msg;
         c.appendChild(el);
-        setTimeout(function() {
-            el.style.opacity = '0'; el.style.transition = 'opacity .3s';
-            setTimeout(function() { el.remove(); }, 350);
+        setTimeout(function () {
+            el.style.opacity = '0';
+            el.style.transition = 'opacity .3s ease';
+            setTimeout(function () { el.remove(); }, 320);
         }, dur);
     }
 
     function hideLoader() {
-        var l = document.getElementById('admLoader');
-        if (l) { l.classList.add('hidden'); setTimeout(function(){ l.remove(); }, 450); }
+        const l = document.getElementById('admLoader');
+        if (l) {
+            l.classList.add('hidden');
+            setTimeout(function () { l.remove(); }, 400);
+        }
     }
 
-    var NAV_ITEMS = {
-        'campaigns':      {title:'Campaigns',      navId:'navCampaigns'},
-        'requests':       {title:'Help Requests',  navId:'navRequests'},
-        'request-detail': {title:'Request Detail', navId:'navRequests'},
-        'profile':        {title:'My Profile',     navId:'navProfile'},
+    const NAV_ITEMS = {
+        'campaigns':      { title: 'Foundation Campaigns', navId: 'navCampaigns' },
+        'requests':       { title: 'Help Requests Overview',  navId: 'navRequests' },
+        'request-detail': { title: 'Review Help Request', navId: 'navRequests' },
+        'profile':        { title: 'Administrator Profile', navId: 'navProfile' }
     };
 
-    var App = {
-        init: async function() {
-            if (!window.SwanAuth || !window.SwanAuth.requireAuth('admin')) return;
-            var user = window.SwanAuth.getCurrentUser ? window.SwanAuth.getCurrentUser() : null;
+    const App = {
+        init: async function () {
+            if (window.SwanAuth && typeof window.SwanAuth.requireAuth === 'function') {
+                if (!window.SwanAuth.requireAuth('admin')) return;
+            }
+
+            const user = (window.SwanAuth && window.SwanAuth.getCurrentUser) ? window.SwanAuth.getCurrentUser() : null;
             if (user) {
-                var initial = (user.username || user.email || 'A')[0].toUpperCase();
-                var name = user.username || user.email || 'Administrator';
-                ['sidebarUserInitial','topbarProfileBtn','profileAvatar'].forEach(function(id){
-                    var el = document.getElementById(id);
+                const initial = (user.username || user.email || 'A')[0].toUpperCase();
+                const name = user.username || user.email || 'Administrator';
+                ['sidebarUserInitial', 'topbarProfileBtn', 'profileAvatar'].forEach(function (id) {
+                    const el = document.getElementById(id);
                     if (el) el.textContent = initial;
                 });
-                ['sidebarUserName','profileName'].forEach(function(id){
-                    var el = document.getElementById(id);
+                ['sidebarUserName', 'profileName'].forEach(function (id) {
+                    const el = document.getElementById(id);
                     if (el) el.textContent = name;
                 });
-                ['profileEmail','profileEmailRow','profileUsername'].forEach(function(id){
-                    var el = document.getElementById(id);
-                    if (el) el.textContent = user.email || user.username || 'admin';
+                ['profileEmail', 'profileEmailRow', 'profileUsername'].forEach(function (id) {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = user.email || user.username || 'admin@swanturbinesfoundation.com';
                 });
             }
+
             await App.loadStats();
             App.renderCampaigns();
             App.navigate('campaigns');
             hideLoader();
         },
 
-        navigate: function(page) {
-            document.querySelectorAll('.adm-page').forEach(function(p){ p.classList.remove('active'); });
-            var pageEl = document.getElementById('page-'+page);
+        navigate: function (page) {
+            document.querySelectorAll('.adm-page').forEach(function (p) {
+                p.classList.remove('active');
+            });
+            const pageEl = document.getElementById('page-' + page);
             if (pageEl) pageEl.classList.add('active');
-            document.querySelectorAll('.adm-nav-item').forEach(function(n){ n.classList.remove('active'); });
-            var info = NAV_ITEMS[page];
+
+            document.querySelectorAll('.adm-nav-item').forEach(function (n) {
+                n.classList.remove('active');
+            });
+
+            const info = NAV_ITEMS[page];
             if (info) {
-                var t = document.getElementById('admTopbarTitle');
-                if (t) t.textContent = info.title;
-                var n = document.getElementById(info.navId);
+                const t = document.getElementById('admTopbarTitle');
+                if (t) t.innerHTML = '<span>' + esc(info.title) + '</span>';
+                const n = document.getElementById(info.navId);
                 if (n) n.classList.add('active');
             }
+
             currentPage = page;
             if (page === 'requests') App.loadRequests();
             if (page === 'profile')  App.loadStats();
-            var c = document.getElementById('admContent');
+
+            const c = document.getElementById('admContent');
             if (c) c.scrollTop = 0;
         },
 
-        refresh: function() {
-            if (currentPage === 'campaigns') App.renderCampaigns();
-            else if (currentPage === 'requests') App.loadRequests();
-            else if (currentPage === 'request-detail' && currentRequestId) App.openRequest(currentRequestId);
-            else if (currentPage === 'profile') App.loadStats();
+        refresh: function () {
+            if (currentPage === 'campaigns') {
+                App.renderCampaigns();
+                App.loadStats();
+            } else if (currentPage === 'requests') {
+                App.loadRequests();
+            } else if (currentPage === 'request-detail' && currentRequestId) {
+                App.openRequest(currentRequestId);
+            } else if (currentPage === 'profile') {
+                App.loadStats();
+            }
+            toast('Dashboard updated', 'info', 2000);
         },
 
-        loadStats: async function() {
-            var total=0,pending=0,reviewing=0,accepted=0;
-            try {
-                var r = await fetch(API_BASE+'/api/v1/requests/admin/stats', {credentials:'include'});
-                if (r.ok) {
-                    var d = await r.json(); var c = d.by_status||{};
-                    total=d.total||0; pending=c.pending||c.new||0;
-                    reviewing=c.under_review||c.reviewing||0; accepted=c.accepted||c.approved||0;
-                }
-            } catch(_) {
-                if (window.SwanDB && window.SwanDB.getHelpRequestAnalytics) {
-                    var s = window.SwanDB.getHelpRequestAnalytics();
-                    total=s.total||0; pending=s.new_count||0; reviewing=s.reviewing_count||0; accepted=s.approved_count||0;
+        loadStats: async function () {
+            let total = 0, pending = 0, reviewing = 0, accepted = 0, rejected = 0;
+
+            if (cachedRequests.length > 0) {
+                total = cachedRequests.length;
+                cachedRequests.forEach(function (r) {
+                    const s = (r.status || 'pending').toLowerCase();
+                    if (s === 'pending' || s === 'new') pending++;
+                    else if (s === 'under_review' || s === 'reviewing') reviewing++;
+                    else if (s === 'accepted' || s === 'approved') accepted++;
+                    else if (s === 'rejected' || s === 'closed') rejected++;
+                    else pending++;
+                });
+            } else {
+                try {
+                    const r = await fetch(API_BASE + '/api/v1/requests/admin/stats', { credentials: 'include' });
+                    if (r.ok) {
+                        const d = await r.json();
+                        const c = d.by_status || {};
+                        total = d.total || 0;
+                        pending = c.pending || c.new || 0;
+                        reviewing = c.under_review || c.reviewing || 0;
+                        accepted = c.accepted || c.approved || 0;
+                        rejected = c.rejected || c.closed || 0;
+                    }
+                } catch (_) {
+                    if (window.SwanDB && window.SwanDB.getHelpRequestAnalytics) {
+                        const s = window.SwanDB.getHelpRequestAnalytics();
+                        total = s.total || 0;
+                        pending = s.new_count || 0;
+                        reviewing = s.reviewing_count || 0;
+                        accepted = s.approved_count || 0;
+                        rejected = (s.total || 0) - (pending + reviewing + accepted);
+                        if (rejected < 0) rejected = 0;
+                    }
                 }
             }
-            function set(id,v){ var el=document.getElementById(id); if(el) el.textContent=v; }
-            set('statReqTotal',total); set('statReqPending',pending);
-            set('statReqReviewing',reviewing); set('statReqAccepted',accepted);
-            set('profileStatTotal',total); set('profileStatPending',pending); set('profileStatAccepted',accepted);
-            var badge = document.getElementById('sidebarRequestsBadge');
+
+            function setTxt(id, val) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = val;
+            }
+
+            setTxt('statReqTotal', total);
+            setTxt('statReqPending', pending);
+            setTxt('statCampPendingReq', pending);
+            setTxt('statReqReviewing', reviewing);
+            setTxt('statReqAccepted', accepted);
+
+            setTxt('profileStatTotal', total);
+            setTxt('profileStatPending', pending);
+            setTxt('profileStatAccepted', accepted);
+
+            setTxt('pillCountAll', total);
+            setTxt('pillCountPending', pending);
+            setTxt('pillCountReviewing', reviewing);
+            setTxt('pillCountAccepted', accepted);
+            setTxt('pillCountRejected', rejected);
+
+            const badge = document.getElementById('sidebarRequestsBadge');
             if (badge) badge.textContent = pending;
         },
 
-        renderCampaigns: function() {
-            var campaigns = [
-                {icon:'💧',cat:'Water',name:'Clean Water Initiative',desc:'Providing access to clean drinking water in underserved communities through bore wells and filtration systems.',url:'campaign-water.html'},
-                {icon:'📚',cat:'Education',name:'Education for All',desc:'Supporting children in rural areas with scholarships, school supplies, and digital learning resources.',url:'campaign-education.html'},
-                {icon:'🌱',cat:'Eco',name:'Eco-Restoration Project',desc:'Planting trees and restoring ecosystems to combat climate change and protect biodiversity.',url:'campaign-eco.html'},
-                {icon:'🍚',cat:'Hunger',name:'End Hunger Campaign',desc:'Delivering nutritious meals and food packages to families facing food insecurity.',url:'campaign-hunger.html'},
-                {icon:'🏥',cat:'Medical',name:'Medical Aid Program',desc:'Offering free medical consultations, medicines, and surgical procedures for those who cannot afford healthcare.',url:'campaign-medical.html'},
-                {icon:'🥦',cat:'Nutrition',name:'Nutrition & Child Health',desc:'Fighting malnutrition among children under 5 with supplemental feeding and health monitoring.',url:'campaign-nutrition.html'},
-                {icon:'🏠',cat:'Relief',name:'Disaster Relief Fund',desc:'Rapid response aid including emergency shelter, food, and essential supplies for disaster-hit communities.',url:'campaign-relief.html'},
-                {icon:'♀️',cat:'Women',name:'Women Empowerment',desc:'Skill-building workshops, micro-finance, and legal support to help women achieve financial independence.',url:'campaign-women.html'},
+        renderCampaigns: function () {
+            const campaigns = [
+                { key: 'water', cat: 'Clean Water', name: 'Clean Water Initiative', desc: 'Providing safe drinking water to remote villages through community filtration and sustainable solar borewells.', url: 'campaign-water.html' },
+                { key: 'education', cat: 'Education', name: 'Education for All', desc: 'Sponsoring school supplies, digital laboratories, and learning infrastructure for underprivileged rural students.', url: 'campaign-education.html' },
+                { key: 'eco', cat: 'Environment', name: 'Eco-Restoration Project', desc: 'Mass tree plantation, waterbody revitalization, and environmental awareness to fight desertification.', url: 'campaign-eco.html' },
+                { key: 'hunger', cat: 'Hunger Relief', name: 'End Hunger Campaign', desc: 'Daily nutritional meal distribution and emergency dry ration support for daily-wage families.', url: 'campaign-hunger.html' },
+                { key: 'medical', cat: 'Healthcare', name: 'Medical Aid Program', desc: 'Subsidized health camps, emergency surgeries, and free essential medicines for critical patients.', url: 'campaign-medical.html' },
+                { key: 'nutrition', cat: 'Child Health', name: 'Nutrition & Maternal Care', desc: 'Combating childhood stunting with fortified supplements, pediatric care, and mother counseling.', url: 'campaign-nutrition.html' },
+                { key: 'relief', cat: 'Emergency Aid', name: 'Disaster Relief Fund', desc: 'Rapid humanitarian response providing temporary shelters, emergency food, and medical teams.', url: 'campaign-relief.html' },
+                { key: 'women', cat: 'Empowerment', name: 'Women Empowerment', desc: 'Vocational training, micro-enterprise financing, and legal aid helping rural women become self-reliant.', url: 'campaign-women.html' }
             ];
-            var grid = document.getElementById('campaignsGrid');
+
+            const grid = document.getElementById('campaignsGrid');
             if (!grid) return;
-            grid.innerHTML = campaigns.map(function(c) {
-                return '<div class="adm-campaign-card" onclick="window.open(\''+c.url+'\',\'_blank\')">'
-                    +'<div class="adm-campaign-img-placeholder">'+c.icon+'</div>'
-                    +'<div class="adm-campaign-body">'
-                    +'<div class="adm-campaign-category">'+esc(c.cat)+'</div>'
-                    +'<div class="adm-campaign-name">'+esc(c.name)+'</div>'
-                    +'<div class="adm-campaign-desc">'+esc(c.desc)+'</div>'
-                    +'<div class="adm-campaign-footer">'
-                    +'<span class="adm-campaign-status active">Active</span>'
-                    +'<button class="btn-ghost" style="padding:6px 12px;font-size:12px;" onclick="event.stopPropagation();window.open(\''+c.url+'\',\'_blank\')">View</button>'
-                    +'</div></div></div>';
+
+            grid.innerHTML = campaigns.map(function (c) {
+                const iconSvg = ICONS[c.key] || ICONS.eco;
+                return '<div class="adm-campaign-card">'
+                    + '<div class="adm-campaign-header">'
+                    + '<div class="adm-campaign-icon-wrap">' + iconSvg + '</div>'
+                    + '<span class="status-pill accepted"><span class="status-dot"></span> Active</span>'
+                    + '</div>'
+                    + '<div class="adm-campaign-body">'
+                    + '<div class="adm-campaign-cat">' + esc(c.cat) + '</div>'
+                    + '<div class="adm-campaign-name">' + esc(c.name) + '</div>'
+                    + '<div class="adm-campaign-desc">' + esc(c.desc) + '</div>'
+                    + '<div class="adm-campaign-footer">'
+                    + '<button class="btn-secondary" style="height:32px;font-size:12.5px;" onclick="window.open(\'' + c.url + '\',\'_blank\')">'
+                    + 'View Public Page'
+                    + '</button>'
+                    + '<button class="btn-ghost" style="height:32px;font-size:12.5px;" onclick="AdminApp.filterByCampaign(\'' + esc(c.cat) + '\')">'
+                    + 'View Requests'
+                    + '</button>'
+                    + '</div></div></div>';
             }).join('');
         },
 
-        loadRequests: async function() {
-            var tbody = document.getElementById('reqTableBody');
+        filterByCampaign: function (category) {
+            searchQuery = category;
+            const input = document.getElementById('reqSearchInput');
+            if (input) input.value = category;
+            App.navigate('requests');
+        },
+
+        loadRequests: async function () {
+            const tbody = document.getElementById('reqTableBody');
             if (!tbody) return;
-            tbody.innerHTML = '<tr><td colspan="7"><div class="adm-empty"><div class="empty-icon">⏳</div><h3>Loading...</h3></div></td></tr>';
-            var requests = [];
+            tbody.innerHTML = '<tr><td colspan="7"><div class="adm-empty">' + ICONS.clock + '<h3>Loading requests...</h3><p>Fetching records from backend system.</p></div></td></tr>';
+
+            let apiRequests = [];
+            let apiAvailable = false;
             try {
-                var url = new URL(API_BASE+'/api/v1/requests/admin', window.location.origin);
-                url.searchParams.set('page_size','200');
-                if (statusFilter !== 'all') url.searchParams.set('status',statusFilter);
-                if (searchQuery.trim()) url.searchParams.set('search',searchQuery.trim());
-                var r = await fetch(url.toString(), {credentials:'include'});
-                if (r.ok) { var d = await r.json(); requests = d.requests||[]; }
-                else throw new Error('err');
-            } catch(_) {
-                if (window.SwanDB && window.SwanDB.getHelpRequests) requests = window.SwanDB.getHelpRequests()||[];
+                const url = new URL(API_BASE + '/api/v1/requests/admin', window.location.origin);
+                url.searchParams.set('page_size', '500');
+                if (statusFilter !== 'all') url.searchParams.set('status', statusFilter);
+                if (searchQuery.trim()) url.searchParams.set('search', searchQuery.trim());
+
+                const r = await fetch(url.toString(), { credentials: 'include' });
+                if (r.ok) {
+                    const d = await r.json();
+                    apiRequests = d.requests || [];
+                    apiAvailable = true;
+                }
+            } catch (_) {}
+
+            let localRequests = [];
+            if (!apiAvailable) {
+                // Only use local storage as a full fallback when the API is offline
+                try {
+                    if (window.SwanDB && window.SwanDB.getHelpRequests) {
+                        localRequests = window.SwanDB.getHelpRequests() || [];
+                    }
+                } catch (_) {}
             }
-            cachedRequests = requests;
+
+            // Merge: API records first (no duplicates), then any local-only offline records
+            const seen = new Set();
+            const merged = [];
+
+            apiRequests.forEach(function (r) {
+                const key = r.reference || r._id || r.id;
+                if (key && !seen.has(key)) {
+                    seen.add(key);
+                    // Also track by all possible IDs so local dupes are caught
+                    if (r.reference) seen.add(r.reference);
+                    if (r.id) seen.add(r.id);
+                    merged.push(r);
+                }
+            });
+
+            localRequests.forEach(function (r) {
+                const key = r.reference || r.id;
+                if (key && !seen.has(key)) {
+                    seen.add(key);
+                    merged.push(r);
+                }
+            });
+
+            cachedRequests = merged;
             App.renderTable();
             App.loadStats();
         },
 
-        getFiltered: function() {
-            var list = cachedRequests.slice();
+
+        getFiltered: function () {
+            let list = cachedRequests.slice();
+
+            // Search filter
             if (searchQuery.trim()) {
-                var q = searchQuery.trim().toLowerCase();
-                list = list.filter(function(r){
-                    return [r.reference||r.id||'', (r.applicant&&r.applicant.full_name)||r.full_name||'',
-                        r.support_type||(r.request&&r.request.support_type)||r.help_type||'']
-                        .some(function(v){ return String(v).toLowerCase().indexOf(q)>-1; });
+                const q = searchQuery.trim().toLowerCase();
+                list = list.filter(function (r) {
+                    const ref = r.reference || r.id || '';
+                    const name = (r.applicant && r.applicant.full_name) || r.full_name || '';
+                    const phone = (r.applicant && r.applicant.mobile) || r.phone || '';
+                    const type = r.support_type || (r.request && r.request.support_type) || r.help_type || '';
+                    return [ref, name, phone, type].some(function (v) {
+                        return String(v).toLowerCase().indexOf(q) > -1;
+                    });
                 });
             }
+
+            // Status filter
             if (statusFilter !== 'all') {
-                list = list.filter(function(r){
-                    var s = (r.status||'').toLowerCase();
-                    if(statusFilter==='pending') return s==='pending'||s==='new';
-                    if(statusFilter==='under_review') return s==='under_review'||s==='reviewing';
-                    if(statusFilter==='accepted') return s==='accepted'||s==='approved';
-                    if(statusFilter==='rejected') return s==='rejected'||s==='closed';
-                    return s===statusFilter;
+                list = list.filter(function (r) {
+                    const s = (r.status || '').toLowerCase();
+                    if (statusFilter === 'pending') return s === 'pending' || s === 'new';
+                    if (statusFilter === 'under_review') return s === 'under_review' || s === 'reviewing';
+                    if (statusFilter === 'accepted') return s === 'accepted' || s === 'approved';
+                    if (statusFilter === 'rejected') return s === 'rejected' || s === 'closed';
+                    return s === statusFilter;
                 });
             }
-            if (dateFrom||dateTo) {
-                var from = dateFrom ? new Date(dateFrom) : null;
-                var to   = dateTo   ? new Date(dateTo+'T23:59:59') : null;
-                list = list.filter(function(r){
-                    var d = new Date(r.created_at||0);
-                    if(from&&d<from) return false;
-                    if(to&&d>to) return false;
+
+            // Date filtering
+            if (dateFrom || dateTo) {
+                const from = dateFrom ? new Date(dateFrom) : null;
+                const to = dateTo ? new Date(dateTo + 'T23:59:59') : null;
+                list = list.filter(function (r) {
+                    const d = new Date(r.created_at || 0);
+                    if (from && d < from) return false;
+                    if (to && d > to) return false;
                     return true;
                 });
             }
-            list.sort(function(a,b){
-                var da=new Date(a.created_at||0).getTime(), db=new Date(b.created_at||0).getTime();
-                return sortOrder==='oldest' ? da-db : db-da;
+
+            // Sorting
+            list.sort(function (a, b) {
+                const da = new Date(a.created_at || 0).getTime();
+                const db = new Date(b.created_at || 0).getTime();
+                return sortOrder === 'oldest' ? (da - db) : (db - da);
             });
+
             return list;
         },
 
-        renderTable: function() {
-            var tbody = document.getElementById('reqTableBody');
-            var cl = document.getElementById('reqCountLabel');
+        renderTable: function () {
+            const tbody = document.getElementById('reqTableBody');
+            const cl = document.getElementById('reqCountLabel');
             if (!tbody) return;
-            var list = App.getFiltered();
-            if (cl) cl.textContent = list.length + ' request'+(list.length!==1?'s':'');
+
+            const list = App.getFiltered();
+            if (cl) cl.textContent = 'Showing ' + list.length + ' request' + (list.length !== 1 ? 's' : '');
+
             if (!list.length) {
-                tbody.innerHTML = '<tr><td colspan="7"><div class="adm-empty"><div class="empty-icon">📭</div><h3>No requests found</h3><p>Try adjusting search or filters.</p></div></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7"><div class="adm-empty">'
+                    + ICONS.search
+                    + '<h3>No help requests found</h3>'
+                    + '<p>Try clearing filters or adjusting your search term.</p>'
+                    + '<button class="btn-secondary" style="margin-top:12px;" onclick="AdminApp.clearFilters()">Clear All Filters</button>'
+                    + '</div></td></tr>';
                 return;
             }
-            tbody.innerHTML = list.map(function(req){
-                var id=req.reference||req.id||'--';
-                var tid=req.id||id;
-                var name=(req.applicant&&req.applicant.full_name)||req.full_name||'Anonymous';
-                var contact=(req.applicant&&req.applicant.mobile)||req.phone||'';
-                var type=req.support_type||(req.request&&req.request.support_type)||req.help_type||'Support';
-                var urgency=req.urgency||(req.request&&req.request.urgency)||'normal';
-                var status=req.status||'pending';
-                var created=req.created_at||'';
-                return '<tr onclick="AdminApp.openRequest(\''+esc(tid)+'\')">'
-                    +'<td><strong style="font-family:monospace;font-size:12px;">'+esc(id)+'</strong></td>'
-                    +'<td><strong>'+esc(name)+'</strong>'+(contact?'<div class="sub">'+esc(contact)+'</div>':'')+'</td>'
-                    +'<td><span class="support-chip">'+esc(type)+'</span></td>'
-                    +'<td><span class="adm-urgency '+esc(urgency)+'">'+esc(urgency)+'</span></td>'
-                    +'<td>'+(created?fmt(created):'--')+'</td>'
-                    +'<td><span class="adm-pill '+esc(status)+'">'+esc(status.replace('_',' '))+'</span></td>'
-                    +'<td><button class="btn-ghost" style="padding:6px 12px;font-size:12px;" onclick="event.stopPropagation();AdminApp.openRequest(\''+esc(tid)+'\')">Review</button></td>'
-                    +'</tr>';
+
+            tbody.innerHTML = list.map(function (req) {
+                const refId = req.reference || req.id || '--';
+                const targetId = req.id || refId;
+                const name = (req.applicant && req.applicant.full_name) || req.full_name || 'Anonymous';
+                const contact = (req.applicant && req.applicant.mobile) || req.phone || (req.applicant && req.applicant.email) || '';
+                const type = req.support_type || (req.request && req.request.support_type) || req.help_type || 'General Support';
+                const urgency = (req.urgency || (req.request && req.request.urgency) || 'normal').toLowerCase();
+                const status = (req.status || 'pending').toLowerCase();
+                const created = req.created_at || '';
+
+                return '<tr onclick="AdminApp.openRequest(\'' + esc(targetId) + '\')">'
+                    + '<td><span class="ref-badge">' + esc(refId) + '</span></td>'
+                    + '<td><div class="applicant-cell"><span class="applicant-name">' + esc(name) + '</span>'
+                    + (contact ? '<span class="applicant-meta">' + esc(contact) + '</span>' : '') + '</div></td>'
+                    + '<td><span class="support-tag">' + esc(type) + '</span></td>'
+                    + '<td><span class="urgency-badge ' + esc(urgency) + '">' + esc(urgency) + '</span></td>'
+                    + '<td>' + (created ? fmt(created) : '--') + '</td>'
+                    + '<td><span class="status-pill ' + esc(status) + '"><span class="status-dot"></span>' + esc(status.replace('_', ' ')) + '</span></td>'
+                    + '<td><button class="btn-secondary" style="height:32px;font-size:12px;padding:0 12px;" onclick="event.stopPropagation();AdminApp.openRequest(\'' + esc(targetId) + '\')">'
+                    + 'Review'
+                    + '</button></td>'
+                    + '</tr>';
             }).join('');
         },
 
-        onSearch: function(v) { searchQuery=v; App.renderTable(); },
-        onSort: function(v) { sortOrder=v; App.renderTable(); },
-        onStatusFilter: function(v) { statusFilter=v; App.loadRequests(); },
-        onDateFilter: function() {
-            dateFrom=document.getElementById('reqDateFrom').value;
-            dateTo=document.getElementById('reqDateTo').value;
+        onSearch: function (v) {
+            searchQuery = v;
             App.renderTable();
         },
-        clearFilters: function() {
-            searchQuery=''; sortOrder='newest'; statusFilter='all'; dateFrom=''; dateTo='';
-            ['reqSearchInput','reqDateFrom','reqDateTo'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
-            var ss=document.getElementById('reqSortSelect'); if(ss) ss.value='newest';
-            var sf=document.getElementById('reqStatusSelect'); if(sf) sf.value='all';
+
+        onSort: function (v) {
+            sortOrder = v;
+            App.renderTable();
+        },
+
+        onStatusFilter: function (status, btn) {
+            statusFilter = status;
+            document.querySelectorAll('.filter-pill').forEach(function (p) {
+                p.classList.remove('active');
+            });
+            if (btn) btn.classList.add('active');
             App.loadRequests();
         },
 
-        openRequest: async function(id) {
+        onDateFilter: function () {
+            dateFrom = document.getElementById('reqDateFrom').value;
+            dateTo = document.getElementById('reqDateTo').value;
+            App.renderTable();
+        },
+
+        clearFilters: function () {
+            searchQuery = '';
+            sortOrder = 'newest';
+            statusFilter = 'all';
+            dateFrom = '';
+            dateTo = '';
+
+            const sInp = document.getElementById('reqSearchInput');
+            if (sInp) sInp.value = '';
+            const dFrom = document.getElementById('reqDateFrom');
+            if (dFrom) dFrom.value = '';
+            const dTo = document.getElementById('reqDateTo');
+            if (dTo) dTo.value = '';
+            const sortSel = document.getElementById('reqSortSelect');
+            if (sortSel) sortSel.value = 'newest';
+
+            document.querySelectorAll('.filter-pill').forEach(function (p) {
+                p.classList.toggle('active', p.getAttribute('data-status') === 'all');
+            });
+
+            App.loadRequests();
+        },
+
+        openRequest: async function (id) {
             currentRequestId = id;
             App.navigate('request-detail');
-            var container = document.getElementById('requestDetailContent');
+
+            const container = document.getElementById('requestDetailContent');
             if (!container) return;
-            container.innerHTML = '<div class="adm-empty"><div class="empty-icon">⏳</div><h3>Loading...</h3></div>';
-            var req = null;
+            container.innerHTML = '<div class="adm-empty">' + ICONS.clock + '<h3>Loading request details...</h3></div>';
+
+            let req = null;
             try {
-                var r = await fetch(API_BASE+'/api/v1/requests/admin/'+encodeURIComponent(id), {credentials:'include'});
+                const r = await fetch(API_BASE + '/api/v1/requests/admin/' + encodeURIComponent(id), { credentials: 'include' });
                 if (r.ok) req = await r.json();
-            } catch(_){}
+            } catch (_) {}
+
             if (!req) {
-                req = cachedRequests.find(function(r){ return String(r.id)===String(id)||String(r.reference)===String(id); });
-                if (!req && window.SwanDB && window.SwanDB.getHelpRequestById) req = window.SwanDB.getHelpRequestById(id);
+                req = cachedRequests.find(function (r) {
+                    return String(r.id) === String(id) || String(r.reference) === String(id);
+                });
+                if (!req && window.SwanDB && window.SwanDB.getHelpRequestById) {
+                    req = window.SwanDB.getHelpRequestById(id);
+                }
             }
+
             if (!req) {
-                container.innerHTML = '<div class="adm-empty"><div class="empty-icon">❌</div><h3>Request not found</h3></div>';
+                container.innerHTML = '<div class="adm-empty">' + ICONS.xCircle + '<h3>Request not found</h3><p>The requested file could not be located.</p></div>';
                 return;
             }
-            var ap=req.applicant||{}, ri=req.request||{};
-            var refId=req.reference||req.id||id;
-            var name=ap.full_name||req.full_name||'Applicant';
-            var phone=ap.mobile||req.phone||'';
-            var email=ap.email||req.email||'';
-            var address=[ap.address,ap.city,ap.state].filter(Boolean).join(', ')||req.address||'';
-            var type=ri.support_type||req.support_type||req.help_type||'Support';
-            var urgency=ri.urgency||req.urgency||'normal';
-            var amount=ri.amount_required||req.estimated_amount||req.amount_required||'';
-            var benefics=ri.beneficiaries||req.beneficiaries||1;
-            var desc=ri.description||req.description||'No description provided.';
-            var status=req.status||'pending';
-            var adminNote=req.admin_note||'';
-            var created=req.created_at?fmt(req.created_at):'--';
-            var targetId=req.id||id;
+
+            const ap = req.applicant || {};
+            const ri = req.request || {};
+            const refId = req.reference || req.id || id;
+            const name = ap.full_name || req.full_name || 'Applicant';
+            const phone = ap.mobile || req.phone || '';
+            const email = ap.email || req.email || '';
+            const address = [ap.address, ap.city, ap.state, ap.pincode].filter(Boolean).join(', ') || req.address || 'Address not specified';
+            const type = ri.support_type || req.support_type || req.help_type || 'General Support';
+            const urgency = (ri.urgency || req.urgency || 'normal').toLowerCase();
+            const amount = ri.amount_required || req.estimated_amount || req.amount_required || '';
+            const benefics = ri.beneficiaries || req.beneficiaries || 1;
+            const desc = ri.description || req.description || 'No detailed background provided.';
+            const status = (req.status || 'pending').toLowerCase();
+            const adminNote = req.admin_note || '';
+            const created = req.created_at ? fmt(req.created_at) : '--';
+            const targetId = req.id || id;
+
+            // Set header badge
+            const hb = document.getElementById('detailHeaderBadge');
+            if (hb) {
+                hb.innerHTML = '<span class="status-pill ' + esc(status) + '"><span class="status-dot"></span>' + esc(status.replace('_', ' ')) + '</span>';
+            }
+            const ht = document.getElementById('detailHeaderTitle');
+            if (ht) {
+                ht.textContent = name + ' (' + refId + ')';
+            }
 
             function isSel(v) {
-                if(v==='pending') return status==='pending'||status==='new';
-                if(v==='under_review') return status==='under_review'||status==='reviewing';
-                if(v==='accepted') return status==='accepted'||status==='approved';
-                if(v==='rejected') return status==='rejected'||status==='closed';
-                return status===v;
-            }
-            function selCls(v) {
-                var m={pending:'sel-pending',under_review:'sel-reviewing',accepted:'sel-accepted',rejected:'sel-rejected'};
-                return m[v]||'';
+                if (v === 'pending') return status === 'pending' || status === 'new';
+                if (v === 'under_review') return status === 'under_review' || status === 'reviewing';
+                if (v === 'accepted') return status === 'accepted' || status === 'approved';
+                if (v === 'rejected') return status === 'rejected' || status === 'closed';
+                return status === v;
             }
 
-            var statuses = [
-                {val:'pending',label:'⏳ Pending / Needs Review'},
-                {val:'under_review',label:'🔍 Under Review'},
-                {val:'accepted',label:'✅ Accepted / Approved for Aid'},
-                {val:'rejected',label:'❌ Rejected / Closed'},
+            function selCls(v) {
+                const m = { pending: 'sel-pending', under_review: 'sel-reviewing', accepted: 'sel-accepted', rejected: 'sel-rejected' };
+                return m[v] || '';
+            }
+
+            const statusOptions = [
+                { val: 'pending', label: 'Pending / Initial Review', desc: 'Case received and queued for investigation.' },
+                { val: 'under_review', label: 'Under Review & Verification', desc: 'Document verification and volunteer visit scheduled.' },
+                { val: 'accepted', label: 'Accepted / Approved for Aid', desc: 'Approved for foundation grant and emergency fund release.' },
+                { val: 'rejected', label: 'Rejected / Ineligible', desc: 'Application does not meet trust charter or funding requirements.' }
             ];
 
             container.innerHTML =
-                '<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">'
-                +'<span style="font-family:monospace;font-size:13px;background:var(--primary-light);color:var(--primary);padding:4px 14px;border-radius:999px;font-weight:700;">'+esc(refId)+'</span>'
-                +'<h2 style="font-size:22px;font-weight:700;color:var(--text-primary);">'+esc(name)+'</h2>'
-                +'<span class="adm-pill '+esc(status)+'">'+esc(status.replace('_',' '))+'</span>'
-                +'<span style="font-size:13px;color:var(--text-secondary);margin-left:auto;">Submitted '+created+'</span>'
-                +'</div>'
-                +'<div class="adm-detail-grid">'
-                // Detail info cards
-                +'<div class="adm-detail-info">'
-                +'<div class="adm-info-card">'
-                +'<div class="adm-info-card-title">👤 Applicant Information</div>'
-                +'<div class="adm-info-grid">'
-                +'<div class="adm-info-field"><div class="adm-field-label">Full Name</div><div class="adm-field-value">'+esc(name)+'</div></div>'
-                +'<div class="adm-info-field"><div class="adm-field-label">Phone</div><div class="adm-field-value">'+(phone?'<a href="tel:'+esc(phone)+'">📞 '+esc(phone)+'</a>':'--')+'</div></div>'
-                +'<div class="adm-info-field"><div class="adm-field-label">Email</div><div class="adm-field-value">'+(email?'<a href="mailto:'+esc(email)+'">✉️ '+esc(email)+'</a>':'--')+'</div></div>'
-                +'<div class="adm-info-field"><div class="adm-field-label">People Benefiting</div><div class="adm-field-value">👥 '+esc(benefics)+' person(s)</div></div>'
-                +'<div class="adm-info-field full"><div class="adm-field-label">Address</div><div class="adm-field-value">📍 '+(esc(address)||'--')+'</div></div>'
-                +'</div></div>'
-                +'<div class="adm-info-card">'
-                +'<div class="adm-info-card-title">📋 Request Details</div>'
-                +'<div class="adm-info-grid">'
-                +'<div class="adm-info-field"><div class="adm-field-label">Support Category</div><div class="adm-field-value"><span class="support-chip">'+esc(type)+'</span></div></div>'
-                +'<div class="adm-info-field"><div class="adm-field-label">Urgency</div><div class="adm-field-value"><span class="adm-urgency '+esc(urgency)+'">'+esc(urgency)+'</span></div></div>'
-                +'<div class="adm-info-field"><div class="adm-field-label">Amount Required</div><div class="adm-field-value" style="color:var(--success);font-weight:700;font-size:15px;">'+(amount?'Rs '+esc(amount):'--')+'</div></div>'
-                +'<div class="adm-info-field"><div class="adm-field-label">Submitted On</div><div class="adm-field-value">'+created+'</div></div>'
-                +'<div class="adm-info-field full"><div class="adm-field-label">Situation &amp; Background</div><div class="adm-desc-box">'+esc(desc)+'</div></div>'
-                +'</div></div>'
-                +'</div>'
-                // Action sidebar
-                +'<div class="adm-action-sidebar">'
-                +'<div class="adm-action-card">'
-                +'<h3>⚡ Case Decision</h3>'
-                +'<div class="adm-form-row"><label class="adm-form-label">Update Status</label>'
-                +'<div class="adm-status-selector">'
-                +statuses.map(function(s){
-                    var active = isSel(s.val);
-                    return '<label class="adm-status-opt '+(active?selCls(s.val):'')+'" id="opt-'+s.val+'">'
-                        +'<input type="radio" name="reqStatus" value="'+s.val+'" '+(active?'checked':'')
-                        +' style="margin:0;" onchange="AdminApp.onStatusOptChange(\''+s.val+'\')">'
-                        +s.label+'</label>';
+                '<div class="adm-detail-grid">'
+                // Left Column: Applicant & Request Details
+                + '<div class="adm-detail-main-col">'
+                // Applicant Card
+                + '<div class="adm-card">'
+                + '<div class="adm-card-title">' + ICONS.user + ' Applicant Personal Details</div>'
+                + '<div class="adm-info-grid">'
+                + '<div class="adm-info-field"><div class="adm-field-label">Full Name</div><div class="adm-field-value">' + esc(name) + '</div></div>'
+                + '<div class="adm-info-field"><div class="adm-field-label">Contact Number</div><div class="adm-field-value">'
+                + (phone ? '<a href="tel:' + esc(phone) + '" style="display:inline-flex;align-items:center;gap:6px;">' + ICONS.phone + ' ' + esc(phone) + '</a>' : '--')
+                + '</div></div>'
+                + '<div class="adm-info-field"><div class="adm-field-label">Email Address</div><div class="adm-field-value">'
+                + (email ? '<a href="mailto:' + esc(email) + '" style="display:inline-flex;align-items:center;gap:6px;">' + ICONS.mail + ' ' + esc(email) + '</a>' : '--')
+                + '</div></div>'
+                + '<div class="adm-info-field"><div class="adm-field-label">Beneficiaries Impacted</div><div class="adm-field-value">' + esc(benefics) + ' person(s)</div></div>'
+                + '<div class="adm-info-field full"><div class="adm-field-label">Residential Address</div><div class="adm-field-value" style="display:flex;align-items:flex-start;gap:6px;">'
+                + ICONS.mapPin + ' ' + esc(address)
+                + '</div></div>'
+                + '</div></div>'
+
+                // Request Data Card
+                + '<div class="adm-card">'
+                + '<div class="adm-card-title">' + ICONS.fileText + ' Case Circumstances &amp; Financial Need</div>'
+                + '<div class="adm-info-grid">'
+                + '<div class="adm-info-field"><div class="adm-field-label">Aid Category</div><div class="adm-field-value"><span class="support-tag">' + esc(type) + '</span></div></div>'
+                + '<div class="adm-info-field"><div class="adm-field-label">Urgency Level</div><div class="adm-field-value"><span class="urgency-badge ' + esc(urgency) + '">' + esc(urgency) + '</span></div></div>'
+                + '<div class="adm-info-field"><div class="adm-field-label">Aid Amount Requested</div><div class="adm-field-value" style="color:var(--primary);font-size:18px;font-weight:700;">'
+                + (amount ? '₹ ' + Number(amount).toLocaleString('en-IN') : 'Unspecified')
+                + '</div></div>'
+                + '<div class="adm-info-field"><div class="adm-field-label">Date Submitted</div><div class="adm-field-value">' + created + '</div></div>'
+                + '<div class="adm-info-field full">'
+                + '<div class="adm-field-label">Detailed Case Description</div>'
+                + '<div class="adm-desc-box">' + esc(desc) + '</div>'
+                + '</div>'
+                + '</div></div>'
+                + '</div>'
+
+                // Right Column: Decision Action Center
+                + '<div class="adm-detail-sidebar-col">'
+                + '<div class="adm-decision-card">'
+                + '<h3>' + ICONS.check + ' Case Adjudication</h3>'
+                + '<div style="margin-bottom:14px;font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.6px;">Select New Status</div>'
+                + '<div class="adm-status-choices">'
+                + statusOptions.map(function (opt) {
+                    const active = isSel(opt.val);
+                    return '<label class="adm-status-choice ' + (active ? selCls(opt.val) : '') + '" id="choice-' + opt.val + '">'
+                        + '<input type="radio" name="detailReqStatus" value="' + opt.val + '" ' + (active ? 'checked' : '') + ' onchange="AdminApp.onStatusChoiceChange(\'' + opt.val + '\')">'
+                        + '<div><div style="font-weight:700;">' + esc(opt.label) + '</div><div style="font-size:11.5px;color:inherit;opacity:0.8;">' + esc(opt.desc) + '</div></div>'
+                        + '</label>';
                 }).join('')
-                +'</div></div>'
-                +'<div class="adm-form-row"><label class="adm-form-label">Internal Notes</label>'
-                +'<textarea class="adm-form-control textarea" id="adminNoteInput" rows="4" placeholder="Add case notes...">'
-                +esc(adminNote)+'</textarea></div>'
-                +'<div class="adm-action-btns">'
-                +'<button class="btn-primary" id="saveRequestBtn" onclick="AdminApp.saveRequest(\''+esc(targetId)+'\')">💾 Save Changes</button>'
-                +'<button class="btn-ghost" onclick="AdminApp.navigate(\'requests\')">Cancel</button>'
-                +'</div></div>'
-                +'<div class="adm-action-card"><h3>📎 Quick Info</h3>'
-                +'<div style="display:flex;flex-direction:column;gap:10px;font-size:13px;">'
-                +'<div style="display:flex;justify-content:space-between;align-items:center;">'
-                +'<span style="color:var(--text-hint);font-weight:600;text-transform:uppercase;font-size:11px;">Status</span>'
-                +'<span class="adm-pill '+esc(status)+'">'+esc(status.replace('_',' '))+'</span></div>'
-                +'<div style="display:flex;justify-content:space-between;align-items:center;">'
-                +'<span style="color:var(--text-hint);font-weight:600;text-transform:uppercase;font-size:11px;">ID</span>'
-                +'<code style="font-size:12px;background:var(--surface-2);padding:2px 8px;border-radius:4px;">'+esc(refId)+'</code></div>'
-                +'<div style="display:flex;justify-content:space-between;align-items:center;">'
-                +'<span style="color:var(--text-hint);font-weight:600;text-transform:uppercase;font-size:11px;">Urgency</span>'
-                +'<span class="adm-urgency '+esc(urgency)+'">'+esc(urgency)+'</span></div>'
-                +'</div></div>'
-                +'</div>'
-                +'</div>';
+                + '</div>'
+
+                + '<div style="margin-bottom:6px;font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.6px;">Internal Case Notes</div>'
+                + '<textarea class="adm-textarea" id="adminCaseNotes" rows="4" placeholder="Record verification remarks, interview outcomes, or reasons for decision...">' + esc(adminNote) + '</textarea>'
+
+                + '<div style="display:flex;flex-direction:column;gap:10px;">'
+                + '<button class="btn-primary" id="saveDecisionBtn" style="width:100%;height:44px;justify-content:center;" onclick="AdminApp.saveDecision(\'' + esc(targetId) + '\')">'
+                + ICONS.save + ' Save Case Decision'
+                + '</button>'
+                + '<button class="btn-secondary" style="width:100%;height:38px;justify-content:center;" onclick="AdminApp.navigate(\'requests\')">'
+                + 'Cancel &amp; Return'
+                + '</button>'
+                + '</div>'
+                + '</div>'
+
+                // File Reference Summary
+                + '<div class="adm-card" style="margin-top:20px;">'
+                + '<div style="display:flex;flex-direction:column;gap:12px;font-size:13px;">'
+                + '<div style="display:flex;justify-content:space-between;align-items:center;">'
+                + '<span style="color:var(--text-muted);font-weight:700;text-transform:uppercase;font-size:11px;">Tracking ID</span>'
+                + '<span class="ref-badge">' + esc(refId) + '</span>'
+                + '</div>'
+                + '<div style="display:flex;justify-content:space-between;align-items:center;">'
+                + '<span style="color:var(--text-muted);font-weight:700;text-transform:uppercase;font-size:11px;">Current Status</span>'
+                + '<span class="status-pill ' + esc(status) + '"><span class="status-dot"></span>' + esc(status.replace('_', ' ')) + '</span>'
+                + '</div>'
+                + '<div style="display:flex;justify-content:space-between;align-items:center;">'
+                + '<span style="color:var(--text-muted);font-weight:700;text-transform:uppercase;font-size:11px;">Urgency</span>'
+                + '<span class="urgency-badge ' + esc(urgency) + '">' + esc(urgency) + '</span>'
+                + '</div>'
+                + '</div></div>'
+                + '</div>'
+
+                + '</div>';
         },
 
-        onStatusOptChange: function(val) {
-            var map = {pending:'sel-pending',under_review:'sel-reviewing',accepted:'sel-accepted',rejected:'sel-rejected'};
-            document.querySelectorAll('.adm-status-opt').forEach(function(opt){
-                var inp = opt.querySelector('input[type="radio"]');
-                var v = inp ? inp.value : '';
-                opt.className = 'adm-status-opt' + (v===val ? ' '+(map[v]||'') : '');
+        onStatusChoiceChange: function (val) {
+            const map = { pending: 'sel-pending', under_review: 'sel-reviewing', accepted: 'sel-accepted', rejected: 'sel-rejected' };
+            document.querySelectorAll('.adm-status-choice').forEach(function (choice) {
+                const inp = choice.querySelector('input[type="radio"]');
+                const v = inp ? inp.value : '';
+                choice.className = 'adm-status-choice' + (v === val ? ' ' + (map[v] || '') : '');
             });
         },
 
-        saveRequest: async function(id) {
-            var btn = document.getElementById('saveRequestBtn');
-            var inp = document.querySelector('input[name="reqStatus"]:checked');
-            var note = document.getElementById('adminNoteInput');
-            if (!inp) { toast('Please select a status.','error'); return; }
-            var newStatus = inp.value;
-            var noteVal = note ? note.value : '';
-            if (btn) { btn.disabled=true; btn.textContent='⏳ Saving...'; }
-            try {
-                var r = await fetch(API_BASE+'/api/v1/requests/admin/'+encodeURIComponent(id)+'/status', {
-                    method:'PATCH', headers:{'Content-Type':'application/json'},
-                    credentials:'include',
-                    body: JSON.stringify({status:newStatus,admin_note:noteVal})
-                });
-                if (!r.ok) throw new Error('err');
-            } catch(_) {
-                if (window.SwanDB && window.SwanDB.updateHelpRequest) window.SwanDB.updateHelpRequest(id,{status:newStatus,admin_note:noteVal});
+        saveDecision: async function (id) {
+            const btn = document.getElementById('saveDecisionBtn');
+            const inp = document.querySelector('input[name="detailReqStatus"]:checked');
+            const noteEl = document.getElementById('adminCaseNotes');
+
+            if (!inp) {
+                toast('Please choose a status decision', 'error');
+                return;
             }
-            toast('Request updated!','success');
-            if (btn) { btn.disabled=false; btn.textContent='💾 Save Changes'; }
+
+            const newStatus = inp.value;
+            const noteVal = noteEl ? noteEl.value : '';
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = ICONS.clock + ' Saving Decision...';
+            }
+
+            try {
+                const r = await fetch(API_BASE + '/api/v1/requests/admin/' + encodeURIComponent(id) + '/status', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ status: newStatus, admin_note: noteVal })
+                });
+                if (!r.ok) throw new Error('API update failed');
+            } catch (_) {
+                if (window.SwanDB && window.SwanDB.updateHelpRequest) {
+                    window.SwanDB.updateHelpRequest(id, { status: newStatus, admin_note: noteVal });
+                }
+            }
+
+            toast('Case decision saved successfully!', 'success');
+
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = ICONS.save + ' Save Case Decision';
+            }
+
+            // Update in cache
+            const idx = cachedRequests.findIndex(function (r) {
+                return String(r.id) === String(id) || String(r.reference) === String(id);
+            });
+            if (idx !== -1) {
+                cachedRequests[idx].status = newStatus;
+                cachedRequests[idx].admin_note = noteVal;
+            }
+
             await App.loadStats();
-            var idx = cachedRequests.findIndex(function(r){ return String(r.id)===String(id); });
-            if (idx!==-1) { cachedRequests[idx].status=newStatus; cachedRequests[idx].admin_note=noteVal; }
+            App.openRequest(id);
         },
 
-        exportCSV: function() {
-            var list = cachedRequests.length ? cachedRequests : (window.SwanDB ? window.SwanDB.getHelpRequests() : []);
-            if (!list.length) { toast('No requests to export.','error'); return; }
-            var q = function(v){ return '"'+String(v||'').replace(/"/g,'""')+'"'; };
-            var rows = list.map(function(req){
-                return [req.reference||req.id,'',
-                    (req.applicant&&req.applicant.full_name)||req.full_name||'',
-                    (req.applicant&&req.applicant.mobile)||req.phone||'',
-                    (req.applicant&&req.applicant.email)||req.email||'',
-                    req.support_type||(req.request&&req.request.support_type)||req.help_type||'',
-                    req.urgency||(req.request&&req.request.urgency)||'',
-                    req.status||'',req.created_at||''
+        exportCSV: function () {
+            const list = cachedRequests.length ? cachedRequests : (window.SwanDB ? window.SwanDB.getHelpRequests() : []);
+            if (!list.length) {
+                toast('No requests available to export', 'error');
+                return;
+            }
+
+            const q = function (v) { return '"' + String(v || '').replace(/"/g, '""') + '"'; };
+            const rows = list.map(function (req) {
+                return [
+                    req.reference || req.id,
+                    (req.applicant && req.applicant.full_name) || req.full_name || '',
+                    (req.applicant && req.applicant.mobile) || req.phone || '',
+                    (req.applicant && req.applicant.email) || req.email || '',
+                    req.support_type || (req.request && req.request.support_type) || req.help_type || '',
+                    req.urgency || (req.request && req.request.urgency) || '',
+                    req.status || '',
+                    req.created_at || ''
                 ].map(q).join(',');
             });
-            var blob = new Blob([['ID,REF,Name,Phone,Email,Type,Urgency,Status,Date'].concat(rows).join('\n')],{type:'text/csv'});
-            var url = URL.createObjectURL(blob);
-            var a = document.createElement('a');
-            a.href=url; a.download='Swan_Requests_'+new Date().toISOString().slice(0,10)+'.csv';
-            document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-            toast('CSV exported!','success');
+
+            const blob = new Blob([['Reference_ID,Applicant_Name,Mobile,Email,Category,Urgency,Status,Date_Submitted'].concat(rows).join('\n')], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Swan_Turbines_Requests_' + new Date().toISOString().slice(0, 10) + '.csv';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            toast('CSV report generated &amp; downloaded', 'success');
         }
     };
 
