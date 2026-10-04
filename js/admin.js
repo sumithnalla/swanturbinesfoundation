@@ -284,6 +284,8 @@
                     const d = await r.json();
                     apiRequests = d.requests || [];
                     apiAvailable = true;
+                    // API is online — clear stale local help requests so they don't show as duplicates
+                    try { localStorage.removeItem('swan_db_help_requests_v1'); } catch (_) {}
                 }
             } catch (_) {}
 
@@ -305,7 +307,6 @@
                 const key = r.reference || r._id || r.id;
                 if (key && !seen.has(key)) {
                     seen.add(key);
-                    // Also track by all possible IDs so local dupes are caught
                     if (r.reference) seen.add(r.reference);
                     if (r.id) seen.add(r.id);
                     merged.push(r);
