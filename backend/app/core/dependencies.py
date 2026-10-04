@@ -46,11 +46,13 @@ async def get_current_user(
         raise auth_error("Session expired or invalid. Please log in again.")
 
     from bson import ObjectId
+    from app.core.database import is_db_connected
     user = None
-    try:
-        user = await db.users.find_one({"_id": ObjectId(user_id), "is_active": True})
-    except Exception:
-        pass
+    if is_db_connected():
+        try:
+            user = await db.users.find_one({"_id": ObjectId(user_id), "is_active": True})
+        except Exception:
+            pass
 
     if not user:
         from app.services.auth_service import FALLBACK_USERS

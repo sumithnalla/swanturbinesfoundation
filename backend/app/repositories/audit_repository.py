@@ -14,7 +14,9 @@ class AuditRepository(BaseRepository):
     async def log(self, entry: AuditLogCreate) -> str:
         """Append an audit log entry. Never raises — logs failure to stderr."""
         import logging
-        import sys
+        from app.core.database import is_db_connected
+        if not is_db_connected():
+            return ""
         try:
             return await self.insert_one(entry.model_dump())
         except Exception as e:

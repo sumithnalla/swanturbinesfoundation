@@ -76,13 +76,14 @@ class AuthService:
         Raises HTTPException on failure.
         """
         email_clean = email.strip().lower()
-        _generic_fail = auth_error("Invalid email or password.")
+        from app.core.database import is_db_connected
         user = None
 
-        try:
-            user = await self._users.find_by_email(email_clean)
-        except Exception as e:
-            logger.warning("MongoDB unreachable during auth: %s. Checking fallback users.", e)
+        if is_db_connected():
+            try:
+                user = await self._users.find_by_email(email_clean)
+            except Exception as e:
+                logger.warning("MongoDB unreachable during auth: %s. Checking fallback users.", e)
 
         if not user:
             # Check fallback users if database is down or user unseeded

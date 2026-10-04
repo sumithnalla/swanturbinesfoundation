@@ -97,6 +97,8 @@ class RequestService:
         """Update request status with validation of allowed transitions."""
         existing = await self._requests.find_by_id(request_id)
         if not existing:
+            existing = await self._requests.find_by_reference(request_id)
+        if not existing:
             raise not_found_error("Help request")
 
         current_status = existing["status"]
@@ -105,23 +107,25 @@ class RequestService:
                 f"Cannot transition from '{current_status}' to '{new_status}'."
             )
 
-        update: dict = {"status": new_status}
-        if admin_note is not None:
-            update["admin_note"] = admin_note
+        await self._requests.update_status(request_id, new_status, admin_note)
 
-        await self._requests.update_by_id(request_id, update)
+        try:
+            await self._audit.log(AuditLogCreate(
+                actor_id=actor_id,
+                actor_email=actor_email,
+                action=AuditAction.REQUEST_STATUS_CHANGED,
+                resource_type="help_request",
+                resource_id=request_id,
+                metadata={
+                    "from_status": current_status,
+                    "to_status": new_status,
+                    "reference": existing.get("reference"),
+                },
+            ))
+        except Exception:
+            pass
 
-        await self._audit.log(AuditLogCreate(
-            actor_id=actor_id,
-            actor_email=actor_email,
-            action=AuditAction.REQUEST_STATUS_CHANGED,
-            resource_type="help_request",
-            resource_id=request_id,
-            metadata={
-                "from_status": current_status,
-                "to_status": new_status,
-                "reference": existing.get("reference"),
-            },
-        ))
-
-        return await self._requests.find_by_id(request_id)
+        res = await self._requests.find_by_id(request_id)
+        if not res:
+            res = await self._requests.find_by_reference(request_id)
+        return res

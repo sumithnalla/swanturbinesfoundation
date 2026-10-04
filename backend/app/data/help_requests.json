@@ -1,0 +1,128 @@
+[
+  {
+    "reference": "STF-2026-528245",
+    "applicant": {
+      "full_name": "Lakshmi Narayana",
+      "mobile": "+91 98888 12345",
+      "email": "lakshmi@example.com",
+      "address": "Main Bazar, Tenali",
+      "city": "Guntur",
+      "state": "Andhra Pradesh"
+    },
+    "request": {
+      "support_type": "other",
+      "description": "Daily meal supplies for 45 elderly destitute community members.",
+      "beneficiaries": 45,
+      "amount_required": "35,000",
+      "urgency": "urgent"
+    },
+    "consent": true,
+    "status": "accepted",
+    "admin_note": "Approved for funding",
+    "document_ids": [],
+    "_id": "6ac2563f18e528401869cd37",
+    "id": "6ac2563f18e528401869cd37",
+    "created_at": "2026-10-04T13:35:59.445310+00:00",
+    "updated_at": "2026-10-04T13:40:40.147265+00:00"
+  },
+  {
+    "id": "507f1f77bcf86cd799439001",
+    "reference": "STF-2026-000101",
+    "status": "pending",
+    "applicant": {
+      "full_name": "Ramesh Kumar",
+      "mobile": "+91 98451 23456",
+      "email": "ramesh.k@example.com",
+      "address": "House #44, Near Gandhi Statue, Nandigama",
+      "city": "Krishna",
+      "state": "Andhra Pradesh"
+    },
+    "request": {
+      "support_type": "Clean Water",
+      "description": "Our village water pump broke down 3 weeks ago. Over 120 families are walking 3km for drinking water. Urgently requesting community solar borewell support.",
+      "beneficiaries": 120,
+      "amount_required": "75,000",
+      "urgency": "high"
+    },
+    "support_type": "Clean Water",
+    "urgency": "high",
+    "admin_note": "",
+    "created_at": "2026-10-03T10:15:00Z",
+    "updated_at": "2026-10-03T10:15:00Z"
+  },
+  {
+    "id": "507f1f77bcf86cd799439002",
+    "reference": "STF-2026-000102",
+    "status": "under_review",
+    "applicant": {
+      "full_name": "Sunita Devi",
+      "mobile": "+91 91234 56780",
+      "email": "sunita.devi@example.com",
+      "address": "Plot 12, Ward 4, Balanagar",
+      "city": "Hyderabad",
+      "state": "Telangana"
+    },
+    "request": {
+      "support_type": "Education",
+      "description": "Seeking school tuition support and textbooks for two orphaned children studying in Class 7 and 9 whose father passed away.",
+      "beneficiaries": 2,
+      "amount_required": "24,000",
+      "urgency": "medium"
+    },
+    "support_type": "Education",
+    "urgency": "medium",
+    "admin_note": "Called applicant on 03 Oct. Documents verified. Awaiting trustee signoff.",
+    "created_at": "2026-10-03T14:30:00Z",
+    "updated_at": "2026-10-03T16:00:00Z"
+  },
+  {
+    "id": "507f1f77bcf86cd799439003",
+    "reference": "STF-2026-000103",
+    "status": "accepted",
+    "applicant": {
+      "full_name": "Anil Reddy",
+      "mobile": "+91 99887 76655",
+      "email": "anil.reddy@example.com",
+      "address": "D.No 8-3-228, Yellareddyguda",
+      "city": "Hyderabad",
+      "state": "Telangana"
+    },
+    "request": {
+      "support_type": "Healthcare",
+      "description": "Emergency post-operative medication and dialysis support for elderly father.",
+      "beneficiaries": 1,
+      "amount_required": "50,000",
+      "urgency": "critical"
+    },
+    "support_type": "Healthcare",
+    "urgency": "critical",
+    "admin_note": "Approved by board. Medical bills validated from hospital.",
+    "created_at": "2026-10-02T09:00:00Z",
+    "updated_at": "2026-10-02T11:45:00Z"
+  },
+  {
+    "id": "507f1f77bcf86cd799439004",
+    "reference": "STF-2026-000104",
+    "status": "pending",
+    "applicant": {
+      "full_name": "Kavitha Sharma",
+      "mobile": "+91 94401 98765",
+      "email": "kavitha.s@example.com",
+      "address": "Street No. 3, Shivaji Nagar",
+      "city": "Warangal",
+      "state": "Telangana"
+    },
+    "request": {
+      "support_type": "Women Empowerment",
+      "description": "Requesting 5 commercial sewing machines for community skill development center for single mothers.",
+      "beneficiaries": 15,
+      "amount_required": "60,000",
+      "urgency": "medium"
+    },
+    "support_type": "Women Empowerment",
+    "urgency": "medium",
+    "admin_note": "",
+    "created_at": "2026-10-04T08:20:00Z",
+    "updated_at": "2026-10-04T08:20:00Z"
+  }
+]

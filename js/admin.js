@@ -295,20 +295,15 @@
                     const d = await r.json();
                     apiRequests = d.requests || [];
                     apiAvailable = true;
-                    // API is online — clear stale local help requests so they don't show as duplicates
-                    try { localStorage.removeItem('swan_db_help_requests_v1'); } catch (_) {}
                 }
             } catch (_) {}
 
             let localRequests = [];
-            if (!apiAvailable) {
-                // Only use local storage as a full fallback when the API is offline
-                try {
-                    if (window.SwanDB && window.SwanDB.getHelpRequests) {
-                        localRequests = window.SwanDB.getHelpRequests() || [];
-                    }
-                } catch (_) {}
-            }
+            try {
+                if (window.SwanDB && window.SwanDB.getHelpRequests) {
+                    localRequests = window.SwanDB.getHelpRequests() || [];
+                }
+            } catch (_) {}
 
             // Merge: API records first (no duplicates), then any local-only offline records
             const seen = new Set();

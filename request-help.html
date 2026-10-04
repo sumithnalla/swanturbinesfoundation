@@ -642,8 +642,24 @@
                         reference = data.reference;
                         requestId = data.id || data.request_id;
 
-                        // Note: do NOT save to SwanDB here — the API is the source of truth.
-                        // SwanDB local save is only used as a fallback when the API is offline.
+                        // Mirror to SwanDB as offline backup using the exact reference and id
+                        if (window.SwanDB && window.SwanDB.createHelpRequest) {
+                            try {
+                                const localData = {
+                                    id: reference,
+                                    full_name: payload.applicant.full_name,
+                                    phone: payload.applicant.mobile,
+                                    email: payload.applicant.email,
+                                    address: `${payload.applicant.address}, ${payload.applicant.city}, ${payload.applicant.state}`,
+                                    help_type: payload.request.support_type,
+                                    description: payload.request.description,
+                                    estimated_amount: payload.request.amount_required,
+                                    urgency: payload.request.urgency,
+                                    consent: true
+                                };
+                                window.SwanDB.createHelpRequest(localData);
+                            } catch (_) {}
+                        }
 
                         // Upload documents if selected
                         if (selectedFiles.length && requestId) {
