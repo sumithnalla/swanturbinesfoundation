@@ -16,21 +16,32 @@ from app.core.errors import not_found_error, validation_error
 logger = logging.getLogger(__name__)
 
 
+from app.core.database import is_db_connected
+
 async def _generate_reference(db: AsyncIOMotorDatabase) -> str:
     """
     Generate a unique public request reference: STF-YYYY-NNNNNN.
-    Uses an atomic MongoDB counter per year to guarantee uniqueness.
+    Uses atomic counter when DB connected, else random sequence.
     """
     year = datetime.now(timezone.utc).year
     counter_name = f"help_request_{year}"
-    result = await db.counters.find_one_and_update(
-        {"name": counter_name},
-        {"$inc": {"value": 1}},
-        upsert=True,
-        return_document=True,  # pymongo.ReturnDocument.AFTER
-    )
-    sequence = result.get("value", 1) if (result and isinstance(result, dict)) else 1
+    if is_db_connected():
+        try:
+            result = await db.counters.find_one_and_update(
+                {"name": counter_name},
+                {"$inc": {"value": 1}},
+                upsert=True,
+                return_document=True,
+            )
+            sequence = result.get("value", 1) if (result and isinstance(result, dict)) else 1
+            return f"STF-{year}-{str(sequence).zfill(6)}"
+        except Exception:
+            pass
+
+    import random
+    sequence = random.randint(100000, 999999)
     return f"STF-{year}-{str(sequence).zfill(6)}"
+
 
 
 class RequestService:
@@ -59,14 +70,18 @@ class RequestService:
         }
         request_id = await self._requests.insert_one(doc)
 
-        await self._audit.log(AuditLogCreate(
-            action=AuditAction.REQUEST_SUBMITTED,
-            resource_type="help_request",
-            resource_id=request_id,
-            metadata={"reference": reference, "support_type": payload.request.support_type},
-        ))
+        try:
+            await self._audit.log(AuditLogCreate(
+                action=AuditAction.REQUEST_SUBMITTED,
+                resource_type="help_request",
+                resource_id=request_id,
+                metadata={"reference": reference, "support_type": payload.request.support_type},
+            ))
+        except Exception:
+            pass
 
         logger.info("Help request submitted: %s", reference)
+
         doc["id"] = request_id
         doc["reference"] = reference
         return doc

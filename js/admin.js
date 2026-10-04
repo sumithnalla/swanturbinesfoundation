@@ -143,9 +143,10 @@
                 const urgency = req.urgency || (req.request ? req.request.urgency : 'normal');
                 const status = req.status || 'pending';
                 const created = req.created_at || new Date().toISOString();
+                const targetId = req.id || reqId;
 
                 return `
-                    <tr>
+                    <tr onclick="SwanAdmin.openRequest('${escapeHTML(targetId)}')" title="Click row to open details">
                         <td><strong>${escapeHTML(reqId)}</strong></td>
                         <td>
                             <strong>${escapeHTML(personName)}</strong>
@@ -166,7 +167,7 @@
                             <span class="status-pill ${escapeHTML(status)} no-dot">${escapeHTML(status)}</span>
                         </td>
                         <td>
-                            <button class="btn-icon-text" onclick="SwanAdmin.openRequest('${escapeHTML(req.id || reqId)}')">Review</button>
+                            <button type="button" class="btn-icon-text" onclick="event.stopPropagation();SwanAdmin.openRequest('${escapeHTML(targetId)}')">Review</button>
                         </td>
                     </tr>
                 `;
@@ -188,7 +189,8 @@
             }
 
             if (!request) {
-                request = cachedRequests.find(r => (r.id === id || r.reference === id)) || (window.SwanDB ? window.SwanDB.getHelpRequestById(id) : null);
+                request = cachedRequests.find(r => (String(r.id) === String(id) || String(r.reference) === String(id))) || 
+                          (window.SwanDB ? window.SwanDB.getHelpRequestById(id) : null);
             }
 
             const modal = document.getElementById('requestReviewModal');
@@ -199,42 +201,91 @@
             const fullName = applicant.full_name || request.full_name || 'Applicant';
             const phone = applicant.mobile || request.phone || 'Not provided';
             const email = applicant.email || request.email || 'Not provided';
-            const location = applicant.address || request.address || 'Not provided';
+            const location = applicant.address 
+                ? `${applicant.address}${applicant.city ? ', ' + applicant.city : ''}${applicant.state ? ', ' + applicant.state : ''}` 
+                : (request.address || 'Not provided');
             const supportType = reqInfo.support_type || request.support_type || request.help_type || 'Support';
             const urgency = reqInfo.urgency || request.urgency || 'normal';
-            const estimatedAmount = reqInfo.amount_required || request.estimated_amount || 'Not provided';
-            const description = reqInfo.description || request.description || '';
+            const estimatedAmount = reqInfo.amount_required || request.estimated_amount || request.amount_required || 'Not provided';
+            const beneficiaries = reqInfo.beneficiaries || request.beneficiaries || 1;
+            const description = reqInfo.description || request.description || 'No description provided.';
             const status = request.status || 'pending';
             const adminNote = request.admin_note || '';
+            const referenceId = request.reference || request.id || id;
+            const targetId = request.id || referenceId;
 
             modal.hidden = false;
             modal.innerHTML = `
                 <div class="request-review-backdrop" onclick="SwanAdmin.closeRequest()"></div>
                 <section class="request-review-card" role="dialog" aria-modal="true" aria-labelledby="reviewTitle">
-                    <button class="request-review-close" onclick="SwanAdmin.closeRequest()" aria-label="Close">×</button>
-                    <span class="panel-eyebrow">${escapeHTML(request.reference || request.id)}</span>
-                    <h2 id="reviewTitle">${escapeHTML(fullName)}</h2>
-                    <div class="request-detail-grid">
-                        <div><strong>Phone</strong><span>${escapeHTML(phone)}</span></div>
-                        <div><strong>Email</strong><span>${escapeHTML(email)}</span></div>
-                        <div><strong>Type of help</strong><span>${escapeHTML(supportType)}</span></div>
-                        <div><strong>Urgency</strong><span>${escapeHTML(urgency)}</span></div>
-                        <div class="full"><strong>Location</strong><span>${escapeHTML(location)}</span></div>
-                        <div class="full"><strong>Estimated amount</strong><span>${escapeHTML(estimatedAmount)}</span></div>
-                        <div class="full"><strong>Situation</strong><p>${escapeHTML(description)}</p></div>
+                    <div class="request-review-header">
+                        <div>
+                            <span style="display:inline-block;background:#0a3663;color:#fff;padding:3px 12px;border-radius:999px;font-size:12px;font-weight:700;margin-bottom:6px;">
+                                ${escapeHTML(referenceId)}
+                            </span>
+                            <h2 id="reviewTitle" style="margin:0;font-size:22px;color:#0f172a;font-weight:800;">
+                                ${escapeHTML(fullName)}
+                            </h2>
+                        </div>
+                        <button type="button" class="request-review-close" onclick="SwanAdmin.closeRequest()" aria-label="Close modal">✕</button>
                     </div>
-                    <label class="review-field">Case status
-                        <select id="requestStatus">
-                            <option value="pending" ${status === 'pending' || status === 'new' ? 'selected' : ''}>Pending / New</option>
-                            <option value="under_review" ${status === 'under_review' || status === 'reviewing' ? 'selected' : ''}>Under Review</option>
-                            <option value="accepted" ${status === 'accepted' || status === 'approved' ? 'selected' : ''}>Accepted / Approved</option>
-                            <option value="rejected" ${status === 'rejected' || status === 'closed' ? 'selected' : ''}>Rejected</option>
-                        </select>
-                    </label>
-                    <label class="review-field">Internal note
-                        <textarea id="requestNote" rows="4" maxlength="1500" placeholder="Add a case note for the foundation team.">${escapeHTML(adminNote)}</textarea>
-                    </label>
-                    <button class="help-submit-btn" id="saveCaseBtn" onclick="SwanAdmin.saveRequest('${escapeHTML(request.id)}')">Save case update</button>
+
+                    <div class="request-detail-grid">
+                        <div>
+                            <strong>Contact Phone</strong>
+                            <span>${phone !== 'Not provided' ? `<a href="tel:${escapeHTML(phone)}" style="color:#0066ff;text-decoration:none;font-weight:600;">📞 ${escapeHTML(phone)}</a>` : 'Not provided'}</span>
+                        </div>
+                        <div>
+                            <strong>Email Address</strong>
+                            <span>${email !== 'Not provided' ? `<a href="mailto:${escapeHTML(email)}" style="color:#0066ff;text-decoration:none;font-weight:600;">✉️ ${escapeHTML(email)}</a>` : 'Not provided'}</span>
+                        </div>
+                        <div>
+                            <strong>Support Category</strong>
+                            <span style="display:inline-block;background:rgba(0,102,255,0.1);color:#0066ff;padding:3px 10px;border-radius:6px;font-weight:700;font-size:13px;">${escapeHTML(supportType)}</span>
+                        </div>
+                        <div>
+                            <strong>Urgency Level</strong>
+                            <span class="request-urgency ${escapeHTML(urgency)}">${escapeHTML(urgency)}</span>
+                        </div>
+                        <div>
+                            <strong>People Benefiting</strong>
+                            <span>👥 ${escapeHTML(beneficiaries)} person(s)</span>
+                        </div>
+                        <div>
+                            <strong>Amount Needed</strong>
+                            <span style="font-weight:700;color:#059669;font-size:15px;">${escapeHTML(estimatedAmount)}</span>
+                        </div>
+                        <div class="full">
+                            <strong>Full Address / Location</strong>
+                            <span>📍 ${escapeHTML(location)}</span>
+                        </div>
+                        <div class="full">
+                            <strong>Detailed Situation & Request Background</strong>
+                            <div class="request-situation-box">${escapeHTML(description)}</div>
+                        </div>
+                    </div>
+
+                    <div style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px;">
+                        <h3 style="margin:0;font-size:15px;color:#0f172a;font-weight:700;">Case Management & Assessment</h3>
+                        
+                        <label class="review-field">Case Status Decision
+                            <select id="requestStatus">
+                                <option value="pending" ${status === 'pending' || status === 'new' ? 'selected' : ''}>⏳ Pending / Needs Review</option>
+                                <option value="under_review" ${status === 'under_review' || status === 'reviewing' ? 'selected' : ''}>🔍 Under Review / Assessing</option>
+                                <option value="accepted" ${status === 'accepted' || status === 'approved' ? 'selected' : ''}>✅ Accepted / Approved for Aid</option>
+                                <option value="rejected" ${status === 'rejected' || status === 'closed' ? 'selected' : ''}>❌ Rejected / Closed</option>
+                            </select>
+                        </label>
+
+                        <label class="review-field">Internal Case Notes
+                            <textarea id="requestNote" rows="3" maxlength="1500" placeholder="Add verified findings, beneficiary call notes, or disbursement details...">${escapeHTML(adminNote)}</textarea>
+                        </label>
+
+                        <div style="display:flex;gap:12px;justify-content:flex-end;">
+                            <button type="button" class="btn-secondary" onclick="SwanAdmin.closeRequest()" style="background:#fff;border:1px solid #cbd5e1;border-radius:999px;padding:12px 22px;font-size:14px;font-weight:600;cursor:pointer;">Cancel</button>
+                            <button type="button" class="help-submit-btn" id="saveCaseBtn" onclick="SwanAdmin.saveRequest('${escapeHTML(targetId)}')">Save Case Update</button>
+                        </div>
+                    </div>
                 </section>
             `;
             document.body.classList.add('request-modal-open');
@@ -250,13 +301,14 @@
         },
 
         async saveRequest(id) {
-            const newStatus = document.getElementById('requestStatus').value;
-            const note = document.getElementById('requestNote').value;
+            const newStatus = document.getElementById('requestStatus')?.value || 'pending';
+            const note = document.getElementById('requestNote')?.value || '';
             const btn = document.getElementById('saveCaseBtn');
             if (btn) {
                 btn.disabled = true;
-                btn.textContent = 'Saving...';
+                btn.textContent = 'Saving Changes...';
             }
+
 
             try {
                 const response = await fetch(`${API_BASE}/api/v1/requests/admin/${encodeURIComponent(id)}/status`, {
@@ -316,5 +368,10 @@
         }
     };
 
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') Admin.closeRequest();
+    });
+
     window.SwanAdmin = Admin;
 })();
+

@@ -46,14 +46,18 @@ def _get_email_service(db: AsyncIOMotorDatabase) -> EmailService:
 
 
 def _doc_to_out(doc: dict) -> dict:
+    from datetime import datetime, timezone
+    req_obj = doc.get("request") if isinstance(doc.get("request"), dict) else {}
     return {
-        "id": doc["id"],
-        "reference": doc["reference"],
-        "status": doc["status"],
-        "support_type": doc.get("request", {}).get("support_type", ""),
-        "urgency": doc.get("request", {}).get("urgency", ""),
-        "created_at": doc["created_at"],
-        "updated_at": doc["updated_at"],
+        "id": str(doc.get("id") or doc.get("_id", "")),
+        "reference": doc.get("reference", ""),
+        "status": doc.get("status", "pending"),
+        "support_type": req_obj.get("support_type") or doc.get("support_type", ""),
+        "urgency": req_obj.get("urgency") or doc.get("urgency", "normal"),
+        "applicant": doc.get("applicant"),
+        "request": doc.get("request"),
+        "created_at": doc.get("created_at") or datetime.now(timezone.utc),
+        "updated_at": doc.get("updated_at") or datetime.now(timezone.utc),
     }
 
 
@@ -91,9 +95,11 @@ async def submit_request(
     return {
         "message": "Your request has been submitted successfully.",
         "reference": saved["reference"],
-        "request_id": saved["id"],
+        "request_id": str(saved["id"]),
+        "id": str(saved["id"]),
         "status": saved["status"],
     }
+
 
 
 # ── Public: Track request status ──────────────────────────────────────────────
@@ -230,12 +236,19 @@ async def admin_get_request(
     repo = HelpRequestRepository(db)
     doc = await repo.find_by_id(request_id)
     if not doc:
+        doc = await repo.find_by_reference(request_id)
+    if not doc:
         raise not_found_error("Help request")
 
-    # Count documents
-    doc_count = await db.request_documents.count_documents({"request_id": request_id})
+    doc_count = 0
+    try:
+        doc_count = await db.request_documents.count_documents({"request_id": request_id})
+    except Exception:
+        pass
     doc["document_count"] = doc_count
+    doc["id"] = str(doc.get("id") or doc.get("_id", ""))
     return doc
+
 
 
 @router.patch("/admin/{request_id}/status")

@@ -20,27 +20,36 @@ settings = get_settings()
 _client: Optional[AsyncIOMotorClient] = None
 _db: Optional[AsyncIOMotorDatabase] = None
 _gridfs: Optional[AsyncIOMotorGridFSBucket] = None
+_is_connected: bool = False
+
+
+def is_db_connected() -> bool:
+    """Return True if MongoDB ping succeeded on startup."""
+    return _is_connected
 
 
 async def connect_db() -> None:
     """Open the MongoDB connection. Called on application startup."""
-    global _client, _db, _gridfs
+    global _client, _db, _gridfs, _is_connected
     logger.info("Connecting to MongoDB: %s / %s", settings.MONGODB_URI, settings.DATABASE_NAME)
-    _client = AsyncIOMotorClient(settings.MONGODB_URI, serverSelectionTimeoutMS=2000)
+    _client = AsyncIOMotorClient(settings.MONGODB_URI, serverSelectionTimeoutMS=1000)
     _db = _client[settings.DATABASE_NAME]
     _gridfs = AsyncIOMotorGridFSBucket(_db, bucket_name="request_documents")
     try:
         # Verify connection
         await _client.admin.command("ping")
+        _is_connected = True
         logger.info("MongoDB connected successfully.")
         await _ensure_indexes()
     except Exception as e:
+        _is_connected = False
         logger.warning("MongoDB connection check failed on startup (%s). App starting in degraded mode.", e)
 
 
 async def disconnect_db() -> None:
     """Close the MongoDB connection. Called on application shutdown."""
-    global _client
+    global _client, _is_connected
+    _is_connected = False
     if _client:
         _client.close()
         logger.info("MongoDB connection closed.")
@@ -50,10 +59,11 @@ def get_db() -> AsyncIOMotorDatabase:
     """Return the active database instance."""
     global _client, _db, _gridfs
     if _db is None:
-        _client = AsyncIOMotorClient(settings.MONGODB_URI, serverSelectionTimeoutMS=2000)
+        _client = AsyncIOMotorClient(settings.MONGODB_URI, serverSelectionTimeoutMS=1000)
         _db = _client[settings.DATABASE_NAME]
         _gridfs = AsyncIOMotorGridFSBucket(_db, bucket_name="request_documents")
     return _db
+
 
 
 def get_gridfs() -> AsyncIOMotorGridFSBucket:
