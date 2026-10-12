@@ -11,6 +11,15 @@
 
 Required next action: obtain an approved production authentication path (organization-approved service-account key exception or Workload Identity Federation/token broker), then set the credential in Supabase secrets and rerun end-to-end upload/download tests.
 
+## Cloud Run broker attempt (2026-10-12)
+
+- Added `google-drive-broker/`, a least-privilege Node service intended for Cloud Run. It uses the attached dedicated service account through Application Default Credentials, restricts operations to upload/download, enforces HMAC request authentication with a five-minute replay window, sanitizes names, and caps payloads at 10 MiB. No service-account key is used.
+- Local validation passed: `node --check server.js` and `npm audit --omit=dev --audit-level=high` reported no issues.
+- Deployment was not attempted further because Google rejected enabling Cloud Run, Cloud Build, Artifact Registry, and Secret Manager: billing is not enabled for project `swan-turbines-foundation-2026`. No HMAC secret, broker URL, Cloud Run service, or Supabase broker secret was created.
+- The existing Edge Function remains in its safe unavailable state until a broker is actually deployed and authenticated; no upload/download success is claimed.
+
+Manual action required: attach an approved billing account to Google project `swan-turbines-foundation-2026` (or provide a pre-approved billed project for the broker). Then enable the required APIs, deploy `google-drive-broker` with the dedicated service account, create/store the HMAC secret in Secret Manager and Supabase, configure authenticated broker invocation, and run real upload/download/cleanup tests. Do not begin Phase 6 before those tests pass.
+
 ## Authentication investigation (2026-10-12)
 
 - Google Workload Identity Federation is supported for external workloads, but it requires a credential source that can continuously provide an OIDC/SAML/AWS/Azure/etc. subject token. Supabase Edge Functions do not expose a Google workload identity, metadata server, or built-in WIF credential supplier for the running function. A static WIF configuration file alone is not an authentication credential.
