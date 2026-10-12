@@ -33,50 +33,11 @@
     }
 
     // Initial seed data
+    // This browser-only store is retained only for the donor/demo prototype.
+    // Privileged credentials must never be delivered to a browser; temporary
+    // staff fallback remains isolated in the existing server until Supabase
+    // staff accounts are provisioned in the next backend phase.
     const SEED_USERS = [
-        {
-            id: 'user_admin_001',
-            full_name: 'Foundation Administrator',
-            email: 'admin@swanturbinesfoundation.com',
-            phone: '+91 98765 43210',
-            password_hash: 'AdminSwan2026!#Secure',
-            role: 'admin',
-            role_ids: ['foundation_admin'],
-            created_at: '2026-01-01T00:00:00.000Z',
-            updated_at: '2026-01-01T00:00:00.000Z'
-        },
-        {
-            id: 'user_admin_002',
-            full_name: 'Aruna Pothumarthi',
-            email: 'aruna@swanturbinesfoundation.com',
-            phone: '+91 98765 43210',
-            password_hash: 'FoundationAdmin2026!',
-            role: 'admin',
-            role_ids: ['foundation_admin'],
-            created_at: '2026-01-01T00:00:00.000Z',
-            updated_at: '2026-01-01T00:00:00.000Z'
-        },
-        {
-            id: 'user_super_001',
-            full_name: 'WEBSITTER Super Admin',
-            email: 'websitter@swanturbinesfoundation.com',
-            phone: '+91 98765 43210',
-            password_hash: 'WebsitterSuperAdmin2026!',
-            role: 'super_admin',
-            role_ids: ['super_admin'],
-            created_at: '2026-01-01T00:00:00.000Z',
-            updated_at: '2026-01-01T00:00:00.000Z'
-        },
-        {
-            id: 'user_admin_legacy',
-            full_name: 'Foundation Administrator',
-            email: 'admin@swanturbines.org',
-            phone: '+91 98765 43210',
-            password_hash: 'Admin@123',
-            role: 'admin',
-            created_at: '2026-01-01T00:00:00.000Z',
-            updated_at: '2026-01-01T00:00:00.000Z'
-        },
         {
             id: 'user_donor_101',
             full_name: 'Rajesh Sharma',
@@ -302,7 +263,9 @@
         getHelpRequests: () => getItem(STORAGE_HELP_REQUESTS, [])
             .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
 
-        getHelpRequestById: (id) => DB.getHelpRequests().find(request => request.id === id) || null,
+        getHelpRequestById: (id) => DB.getHelpRequests().find(request =>
+            request.id === id || request._id === id || request.reference === id
+        ) || null,
 
         createHelpRequest: (requestObj) => {
             const fullName = cleanText(requestObj.full_name, 120);
@@ -342,7 +305,9 @@
 
         updateHelpRequest: (id, updates) => {
             const requests = getItem(STORAGE_HELP_REQUESTS, []);
-            const index = requests.findIndex(request => request.id === id);
+            const index = requests.findIndex(request =>
+                request.id === id || request._id === id || request.reference === id
+            );
             if (index === -1) return null;
             if (Object.prototype.hasOwnProperty.call(updates, 'status') && VALID_HELP_STATUSES.has(updates.status)) {
                 requests[index].status = updates.status;

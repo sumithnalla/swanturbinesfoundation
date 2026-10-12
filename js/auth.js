@@ -26,11 +26,7 @@
         return /^data:image\/(?:jpeg|png|webp);base64,[a-z0-9+/=]+$/i.test(source) ? source : '';
     }
 
-    const API_BASE = window.__API_BASE_URL__ || (
-        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:8000'
-            : ''
-    );
+    const API_BASE = window.__API_BASE_URL__ || 'https://qlfdbimnswbaiouvmtau.supabase.co/functions/v1/api';
 
     const Auth = {
         modalScrollY: 0,
@@ -184,7 +180,12 @@
                 }
                 // Fallback to local DB for offline mock testing
                 const user = window.SwanDB && window.SwanDB.getUserByEmail ? window.SwanDB.getUserByEmail(email) : null;
-                if (!user || user.password_hash !== password) {
+                const isPrivilegedLocalUser = user && (
+                    user.role === 'admin'
+                    || user.role === 'super_admin'
+                    || (Array.isArray(user.role_ids) && user.role_ids.length > 0)
+                );
+                if (!user || isPrivilegedLocalUser || user.password_hash !== password) {
                     throw new Error('Invalid email or password. Please try again.');
                 }
                 saveAttemptState({ count: 0, lockedUntil: 0 });
@@ -261,13 +262,16 @@
                 }
                 return false;
             }
-            if (requiredRole && user.role !== requiredRole) {
-                if (requiredRole === 'admin') {
+            if (requiredRole === 'admin') {
+                if (!Auth.isAdmin()) {
                     alert('Access Denied: You do not have administrator permissions.');
-                    window.location.href = 'dashboard.html';
-                } else {
-                    window.location.href = 'index.html';
+                    window.location.href = 'adminlogin/';
+                    return false;
                 }
+                return true;
+            }
+            if (requiredRole && user.role !== requiredRole) {
+                window.location.href = 'index.html';
                 return false;
             }
             return true;

@@ -1013,6 +1013,37 @@ input, select, textarea {
     }
 }
 
+/* Two-column layout helpers for detail page */
+.adm-detail-main-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-width: 0;
+}
+
+.adm-detail-sidebar-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-width: 0;
+    position: sticky;
+    top: calc(var(--topbar-height) + 16px);
+}
+
+@media (max-width: 980px) {
+    .adm-detail-sidebar-col {
+        position: static;
+    }
+}
+
+/* Base field cell in the info grid */
+.adm-info-field {
+    background: var(--surface-2);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+}
+
 .adm-card {
     background: var(--surface);
     border-radius: var(--radius-lg);
@@ -1066,9 +1097,25 @@ input, select, textarea {
     word-break: break-word;
 }
 
+.adm-field-value svg,
+.adm-info-grid svg {
+    width: 16px;
+    height: 16px;
+    max-width: 16px;
+    max-height: 16px;
+    flex-shrink: 0;
+    stroke: var(--text-secondary);
+    display: inline-block;
+    vertical-align: middle;
+}
+
 .adm-field-value a {
     color: var(--primary);
     text-decoration: underline;
+}
+
+.adm-field-value a svg {
+    stroke: var(--primary);
 }
 
 .adm-desc-box {

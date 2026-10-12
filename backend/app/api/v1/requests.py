@@ -25,7 +25,10 @@ from app.models.request import (
     HelpRequestListResponse, StatusUpdateRequest, ApplicantInfo, RequestInfo
 )
 from app.models.audit import AuditLogCreate, AuditAction
-from app.repositories.request_repository import HelpRequestRepository, _IN_MEMORY_REQUESTS
+from app.repositories.request_repository import (
+    HelpRequestRepository, _IN_MEMORY_REQUESTS, _IN_MEMORY_DOCS,
+    _save_persisted_docs, _save_persisted_requests
+)
 from app.repositories.audit_repository import AuditRepository
 from app.services.request_service import RequestService
 from app.services.email_service import EmailService
@@ -308,11 +311,18 @@ async def admin_list_documents(
 ):
     """Admin: list documents for a request."""
     repo = HelpRequestRepository(db)
-    if not await repo.find_by_id(request_id):
+    req = await repo.find_by_id(request_id)
+    if not req:
+        req = await repo.find_by_reference(request_id)
+    if not req:
         raise not_found_error("Help request")
 
+    real_id = str(req.get("id") or req.get("_id"))
+    ref = req.get("reference")
+    ids_to_match = list({str(x) for x in [request_id, real_id, ref] if x})
+
     from app.repositories.base import _to_str_id
-    cursor = db.request_documents.find({"request_id": request_id})
+    cursor = db.request_documents.find({"request_id": {"$in": ids_to_match}})
     docs = [_to_str_id(d) async for d in cursor]
     # Remove storage_id from response (opaque)
     for d in docs:
@@ -328,10 +338,18 @@ async def admin_download_document(
     current_user: dict = Depends(require_permission("requests.view_documents")),
 ):
     """Admin: authorized document download."""
+    repo = HelpRequestRepository(db)
+    req = await repo.find_by_id(request_id)
+    if not req:
+        req = await repo.find_by_reference(request_id)
+    real_id = str(req.get("id") or req.get("_id")) if req else request_id
+    ref = req.get("reference") if req else request_id
+    valid_request_ids = {str(x) for x in [request_id, real_id, ref] if x}
+
     from app.repositories.base import BaseRepository, _to_str_id
     base_repo = BaseRepository(db, "request_documents")
     doc_meta = await base_repo.find_by_id(doc_id)
-    if not doc_meta or doc_meta.get("request_id") != request_id:
+    if not doc_meta or str(doc_meta.get("request_id")) not in valid_request_ids:
         raise not_found_error("Document")
 
     audit = AuditRepository(db)
@@ -341,7 +359,7 @@ async def admin_download_document(
         action=AuditAction.REQUEST_DOCUMENT_ACCESSED,
         resource_type="request_document",
         resource_id=doc_id,
-        metadata={"request_id": request_id},
+        metadata={"request_id": real_id},
     ))
 
     gridfs = get_gridfs()

@@ -30,7 +30,7 @@ export const RequestApi = {
      */
     async uploadDocument(requestId, file) {
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('files', file);
 
         return request(`/api/v1/requests/${encodeURIComponent(requestId)}/documents`, {
             method: 'POST',
@@ -48,36 +48,27 @@ export const RequestApi = {
         if (params.support_type) searchParams.append('support_type', params.support_type);
         if (params.search) searchParams.append('search', params.search);
         if (params.page) searchParams.append('page', String(params.page));
-        if (params.limit) searchParams.append('limit', String(params.limit));
+        if (params.limit) searchParams.append('page_size', String(params.limit));
 
         const query = searchParams.toString();
-        return request(`/api/v1/requests${query ? `?${query}` : ''}`);
+        return request(`/api/v1/requests/admin${query ? `?${query}` : ''}`);
     },
 
     /**
      * Admin: Get request details
      */
     async getRequest(id) {
-        return request(`/api/v1/requests/${encodeURIComponent(id)}`);
+        return request(`/api/v1/requests/admin/${encodeURIComponent(id)}`);
     },
 
     /**
      * Admin: Update request status
      */
     async updateStatus(id, newStatus, reason = '') {
-        return request(`/api/v1/requests/${encodeURIComponent(id)}/status`, {
+        return request(`/api/v1/requests/admin/${encodeURIComponent(id)}/status`, {
             method: 'PATCH',
-            body: { status: newStatus, reason }
+            body: { status: newStatus, admin_note: reason }
         });
     },
 
-    /**
-     * Admin: Add internal note
-     */
-    async addNote(id, note) {
-        return request(`/api/v1/requests/${encodeURIComponent(id)}/notes`, {
-            method: 'POST',
-            body: { note }
-        });
-    }
 };

@@ -74,3 +74,4 @@ media/
 # *.pdf
 # *.jpeg
 # *.png
+supabase/.temp/

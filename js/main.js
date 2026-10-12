@@ -698,11 +698,7 @@ async function submitContact(event) {
     const email = (formData.get('email') || '').trim();
     const message = (formData.get('message') || '').trim();
 
-    const API_BASE = window.__API_BASE_URL__ || (
-        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:8000'
-            : ''
-    );
+    const API_BASE = window.__API_BASE_URL__ || 'https://qlfdbimnswbaiouvmtau.supabase.co/functions/v1/api';
 
     try {
         const response = await fetch(`${API_BASE}/api/v1/contact`, {

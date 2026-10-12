@@ -153,8 +153,33 @@ def _save_persisted_requests(requests: List[dict]) -> None:
         logger.error("Failed to save help_requests.json: %s", e)
 
 
+DOCS_FILE = DATA_DIR / "request_documents.json"
+
+
+def _load_persisted_docs() -> List[dict]:
+    if DOCS_FILE.exists():
+        try:
+            with open(DOCS_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, list):
+                    return data
+        except Exception as e:
+            logger.error("Failed to read request_documents.json: %s", e)
+    return []
+
+
+def _save_persisted_docs(docs: List[dict]) -> None:
+    try:
+        with open(DOCS_FILE, "w", encoding="utf-8") as f:
+            json.dump(docs, f, default=_json_serial, indent=2, ensure_ascii=False)
+    except Exception as e:
+        logger.error("Failed to save request_documents.json: %s", e)
+
+
 # Global in-memory list initialized from persistent file
 _IN_MEMORY_REQUESTS: List[dict] = _load_persisted_requests()
+_IN_MEMORY_DOCS: List[dict] = _load_persisted_docs()
+
 
 
 class HelpRequestRepository(BaseRepository):

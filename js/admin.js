@@ -22,9 +22,7 @@
         }
     };
 
-    const API_BASE = window.__API_BASE_URL__ || (
-        ['localhost', '127.0.0.1'].includes(window.location.hostname) ? 'http://localhost:8000' : ''
-    );
+    const API_BASE = window.__API_BASE_URL__ || 'https://qlfdbimnswbaiouvmtau.supabase.co/functions/v1/api';
 
     // Fetch wrapper that always attaches the admin JWT token as Authorization header
     function apiFetch(url, options) {
@@ -277,10 +275,7 @@
         },
 
         filterByCampaign: function (category) {
-            searchQuery = category;
-            const input = document.getElementById('reqSearchInput');
-            if (input) input.value = category;
-            App.navigate('requests');
+            window.location.href = 'admin-requests.html?search=' + encodeURIComponent(category);
         },
 
         loadRequests: async function () {
@@ -481,10 +476,11 @@
             App.loadRequests();
         },
 
-        openRequest: async function (id) {
-            currentRequestId = id;
-            App.navigate('request-detail');
+        openRequest: function (id) {
+            window.location.href = 'admin-request-detail.html?id=' + encodeURIComponent(id);
+        },
 
+        loadRequestDetail: async function (id) {
             const container = document.getElementById('requestDetailContent');
             if (!container) return;
             container.innerHTML = '<div class="adm-empty">' + ICONS.clock + '<h3>Loading request details...</h3></div>';

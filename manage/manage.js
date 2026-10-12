@@ -7,11 +7,7 @@
 (function () {
     'use strict';
 
-    const API_BASE = window.__API_BASE_URL__ || (
-        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:8000'
-            : ''
-    );
+    const API_BASE = window.__API_BASE_URL__ || 'https://qlfdbimnswbaiouvmtau.supabase.co/functions/v1/api';
 
     const FALLBACK_ROLES = [
         { id: 'role_super', name: 'super_admin', description: 'WEBSITTER Super Administrator with full unrestricted access', permissions: ['*'] },
@@ -110,33 +106,9 @@
                     throw new Error(msg);
                 }
             } catch (err) {
-                // Seamless fallback to local database verification
-                if (window.SwanDB && window.SwanDB.getUserByEmail) {
-                    const fallbackUser = window.SwanDB.getUserByEmail(email);
-                    if (fallbackUser && fallbackUser.password_hash === password) {
-                        currentUser = fallbackUser;
-                        if (window.SwanAuth) window.SwanAuth.createSession(fallbackUser.id, true, fallbackUser);
-                        this.unlockConsole();
-                        return;
-                    }
-                }
-
-                // If user entered valid default super admin credentials
-                if (email === 'websitter@swanturbinesfoundation.com' && password === 'WebsitterSuperAdmin2026!') {
-                    currentUser = {
-                        id: 'usr_websitter_super',
-                        full_name: 'WEBSITTER Super Admin',
-                        email: 'websitter@swanturbinesfoundation.com',
-                        role: 'super_admin',
-                        role_ids: ['super_admin'],
-                        permissions: ['*']
-                    };
-                    if (window.SwanAuth) window.SwanAuth.createSession(currentUser.id, true, currentUser);
-                    this.unlockConsole();
-                    return;
-                }
-
-                errBox.textContent = err.message || 'Invalid super-admin credentials.';
+                // Privileged browser-local fallback is intentionally disabled.
+                // Supabase/temporary server-side authentication is authoritative.
+                errBox.textContent = err.message || 'Unable to verify super-admin credentials.';
                 errBox.style.display = 'block';
             } finally {
                 submitBtn.disabled = false;

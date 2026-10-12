@@ -3,12 +3,8 @@
  * Centralized HTTP request handling with error normalization and credentials support.
  */
 
-// Configurable API base URL, defaults to localhost:8000 for development or relative path
-const API_BASE_URL = window.__API_BASE_URL__ || (
-    window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:8000'
-        : ''
-);
+// Override this at deployment time if a proxy/custom API domain is introduced.
+const API_BASE_URL = window.__API_BASE_URL__ || 'https://qlfdbimnswbaiouvmtau.supabase.co/functions/v1/api';
 
 class ApiError extends Error {
     constructor(message, status, code, details = null) {
@@ -29,6 +25,8 @@ async function request(endpoint, options = {}) {
     const headers = {
         ...(options.headers || {})
     };
+    const token = window.localStorage.getItem('swan_admin_token');
+    if (token && !headers.Authorization) headers.Authorization = `Bearer ${token}`;
 
     // If body is an object and not FormData, stringify it and set JSON header
     let body = options.body;
