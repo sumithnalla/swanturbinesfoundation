@@ -625,6 +625,7 @@
 
                     let reference = '';
                     let requestId = '';
+                    let documentUploadToken = '';
 
                     try {
                         const response = await fetch(`${API_BASE}/api/v1/requests`, {
@@ -641,6 +642,7 @@
                         const data = await response.json();
                         reference = data.reference;
                         requestId = data.id || data.request_id;
+                        documentUploadToken = data.document_upload_token || '';
 
                         // Mirror to SwanDB as offline backup using the exact reference and id
                         if (window.SwanDB && window.SwanDB.createHelpRequest) {
@@ -668,6 +670,7 @@
                                 selectedFiles.forEach(file => formData.append('files', file));
                                 await fetch(`${API_BASE}/api/v1/requests/${requestId}/documents`, {
                                     method: 'POST',
+                                    headers: documentUploadToken ? { 'X-Request-Upload-Token': documentUploadToken } : {},
                                     body: formData
                                 });
                             } catch (uploadErr) {

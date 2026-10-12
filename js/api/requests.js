@@ -28,13 +28,14 @@ export const RequestApi = {
      * @param {string} requestId
      * @param {File} file
      */
-    async uploadDocument(requestId, file) {
+    async uploadDocument(requestId, file, uploadToken = '') {
         const formData = new FormData();
         formData.append('files', file);
 
         return request(`/api/v1/requests/${encodeURIComponent(requestId)}/documents`, {
             method: 'POST',
-            body: formData
+            body: formData,
+            headers: uploadToken ? { 'X-Request-Upload-Token': uploadToken } : {}
         });
     },
 

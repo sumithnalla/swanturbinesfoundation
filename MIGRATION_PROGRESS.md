@@ -1,8 +1,34 @@
 # Migration Progress — Swan Turbines Foundation
 
+## Phase 5 implementation update (2026-10-12)
+
+- Private Google Drive folders `Swan Turbines Foundation` -> `Charity Requests` were created/reused after Drive-scoped OAuth; the dedicated service account was granted Writer access to the private root.
+- Applied migration `20261012100000_phase_5_drive_document_security.sql`, adding only a hashed, expiring applicant upload capability.
+- Implemented and deployed API version 8: secure token issuance, PDF/Word/Excel/image validation, Drive upload, metadata-only document rows, protected listing, and Drive streaming downloads. Public Drive permissions are not used.
+- Schema checks passed: `supabase db lint --linked` reported no errors; all four migrations match remote; `/health` returned `ok`; unauthenticated admin access returned `403`.
+- Production blocker: organization policy `constraints/iam.managed.disableServiceAccountKeyCreation` rejected creation of the service-account key. The malformed temporary secret was removed immediately; no key exists locally or in Supabase.
+- Full upload/download and disposable-document cleanup testing is blocked. Do not use local gcloud OAuth in the deployed function, commit a key, or begin Phase 6.
+
+Required next action: obtain an approved production authentication path (organization-approved service-account key exception or Workload Identity Federation/token broker), then set the credential in Supabase secrets and rerun end-to-end upload/download tests.
+
 ## Current phase
 
-Phase 4 — Frontend Integration and Local Testing: **implemented; ready for approval with deployment prerequisites** (2026-10-10, Asia/Kolkata). Phases 1–3 are complete and approved.
+Phase 5 — Google Drive Integration: **blocked on Google Drive OAuth authorization** (2026-10-12, Asia/Kolkata). Phases 1–4 are complete and approved.
+
+## Phase 5 status
+
+- Verified Google Cloud project `swan-turbines-foundation-2026` and enabled `drive.googleapis.com`.
+- Created dedicated service account `swan-foundation-drive@swan-turbines-foundation-2026.iam.gserviceaccount.com`; it has private root-folder Writer access and no broader project role. Key creation is blocked by organization policy.
+- Verified Supabase has `RESEND_API_KEY`, `RESEND_FROM`, and `ADMIN_NOTIFICATION_EMAIL` configured by name/digest only.
+- Drive-scoped OAuth successfully created/reused the private Foundation folders and shared the root with the dedicated service account. Local CLI OAuth remains non-production and is not used by the Edge Function.
+
+## Required user action to unblock production document storage
+
+Obtain an approved production authentication path compatible with Supabase Edge Functions (organization-approved service-account key exception or Workload Identity Federation/token broker). Do not use local gcloud OAuth in production, commit a key, or send a key in chat.
+
+## Exact next step
+
+After Drive access is confirmed, create a service-account key directly into Supabase secrets, create/share the private request-folder root, add the Drive metadata/upload/download implementation, deploy it, and test with disposable documents. Do not begin Phase 6.
 
 ## Phase 4 implemented
 
