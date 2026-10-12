@@ -11,6 +11,18 @@
 
 Required next action: obtain an approved production authentication path (organization-approved service-account key exception or Workload Identity Federation/token broker), then set the credential in Supabase secrets and rerun end-to-end upload/download tests.
 
+## Authentication investigation (2026-10-12)
+
+- Google Workload Identity Federation is supported for external workloads, but it requires a credential source that can continuously provide an OIDC/SAML/AWS/Azure/etc. subject token. Supabase Edge Functions do not expose a Google workload identity, metadata server, or built-in WIF credential supplier for the running function. A static WIF configuration file alone is not an authentication credential.
+- Therefore, direct Supabase Edge Function -> Google Drive WIF is **not verified as a supported deployment path** for this project. Trusting an end-user Supabase JWT as the WIF subject would incorrectly bind Drive access to user identity and is not an acceptable server identity design.
+- Recommended keyless design: deploy a small Google Cloud Run Drive broker with the dedicated service account as its attached service identity. Cloud Run obtains short-lived access tokens from its metadata server; the broker performs Drive operations and exposes only narrowly scoped upload/download endpoints. The Supabase Edge Function calls the broker using a separately rotated service-to-service authentication mechanism (for example, an authenticated Cloud Run invocation plus a short-lived signed request or an approved gateway), and stores only the broker URL/configuration in Supabase secrets. No downloadable service-account key is required.
+- Alternative: a dedicated Google Workspace OAuth client with an offline refresh token can work from an Edge Function, but it is a long-lived user credential, requires Workspace admin/user consent, and is less desirable than the Cloud Run service identity. It must not be implemented without explicit security approval.
+- Google documentation confirms WIF exchanges external credentials for short-lived tokens and may impersonate a service account; Supabase documentation confirms Edge Functions can read secrets but does not provide a Google identity: https://cloud.google.com/iam/docs/workload-identity-federation and https://supabase.com/docs/guides/functions/secrets.
+
+### Exact manual action required
+
+Choose and approve the Cloud Run broker design (recommended), then provision: Cloud Run service, attached dedicated service account, Drive API access, private-folder permission, ingress/auth policy, and a rotated broker authentication secret. Provide the broker URL and authentication contract. Do not create a service-account key, upload a key to Supabase, or begin Phase 6 until the broker is deployed and a real upload/download plus cleanup test passes.
+
 ## Current phase
 
 Phase 5 — Google Drive Integration: **blocked on Google Drive OAuth authorization** (2026-10-12, Asia/Kolkata). Phases 1–4 are complete and approved.
