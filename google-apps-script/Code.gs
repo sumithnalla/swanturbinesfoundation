@@ -72,14 +72,23 @@ function doPost(event) {
     }
     if (operation === 'delete') {
       const file = fileInRequestFolder_(request.reference, request.file_id);
+      const folder = requestFolder_(request.reference);
       file.setTrashed(true);
-      return json_({ deleted: true, id: file.getId() });
+      let folderCleaned = false;
+      if (!folder.getFiles().hasNext() && !folder.getFolders().hasNext()) { folder.setTrashed(true); folderCleaned = true; }
+      return json_({ deleted: true, id: file.getId(), folder_cleaned: folderCleaned });
     }
     if (operation === 'cleanup') {
       const folder = requestFolder_(request.reference);
       if (folder.getFiles().hasNext() || folder.getFolders().hasNext()) return json_({ cleaned: false, reason: 'folder_not_empty' });
       folder.setTrashed(true);
       return json_({ cleaned: true, folder_id: folder.getId() });
+    }
+    if (operation === 'check') {
+      const name = safe_(request.reference, 'request');
+      const trashed = DriveApp.getTrashedFolders();
+      while (trashed.hasNext()) { const folder = trashed.next(); if (folder.getName() === name) return json_({ trashed: true, folder_id: folder.getId() }); }
+      return json_({ trashed: false });
     }
     return json_({ error: 'unsupported_operation' });
   } catch (error) {
