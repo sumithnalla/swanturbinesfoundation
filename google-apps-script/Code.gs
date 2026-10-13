@@ -18,7 +18,7 @@ function safe_(value, fallback) {
 function bytesEqual_(a, b) {
   if (a.length !== b.length) return false;
   let result = 0;
-  for (let i = 0; i < a.length; i++) result |= a[i] ^ b[i];
+  for (let i = 0; i < a.length; i++) result |= (a[i] & 255) ^ b[i];
   return result === 0;
 }
 
@@ -74,6 +74,12 @@ function doPost(event) {
       const file = fileInRequestFolder_(request.reference, request.file_id);
       file.setTrashed(true);
       return json_({ deleted: true, id: file.getId() });
+    }
+    if (operation === 'cleanup') {
+      const folder = requestFolder_(request.reference);
+      if (folder.getFiles().hasNext() || folder.getFolders().hasNext()) return json_({ cleaned: false, reason: 'folder_not_empty' });
+      folder.setTrashed(true);
+      return json_({ cleaned: true, folder_id: folder.getId() });
     }
     return json_({ error: 'unsupported_operation' });
   } catch (error) {

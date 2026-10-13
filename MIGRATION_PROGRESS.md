@@ -37,6 +37,7 @@ Manual actions required: reauthenticate the Google account, create a standalone 
 - The local `SHARED_SECRET` digest matches the existing Supabase `SHARED_SECRET` secret. It was copied into the exact Edge Function name `GOOGLE_APPS_SCRIPT_SHARED_SECRET` without exposing its value.
 - `GOOGLE_APPS_SCRIPT_URL` is not present in the linked Supabase secrets, and no Apps Script URL is present in the local environment files. The deployed Edge Function therefore remains feature-gated and cannot call Apps Script yet.
 - No help request, Drive file, metadata row, download, delete, or cleanup test was created. Phase 5 is not approved and Phase 6 remains blocked.
+- Initial disposable lifecycle attempt reached the deployed Edge Function but returned `503 DOCUMENT_STORAGE_UNAVAILABLE`; cleanup removed the temporary Auth user/request in the test harness. The Apps Script verifier had a signed-byte comparison defect in the repository source; it is corrected, but the deployed Web App must be updated before retesting.
 
 Required manual action: set the deployed Apps Script `/exec` URL as the Supabase secret `GOOGLE_APPS_SCRIPT_URL`. Then rerun the disposable end-to-end upload/download/delete/cleanup test.
 
