@@ -32,6 +32,14 @@ Do not replace the broker yet. No repository code, Supabase schema, Drive permis
 
 Manual actions required: reauthenticate the Google account, create a standalone Apps Script project, paste/deploy `google-apps-script/Code.gs` as a Web App executing as the owner, set Script Properties `ROOT_FOLDER_ID` to the existing private `Charity Requests` folder and `SHARED_SECRET` to a newly generated value, then set matching Supabase secrets `GOOGLE_APPS_SCRIPT_URL` and `GOOGLE_APPS_SCRIPT_SHARED_SECRET`. Keep access restricted to the minimum supported setting and do not publish the folder or files. After configuration, run real upload/download/delete tests before approving Phase 5 or starting Phase 6.
 
+## Apps Script configuration verification (2026-10-13)
+
+- The local `SHARED_SECRET` digest matches the existing Supabase `SHARED_SECRET` secret. It was copied into the exact Edge Function name `GOOGLE_APPS_SCRIPT_SHARED_SECRET` without exposing its value.
+- `GOOGLE_APPS_SCRIPT_URL` is not present in the linked Supabase secrets, and no Apps Script URL is present in the local environment files. The deployed Edge Function therefore remains feature-gated and cannot call Apps Script yet.
+- No help request, Drive file, metadata row, download, delete, or cleanup test was created. Phase 5 is not approved and Phase 6 remains blocked.
+
+Required manual action: set the deployed Apps Script `/exec` URL as the Supabase secret `GOOGLE_APPS_SCRIPT_URL`. Then rerun the disposable end-to-end upload/download/delete/cleanup test.
+
 ## Cloud Run broker attempt (2026-10-12)
 
 - Added `google-drive-broker/`, a least-privilege Node service intended for Cloud Run. It uses the attached dedicated service account through Application Default Credentials, restricts operations to upload/download, enforces HMAC request authentication with a five-minute replay window, sanitizes names, and caps payloads at 10 MiB. No service-account key is used.
