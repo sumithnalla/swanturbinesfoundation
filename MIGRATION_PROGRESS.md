@@ -11,6 +11,18 @@
 
 Required next action: obtain an approved production authentication path (organization-approved service-account key exception or Workload Identity Federation/token broker), then set the credential in Supabase secrets and rerun end-to-end upload/download tests.
 
+## Apps Script Web App evaluation (2026-10-13)
+
+- Google Apps Script can run a `doPost(e)` web app as the deploying owner and use `DriveApp` to create files in a private folder. Google documents the execution choices (`USER_DEPLOYING` versus `USER_ACCESSING`) and anonymous access mode (`ANYONE_ANONYMOUS`): https://developers.google.com/apps-script/guides/web and https://developers.google.com/apps-script/manifest/web-app-api-executable.
+- This is technically simpler, but it is not credential-free. An anonymous deployment requires a bearer-like URL plus an application token/signature; that token must still be protected in Supabase secrets. If deployed as `USER_DEPLOYING`, the script runs with the owner's Drive authority, which is broader than the dedicated service-account folder permission. It must never accept arbitrary folder IDs or return public Drive permissions.
+- Apps Script `DriveApp` supports folder creation and blob uploads, but its request/response model is not a drop-in replacement for this API: binary files would need a JSON/base64 envelope, downloads would need a separate base64 response or authenticated Drive URL, and web-app CORS/redirect behavior must be tested. Apps Script quotas and execution limits also apply. https://developers.google.com/apps-script/reference/drive/drive-app
+- The common five-minute implementation pattern (anonymous `doPost`, hard-coded folder ID, no request authentication, and a returned `webViewLink`) would violate this project's requirements. It has not been installed, deployed, or tested.
+- Simpler and safer for this application is Supabase Storage with a private bucket and signed URLs, optionally followed by a trusted asynchronous export to Drive. That avoids Google authentication and Cloud Run billing, but it changes the requirement from “Drive is the primary store.” It requires explicit approval before changing the storage target.
+
+### Decision
+
+Do not replace the broker yet. No repository code, Supabase schema, Drive permissions, or deployed service was deleted or weakened. Apps Script may be reconsidered only as a separately authenticated owner-run broker after an explicit security decision and a real upload/download/cleanup test. Phase 6 remains blocked.
+
 ## Cloud Run broker attempt (2026-10-12)
 
 - Added `google-drive-broker/`, a least-privilege Node service intended for Cloud Run. It uses the attached dedicated service account through Application Default Credentials, restricts operations to upload/download, enforces HMAC request authentication with a five-minute replay window, sanitizes names, and caps payloads at 10 MiB. No service-account key is used.
