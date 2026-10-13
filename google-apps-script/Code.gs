@@ -88,4 +88,8 @@ function doPost(event) {
   }
 }
 
-function doGet() { return json_({ status: 'ok' }); }
+function doGet() {
+  let folderAccessible = false;
+  try { folderAccessible = !!DriveApp.getFolderById(prop_('ROOT_FOLDER_ID')).getId(); } catch (error) { console.error(error); }
+  return json_({ status: 'ok', configured: !!PropertiesService.getScriptProperties().getProperty('SHARED_SECRET'), folder_accessible: folderAccessible });
+}
