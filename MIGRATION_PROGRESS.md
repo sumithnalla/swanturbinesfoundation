@@ -23,6 +23,15 @@ Required next action: obtain an approved production authentication path (organiz
 
 Do not replace the broker yet. No repository code, Supabase schema, Drive permissions, or deployed service was deleted or weakened. Apps Script may be reconsidered only as a separately authenticated owner-run broker after an explicit security decision and a real upload/download/cleanup test. Phase 6 remains blocked.
 
+## Apps Script implementation (2026-10-13)
+
+- Added `google-apps-script/Code.gs` and `appsscript.json`. The script is fixed to the configured private root folder, creates request subfolders, accepts only signed timestamped requests, validates a 10 MiB limit, supports upload/download/delete, and verifies that requested files belong to the request folder. It never creates public Drive permissions.
+- Updated and deployed the Supabase API (feature-gated): when `GOOGLE_APPS_SCRIPT_URL` and `GOOGLE_APPS_SCRIPT_SHARED_SECRET` are absent, the existing safe unavailable behavior remains. When both are configured, uploads/downloads use the Apps Script broker and Supabase continues storing document metadata.
+- Automatic Apps Script project/deployment was not possible in this environment: `clasp` is unavailable, `npx @google/clasp` is not cached, and the authenticated gcloud session requires interactive reauthentication before enabling/using the Apps Script API.
+- No Apps Script project, deployment URL, script properties, shared secret, Drive file, or test request was created. Real end-to-end testing is still pending.
+
+Manual actions required: reauthenticate the Google account, create a standalone Apps Script project, paste/deploy `google-apps-script/Code.gs` as a Web App executing as the owner, set Script Properties `ROOT_FOLDER_ID` to the existing private `Charity Requests` folder and `SHARED_SECRET` to a newly generated value, then set matching Supabase secrets `GOOGLE_APPS_SCRIPT_URL` and `GOOGLE_APPS_SCRIPT_SHARED_SECRET`. Keep access restricted to the minimum supported setting and do not publish the folder or files. After configuration, run real upload/download/delete tests before approving Phase 5 or starting Phase 6.
+
 ## Cloud Run broker attempt (2026-10-12)
 
 - Added `google-drive-broker/`, a least-privilege Node service intended for Cloud Run. It uses the attached dedicated service account through Application Default Credentials, restricts operations to upload/download, enforces HMAC request authentication with a five-minute replay window, sanitizes names, and caps payloads at 10 MiB. No service-account key is used.
