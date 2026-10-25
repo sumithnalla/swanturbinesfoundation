@@ -126,7 +126,7 @@ try {
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(origin+'/admin-login');await page.locator('#email').fill(staff.email);await page.locator('#password').fill(staff.password);await page.locator('button[type=submit]').click();await page.waitForURL('**/admin', {timeout:60000});
   await page.goto(origin+'/admin-contacts');await page.getByRole('link',{name:'View message'}).first().waitFor();
-  await page.goto(origin+'/admin-contact-detail?id='+contacts[0]);await page.getByText('Disposable Contact QA',{exact:true}).waitFor();
+  await page.goto(origin+'/admin-contact-detail?id='+contacts[0]);await page.getByRole('heading',{name:'Disposable Contact QA'}).waitFor();
   await page.goto(origin+'/admin-requests');await page.getByRole('columnheader',{name:'Submitted Time (IST)'}).waitFor();await page.getByText(request.reference,{exact:true}).waitFor();
   await page.goto(origin+'/admin-request-detail?id='+request.id);await page.getByText('Last status change',{exact:true}).waitFor();await page.getByRole('button',{name:'Download',exact:true}).first().waitFor();
   const downloaded=page.waitForEvent('download');await page.getByRole('button',{name:'Download',exact:true}).first().click();const download=await downloaded;assert.equal(await download.failure(),null);
