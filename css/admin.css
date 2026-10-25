@@ -1351,3 +1351,48 @@ input, select, textarea {
         left: 0;
     }
 }
+
+.contact-applicant-card { padding: 18px; }
+.contact-applicant-card .adm-card-title { margin-bottom: 12px; }
+.contact-applicant-recipient { margin: 0 0 14px; color: var(--text-primary); font-weight: 700; overflow-wrap: anywhere; }
+.contact-applicant-recipient span { color: var(--text-secondary); font-size: 13px; font-weight: 500; }
+.contact-applicant-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.contact-applicant-actions > * { flex: 1 1 130px; justify-content: center; text-decoration: none; }
+.adm-email-dialog { width: min(620px, calc(100vw - 28px)); max-height: min(90vh, 820px); padding: 0; border: 0; border-radius: 16px; color: var(--text-primary); box-shadow: 0 24px 80px #071a3155; }
+.adm-email-dialog::backdrop { background: #071a3180; backdrop-filter: blur(3px); }
+.adm-email-form { display: flex; flex-direction: column; gap: 16px; padding: 24px; }
+.adm-email-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border-light); }
+.adm-email-heading h2 { margin: 0 0 5px; font-size: 20px; }
+.adm-email-heading p { margin: 0; color: var(--text-secondary); font-size: 13px; }
+.adm-email-close { border: 0; background: transparent; color: var(--text-secondary); font-size: 28px; line-height: 1; cursor: pointer; }
+.adm-email-form label { display: flex; flex-direction: column; gap: 7px; color: var(--text-primary); font-size: 13px; font-weight: 700; }
+.adm-email-form input:not([type=file]), .adm-email-form textarea { width: 100%; box-sizing: border-box; border: 1px solid var(--border); border-radius: 8px; padding: 11px 12px; color: var(--text-primary); background: var(--surface); font: inherit; font-weight: 400; }
+.adm-email-form textarea { resize: vertical; line-height: 1.5; }
+.adm-email-form input[type=file] { font: inherit; font-size: 13px; }
+.adm-email-hint { color: var(--text-muted); font-size: 12px; font-weight: 400; }
+.adm-email-footer { display: flex; justify-content: flex-end; align-items: center; gap: 10px; flex-wrap: wrap; }
+.adm-email-feedback { margin-right: auto; color: var(--danger); font-size: 13px; }
+.adm-email-footer button { justify-content: center; }
+@media (max-width: 600px) { .adm-email-form { padding: 18px; } .adm-email-footer button { flex: 1; } }
+
+.contact-list-tools { width: min(330px, 100%); }
+.contact-search-label { display: block; margin: 0 0 6px; color: var(--text-secondary); font-size: 12px; font-weight: 700; }
+.contact-search { box-sizing: border-box; }
+.contact-data-table { min-width: 850px; }
+.contact-data-table td { vertical-align: top; }
+.contact-data-table td:nth-child(2), .contact-date-cell { white-space: nowrap; }
+.contact-message-preview { display: block; max-width: 360px; max-height: 3.3em; overflow: hidden; white-space: pre-line; overflow-wrap: anywhere; line-height: 1.5; color: var(--text-secondary); }
+.contact-view-button { text-decoration: none; white-space: nowrap; }
+.contact-table-footer { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 14px 20px; border-top: 1px solid var(--border-light); color: var(--text-secondary); font-size: 13px; }
+.contact-table-footer nav { display: flex; gap: 8px; }
+.contact-table-footer a { text-decoration: none; }
+.contact-detail-name { margin: 2px 0 0; color: var(--text-primary); font-size: 20px; }
+.contact-detail-grid { grid-template-columns: minmax(0,1.8fr) minmax(260px,.8fr); }
+.contact-message-body { min-height: 130px; }
+.contact-action-card { display: flex; flex-direction: column; gap: 12px; }
+.contact-action-card .adm-card-title { margin-bottom: 0; }
+.contact-action-card p { margin: 0; color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
+.contact-action-card > a { justify-content: center; text-decoration: none; }
+.contact-submission-meta { display: grid; gap: 7px; margin-top: 6px; padding-top: 14px; border-top: 1px solid var(--border-light); color: var(--text-secondary); font-size: 12px; }
+.contact-submission-meta code { overflow-wrap: anywhere; color: var(--text-primary); }
+@media(max-width: 700px) { .contact-table-footer { align-items: flex-start; flex-direction: column; } .contact-detail-grid { grid-template-columns: 1fr; } }

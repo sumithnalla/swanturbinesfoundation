@@ -47,10 +47,13 @@ async function audit(profile: any, action: string, resourceType?: string, resour
 }
 const COMPANY_ADMIN_SENDER = "aruna@swanturbinesfoundation.com";
 
-async function email(to: string, subject: string, html: string) {
+async function email(to: string, subject: string, html: string, attachments: Array<{ filename: string; content: string }> = [], text?: string) {
   const key = Deno.env.get("RESEND_API_KEY"), from = COMPANY_ADMIN_SENDER;
   if (!key || !from) return false;
-  const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ from, to: [to], subject, html }) });
+  const payload: Record<string, unknown> = { from, to: [to], subject, html };
+  if (text) payload.text = text;
+  if (attachments.length) payload.attachments = attachments;
+  const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify(payload) });
   return r.ok;
 }
 function campaignOut(c: any) { return c; }
@@ -83,7 +86,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors(req) });
   try {
     const u = new URL(req.url), path = basePath(u), method = req.method;
-    const handled = await productionForms(req,path,{db,json,fail,permitted,audit,hex,tokenValue,support,urgency,email,requestOut});
+    const handled = await productionForms(req,path,{db,json,fail,permitted,audit,hex,tokenValue,support,urgency,email,requestOut,fileSignatureIsValid,base64Std});
     if(handled) return handled;
     if (path === "/health" || path === "/api/health") return json(req, { status:"ok", version:"3.0.0", environment:Deno.env.get("DENO_DEPLOYMENT_ID") ? "production" : "development", database:"ok" });
     if(Deno.env.get("GOOGLE_APPS_SCRIPT_URL")&&method==="GET"){const m=path.match(/^\/api\/v1\/requests\/admin\/([^/]+)\/documents\/check-folder$/);if(m){const p=await permitted(req,"documents.manage");if(!p)return fail(req,403,"FORBIDDEN","Insufficient permission.");const {data:request}=await db.from("help_requests").select("id,reference").eq(requestLookup(m[1]),m[1]).maybeSingle();if(!request)return fail(req,404,"NOT_FOUND","Help request not found.");try{return json(req,await appsScriptCall("check",{reference:request.reference}));}catch(_){return fail(req,503,"DOCUMENT_STORAGE_UNAVAILABLE","Folder cleanup verification is temporarily unavailable.");}}}

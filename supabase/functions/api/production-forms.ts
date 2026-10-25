@@ -5,7 +5,7 @@ export const bounded = (v: unknown, min: number, max: number) => typeof v === 's
 export const requestLookup = (value: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value) ? 'id' : 'reference';
 
 export async function productionForms(req: Request, path: string, c: any): Promise<Response | null> {
-  const { db, json, fail, permitted, audit, hex, tokenValue, support, urgency, email, requestOut } = c;
+  const { db, json, fail, permitted, audit, hex, tokenValue, support, urgency, email, requestOut, fileSignatureIsValid, base64Std } = c;
   const method = req.method;
   if (path === '/api/v1/contact' && method === 'POST') {
     const b = await req.json();
@@ -31,6 +31,40 @@ export async function productionForms(req: Request, path: string, c: any): Promi
     const {data,count,error}=await db.from('contact_submissions').select(fields,{count:'exact'}).order('created_at',{ascending:false}).order('id').range((page-1)*50,page*50-1);
     if(error) throw error;
     return json(req,{messages:data,total:count,page,page_size:50});
+  }
+  const contactApplicant=path.match(/^\/api\/v1\/requests\/admin\/([^/]+)\/contact-applicant$/);
+  if(contactApplicant && method==='POST') {
+    const actor=await permitted(req,'requests.manage');
+    if(!actor) return fail(req,403,'FORBIDDEN','Insufficient permission.');
+    if(!req.headers.get('content-type')?.toLowerCase().startsWith('multipart/form-data')) return fail(req,415,'UNSUPPORTED_MEDIA_TYPE','Send the message as multipart form data.');
+    const {data:request,error:lookupError}=await db.from('help_requests').select('id,reference,applicant_full_name,applicant_email,applicant_mobile').eq(requestLookup(contactApplicant[1]),contactApplicant[1]).maybeSingle();
+    if(lookupError) throw lookupError;
+    if(!request) return fail(req,404,'NOT_FOUND','Request not found.');
+    if(!validEmail(request.applicant_email)) return fail(req,422,'APPLICANT_EMAIL_MISSING','This applicant has no valid email address on file.');
+    let form:FormData;
+    try { form=await req.formData(); } catch (_) { return fail(req,400,'INVALID_MULTIPART','The email form could not be read.'); }
+    const subject=form.get('subject'),message=form.get('message');
+    if(typeof subject!=='string'||typeof message!=='string'||!bounded(subject,1,180)||/[\r\n]/.test(subject)||!bounded(message,1,5000)) return fail(req,422,'VALIDATION_ERROR','Provide a subject (up to 180 characters) and message (up to 5,000 characters).');
+    const files=form.getAll('attachments').filter((x):x is File=>x instanceof File&&x.size>0);
+    if(files.length>3) return fail(req,422,'ATTACHMENT_LIMIT','Attach at most three files.');
+    let total=0;
+    const attachments=[];
+    for(const file of files) {
+      total+=file.size;
+      if(file.size>10*1024*1024||total>20*1024*1024) return fail(req,422,'ATTACHMENT_SIZE','Each attachment must be at most 10 MB and all attachments together at most 20 MB.');
+      if(!['application/pdf','image/jpeg','image/png','image/webp'].includes(file.type)) return fail(req,422,'ATTACHMENT_TYPE','Only PDF, JPEG, PNG, and WEBP attachments are accepted.');
+      const bytes=new Uint8Array(await file.arrayBuffer());
+      if(!fileSignatureIsValid(file,bytes)) return fail(req,422,'ATTACHMENT_CONTENT','An attachment does not match its declared file type.');
+      const filename=file.name.replace(/[\\/:*?"<>|\u0000-\u001f]/g,'_').slice(0,180)||'attachment';
+      attachments.push({filename,content:base64Std(bytes)});
+    }
+    const escapeHtml=(value:string)=>value.replace(/[&<>"']/g,(ch)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]!));
+    const cleanMessage=message.trim();
+    const html=cleanMessage.split(/\r?\n/).map((line)=>`<p>${escapeHtml(line)||'&nbsp;'}</p>`).join('');
+    const sent=await email(request.applicant_email,subject.trim(),html,attachments,cleanMessage);
+    await audit(actor,sent?'request.applicant_email_sent':'request.applicant_email_failed','help_request',request.id,sent?'success':'failure',{attachment_count:attachments.length});
+    if(!sent) return fail(req,503,'EMAIL_UNAVAILABLE','Email could not be sent. Check the mail service configuration and try again.');
+    return json(req,{sent:true,message:'Email sent to the applicant.'},202);
   }
   if(path === '/api/v1/requests' && method === 'POST') {
     const b=await req.json(),a=b.applicant||{},r=b.request||{};

@@ -304,6 +304,13 @@
                 // ── RIGHT COLUMN: ADJUDICATION & METADATA ────────────────────
                 + '<div class="adm-detail-sidebar-col">'
 
+                + '<section class="adm-card contact-applicant-card"><h3 class="adm-card-title">' + ICONS.user + ' Contact Applicant</h3>'
+                + '<p class="contact-applicant-recipient">' + esc(name) + '<br><span>' + esc(email || 'No email address on file') + '</span></p>'
+                + '<div class="contact-applicant-actions">'
+                + (phone ? '<a class="btn-secondary" href="tel:' + esc(phone) + '">' + ICONS.phone + ' Call Now</a>' : '<button class="btn-secondary" type="button" disabled>No phone on file</button>')
+                + (email ? '<button class="btn-primary" type="button" id="openApplicantEmail">' + ICONS.mail + ' Send Email</button>' : '')
+                + '</div></section>'
+
                 // Decision Card
                 + '<div class="adm-decision-card">'
                 + '<h3>' + ICONS.check + ' Case Adjudication</h3>'
@@ -357,6 +364,42 @@
 
                 + '</div>'
                 + '</div>';
+
+            if (email) {
+                const compose = document.createElement('dialog');
+                compose.className = 'adm-email-dialog';
+                compose.setAttribute('aria-labelledby', 'applicantEmailTitle');
+                compose.innerHTML = '<form id="applicantEmailForm" class="adm-email-form" enctype="multipart/form-data">'
+                    + '<div class="adm-email-heading"><div><h2 id="applicantEmailTitle">Email applicant</h2><p>Sent securely through the Foundation email service.</p></div><button type="button" class="adm-email-close" aria-label="Close email composer">×</button></div>'
+                    + '<label>To<input type="email" value="' + esc(email) + '" readonly></label>'
+                    + '<label>Subject<input name="subject" maxlength="180" required value="' + esc('Update on your support request ' + refId) + '"></label>'
+                    + '<label>Message<textarea name="message" rows="8" maxlength="5000" required>' + esc('Dear ' + name + ',\n\nWe are contacting you about your support request ' + refId + '.\n\nRegards,\nSwan Turbines Foundation') + '</textarea></label>'
+                    + '<label>Attachments <span class="adm-email-hint">PDF, JPEG, PNG or WEBP · up to 3 files, 10 MB each</span><input name="attachments" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"></label>'
+                    + '<div class="adm-email-footer"><span class="adm-email-feedback" role="status" aria-live="polite"></span><button type="button" class="btn-secondary adm-email-cancel">Cancel</button><button type="submit" class="btn-primary" id="sendApplicantEmail">Send Email</button></div>'
+                    + '</form>';
+                container.appendChild(compose);
+                const form=compose.querySelector('#applicantEmailForm');
+                const close=()=>compose.close();
+                compose.querySelector('.adm-email-close').addEventListener('click',close);
+                compose.querySelector('.adm-email-cancel').addEventListener('click',close);
+                compose.addEventListener('click',(ev)=>{if(ev.target===compose)close();});
+                document.getElementById('openApplicantEmail').addEventListener('click',()=>compose.showModal());
+                form.addEventListener('submit',async(ev)=>{
+                    ev.preventDefault();
+                    const sendButton=compose.querySelector('#sendApplicantEmail');
+                    const feedback=compose.querySelector('.adm-email-feedback');
+                    const files=Array.from(form.elements.attachments.files||[]);
+                    if(files.length>3||files.some(file=>file.size>10*1024*1024)||files.reduce((sum,file)=>sum+file.size,0)>20*1024*1024){feedback.textContent='Use up to 3 files, 10 MB each and 20 MB total.';return;}
+                    sendButton.disabled=true;sendButton.textContent='Sending…';feedback.textContent='';
+                    try{
+                        const response=await apiFetch(API_BASE+'/api/v1/requests/admin/'+encodeURIComponent(targetId)+'/contact-applicant',{method:'POST',body:new FormData(form)});
+                        const result=await response.json().catch(()=>({}));
+                        if(!response.ok)throw new Error(result.error?.message||'The email could not be sent.');
+                        toast('Email sent to the applicant.','success');compose.close();
+                    }catch(error){feedback.textContent=error.message||'The email could not be sent.';}
+                    finally{sendButton.disabled=false;sendButton.textContent='Send Email';}
+                });
+            }
 
             // Now load the documents list asynchronously
             await RequestDetail.loadDocuments(targetId, refId);

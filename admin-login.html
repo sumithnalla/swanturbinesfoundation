@@ -3,61 +3,53 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
   <title>Company Admin Login | Swan Turbines Foundation</title>
   <style>
-    body{margin:0;min-height:100vh;display:grid;place-items:center;background:#071a31;font-family:Arial,sans-serif;color:#102a43}
-    .card{width:min(420px,calc(100% - 32px));background:#fff;border-radius:18px;padding:32px;box-shadow:0 20px 60px #0005}
-    h1{margin:0 0 8px;font-size:26px}p{color:#60758b}.field{margin:18px 0}
-    .field label{display:block;font-weight:700;margin-bottom:7px}
-    .field input{box-sizing:border-box;width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:8px;font-size:16px}
-    .btn{width:100%;padding:14px;border:0;border-radius:8px;background:#0b4775;color:white;font-weight:700;font-size:16px;cursor:pointer}
-    .error{display:none;padding:10px;background:#fee2e2;color:#991b1b;border-radius:8px;margin:12px 0}
+    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#102b48;background:#edf3f8;font-synthesis:none}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 15% 10%,#dcebf5 0,transparent 35%),linear-gradient(135deg,#eef4f8,#e5edf4)}
+    .login-layout{width:min(960px,100%);min-height:570px;display:grid;grid-template-columns:1fr 1fr;background:#fff;border:1px solid #dce5ee;border-radius:24px;overflow:hidden;box-shadow:0 24px 70px #1435501c}
+    .brand-panel{padding:48px;background:linear-gradient(150deg,#082744,#0c4772);color:#fff;display:flex;flex-direction:column;justify-content:space-between}
+    .brand{display:flex;align-items:center;gap:14px}.brand img{width:54px;height:54px;object-fit:contain;background:#fff;border-radius:50%;padding:3px}.brand strong{display:block;font-size:17px}.brand span{display:block;color:#b8d4e8;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;margin-top:4px}
+    .brand-copy h1{font-size:34px;line-height:1.12;letter-spacing:-1px;margin:0 0 16px}.brand-copy p{max-width:360px;color:#c9dcec;line-height:1.7;margin:0}.brand-foot{color:#a9c4d9;font-size:12px}
+    .form-panel{padding:56px 58px;display:flex;flex-direction:column;justify-content:center}.form-panel h2{font-size:26px;letter-spacing:-.5px;margin:0 0 8px}.intro{margin:0 0 30px;color:#647b91;line-height:1.5}.field{margin:20px 0}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:8px}.field input{width:100%;height:48px;border:1px solid #cbd8e4;border-radius:9px;background:#f9fbfd;padding:0 13px;color:#122d48;font:inherit;outline:none}.field input:focus{border-color:#1470a9;box-shadow:0 0 0 3px #1470a91b;background:#fff}.password-wrap{position:relative}.password-wrap input{padding-right:52px}.toggle{position:absolute;right:6px;top:6px;width:38px;height:36px;border:0;border-radius:7px;background:transparent;color:#60788d;display:grid;place-items:center;cursor:pointer}.toggle:hover{background:#eaf1f6;color:#0b4775}.toggle svg{width:19px;height:19px}.btn{width:100%;height:49px;margin-top:8px;border:0;border-radius:9px;background:#0b4775;color:#fff;font:inherit;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:background .15s}.btn:hover:not(:disabled){background:#08375c}.btn:disabled{opacity:.78;cursor:wait}.spinner{display:none;width:17px;height:17px;border:2px solid #ffffff77;border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}.btn.busy .spinner{display:block}@keyframes spin{to{transform:rotate(360deg)}}.error{display:none;padding:11px 13px;background:#fff0f0;color:#a62c2c;border:1px solid #f0cbcb;border-radius:8px;margin:0 0 15px;font-size:13px}.security-note{margin-top:23px;color:#73879a;font-size:12px;text-align:center}
+    @media(max-width:720px){body{padding:14px}.login-layout{grid-template-columns:1fr;min-height:auto}.brand-panel{padding:25px;gap:30px}.brand-copy h1{font-size:26px}.brand-foot{display:none}.form-panel{padding:34px 26px}.form-panel h2{font-size:23px}}
   </style>
 </head>
 <body>
-  <main class="card">
-    <h1>Company Admin sign in</h1>
-    <p>Authorized Swan Turbines Foundation staff only.</p>
-    <div id="error" class="error" role="alert"></div>
-    <form id="login">
-      <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="username" required></div>
-      <div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required></div>
-      <button class="btn" type="submit">Sign in to Company Admin</button>
-    </form>
+  <main class="login-layout">
+    <section class="brand-panel" aria-label="Swan Turbines Foundation">
+      <div class="brand"><img src="logo.png" alt=""><div><strong>Swan Turbines Foundation</strong><span>Foundation Admin Portal</span></div></div>
+      <div class="brand-copy"><h1>Support that reaches people when it matters.</h1><p>Authorized staff can securely review help requests, coordinate applicant support, and manage foundation programs.</p></div>
+      <div class="brand-foot">Confidential access for authorized foundation staff.</div>
+    </section>
+    <section class="form-panel">
+      <h2>Welcome back</h2><p class="intro">Sign in with your foundation administrator account.</p>
+      <div id="error" class="error" role="alert"></div>
+      <form id="login">
+        <div class="field"><label for="email">Email address</label><input id="email" type="email" autocomplete="username" required></div>
+        <div class="field"><label for="password">Password</label><div class="password-wrap"><input id="password" type="password" autocomplete="current-password" required><button class="toggle" type="button" id="togglePassword" aria-label="Show password" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+        <button class="btn" id="signIn" type="submit"><span class="spinner" aria-hidden="true"></span><span class="btn-label">Sign in to Company Admin</span></button>
+      </form>
+      <p class="security-note">Your sign-in is protected by Swan Turbines Foundation access controls.</p>
+    </section>
   </main>
-  <script src="js/db.js"></script>
-  <script src="js/auth.js"></script>
+  <script src="js/db.js"></script><script src="js/auth.js"></script>
   <script>
     (() => {
-      const api = 'https://qlfdbimnswbaiouvmtau.supabase.co/functions/v1/api';
-      const form = document.getElementById('login');
-      const errorBox = document.getElementById('error');
-      form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        errorBox.style.display = 'none';
-        try {
-          const response = await fetch(`${api}/api/v1/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({
-              email: document.getElementById('email').value.trim().toLowerCase(),
-              password: document.getElementById('password').value
-            })
-          });
-          const result = await response.json();
-          if (!response.ok) throw new Error(result.error?.message || 'Sign in failed.');
-          if (!result.user?.role_names?.includes('foundation_admin')) throw new Error('This account does not have Company Admin access.');
-          if (!result.access_token || !result.user.id || !window.SwanAuth) throw new Error('Sign-in completed, but the admin session could not be initialized. Please try again.');
-          const user = { ...result.user, role: 'admin' };
-          localStorage.setItem('swan_admin_token', result.access_token);
-          if (result.refresh_token) localStorage.setItem('swan_admin_refresh_token', result.refresh_token);
-          window.SwanAuth.createSession(user.id, true, user);
-          window.location.assign('/admin.html');
-        } catch (error) {
-          errorBox.textContent = error.message || 'Unable to reach the sign-in service.';
-          errorBox.style.display = 'block';
-        }
+      const api='https://qlfdbimnswbaiouvmtau.supabase.co/functions/v1/api',form=document.getElementById('login'),errorBox=document.getElementById('error'),button=document.getElementById('signIn'),label=button.querySelector('.btn-label'),password=document.getElementById('password');
+      let busy=false;
+      document.getElementById('togglePassword').addEventListener('click',event=>{const shown=password.type==='text';password.type=shown?'password':'text';event.currentTarget.setAttribute('aria-pressed',String(!shown));event.currentTarget.setAttribute('aria-label',shown?'Show password':'Hide password');});
+      form.addEventListener('submit',async event=>{
+        event.preventDefault();if(busy)return;busy=true;errorBox.style.display='none';button.disabled=true;button.classList.add('busy');label.textContent='Signing in, please wait...';
+        try{
+          const response=await fetch(`${api}/api/v1/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({email:document.getElementById('email').value.trim().toLowerCase(),password:password.value})});
+          const result=await response.json();if(!response.ok)throw new Error(result.error?.message||'Sign in failed.');
+          if(!result.user?.role_names?.includes('foundation_admin'))throw new Error('This account does not have Company Admin access.');
+          if(!result.access_token||!result.user.id||!window.SwanAuth)throw new Error('Sign-in completed, but the admin session could not be initialized. Please try again.');
+          const user={...result.user,role:'admin'};localStorage.setItem('swan_admin_token',result.access_token);if(result.refresh_token)localStorage.setItem('swan_admin_refresh_token',result.refresh_token);window.SwanAuth.createSession(user.id,true,user);window.location.assign('/admin.html');
+        }catch(error){errorBox.textContent=error.message||'Unable to reach the sign-in service.';errorBox.style.display='block';}
+        finally{busy=false;button.disabled=false;button.classList.remove('busy');label.textContent='Sign in to Company Admin';}
       });
     })();
   </script>

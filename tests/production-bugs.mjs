@@ -65,6 +65,12 @@ try {
   for(const c of created)if(c.data?.id&&!requests.some(r=>r.id===c.data.id))requests.push(c.data);
   for(const c of created)assert.ok([200,201].includes(c.status),'request create or idempotent retry: HTTP '+c.status+' '+(c.data?.error?.code||''));
   assert.equal(created[0].data.id,created[1].data.id);const request=created[0].data;
+  const contactRoute='/requests/admin/'+request.id+'/contact-applicant';
+  assert.equal((await call(contactRoute,{method:'POST',body:{}})).status,403,'email route requires staff authentication');
+  assert.equal((await call(contactRoute,{method:'POST',token:staff.token,body:{}})).status,415,'email route requires multipart content');
+  const badMail=new FormData();badMail.set('subject','Invalid attachment QA');badMail.set('message','This must be rejected before delivery.');badMail.append('attachments',new Blob(['not an allowed document'],{type:'text/plain'}),'payload.txt');
+  const rejectedMail=await fetch(api+contactRoute,{method:'POST',headers:{Origin:origin,Authorization:'Bearer '+staff.token},body:badMail});assert.equal(rejectedMail.status,422,'email attachment type rejected before Resend');
+  pass('applicant email API requires staff authorization and rejects unsupported attachment types');
   const capability=await rest('/rest/v1/help_requests?id=eq.'+request.id+'&select=document_upload_token_hash,document_upload_token_expires_at');
   assert.equal(capability.status,200);assert.equal(capability.data.length,1);
   assert.equal(capability.data[0].document_upload_token_hash===createHash('sha256').update(request.document_upload_token).digest('hex'),true,'returned upload capability matches stored hash');
@@ -103,9 +109,14 @@ try {
   const patch=await call('/requests/admin/'+request.id+'/status',{method:'PATCH',token:staff.token,body:{status:'under_review',admin_note:'Disposable verification note',changed_by:reviewer.id}});assert.equal(patch.status,200);
   const detail=await call('/requests/admin/'+request.reference,{token:staff.token});assert.equal(detail.status,200);assert.equal(detail.data.last_status_change.changed_by,staff.id);assert.equal(detail.data.last_status_change.from_status,'pending');assert.equal(detail.data.last_status_change.to_status,'under_review');assert.ok(detail.data.last_status_change.changed_by_name);assert.ok(Date.parse(detail.data.last_status_change.created_at));
   assert.equal((await call('/requests/admin/'+request.id+'/status',{method:'PATCH',token:staff.token,body:{status:'under_review',admin_note:''}})).status,200);
-  const notes=await call('/requests/admin/'+request.id,{token:staff.token});assert.equal(notes.data.admin_note,'');assert.equal(notes.data.status_history.length,1);
-  const audit=await rest('/rest/v1/audit_logs?resource_id=eq.'+request.id+'&action=eq.request.status_changed');assert.equal(audit.data.length,1);assert.equal(audit.data[0].actor_id,staff.id);
-  pass('atomic status/history/audit, server-verified actor, note-only edit and timestamp');
+  for(const next of ['accepted','rejected','pending','under_review']) {
+    const changed=await call('/requests/admin/'+request.id+'/status',{method:'PATCH',token:staff.token,body:{status:next,admin_note:'Revised status verification'}});
+    assert.equal(changed.status,200,'repeat status transition to '+next+': '+JSON.stringify(changed.data));
+    assert.equal(changed.data.status,next);
+  }
+  const notes=await call('/requests/admin/'+request.id,{token:staff.token});assert.equal(notes.data.admin_note,'Revised status verification');assert.equal(notes.data.status_history.length,5);
+  const audit=await rest('/rest/v1/audit_logs?resource_id=eq.'+request.id+'&action=eq.request.status_changed');assert.equal(audit.data.length,5);assert.ok(audit.data.every(x=>x.actor_id===staff.id));
+  pass('repeat transitions including accepted→rejected, atomic history/audit, server-verified actor, note edit and timestamp');
   const denied=await rest('/rest/v1/contact_submissions',{method:'POST',key:anon,token:anon,body:{full_name:'Bypass',mobile:'9876543210',email:'qa@example.com',message:'Direct REST must be denied.'}});assert.ok(denied.status>=400);
   assert.deepEqual((await rest('/rest/v1/contact_submissions?select=id',{key:anon,token:anon})).data,[]);
   const directRpc=await rest('/rest/v1/rpc/adjudicate_request',{method:'POST',key:anon,token:staff.token,body:{p_request:request.id,p_actor:staff.id,p_status:'accepted',p_note:null}});assert.ok(directRpc.status>=400);
