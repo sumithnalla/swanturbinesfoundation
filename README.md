@@ -37,7 +37,19 @@ Staff accounts are in Supabase Auth. Company Admin requires the `foundation_admi
 4. Staff status changes and internal notes go through the authorized API. If the API fails, the browser must show an error, not claim the update succeeded or that zero documents exist.
 5. Document deletion and empty-folder cleanup are server-side operations. Verify Drive and Supabase separately when investigating storage bugs.
 
-Current code includes token refresh and retry for staff API calls. An older browser session created before that change needs one sign-out/sign-in. The 2026-10-15 production document-viewing incident involved `403` request and document calls; the code change and deployment were checked, but the affected staff account's browser download has **not** been independently reconfirmed here. Treat any new report as an active bug until a real authenticated read succeeds.
+Current code includes token refresh and retry for staff API calls. On 2026-10-25, a disposable production staff account successfully opened a request, downloaded its private document, changed its status and note, and saw its own status audit entry. This verifies the current production browser flow; it does not retroactively establish that every earlier account or browser session is healthy.
+
+## Production fixes verified on 2026-10-25
+
+The fixes in `bugs.md/bugs-1.md` are deployed to the stable Pages domain above. Foundation Admin has a paged contact inbox at `/admin-contacts` and a separate message detail route at `/admin-contact-detail?id=<message-id>`. New contact submissions require a full name, exactly ten mobile digits, a valid email, and a 10-1,000 character message. Help requests enforce the same mobile/email rules, a 10-1,000 character description, and zero to three PDF/JPG/PNG/WEBP files of at most 10 MB each. The API and database validate these values; database policies deny direct public inserts.
+
+Help-request submissions use a browser-held idempotency key so retrying after a network interruption does not make a duplicate request. Uploads use a per-request lock, server-side count/type/signature/size checks, and retry deduplication. An unfinished wizard draft survives Back navigation; after a successful submission, returning to the form clears it. The admin request table shows the stored submission date and time in Asia/Kolkata. Case status updates and their status-history/audit rows are atomic, and the API takes administrator identity from the verified Supabase token. The detail page displays the latest administrator and status-change timestamp.
+
+Migration `20261025090000_production_forms_and_case_audit.sql` is applied to the linked Supabase project. It adds contact full-name/mobile fields, validation triggers, upload idempotency/locking fields, a three-document database cap, and an atomic adjudication function. Historical contact and request rows were preserved; old contact rows show that mobile was not collected at the time.
+
+Verification completed: Deno type-check and three validation tests; Chromium form tests for validation, counters, file limits, duplicate submission, retry, unfinished-draft retention, and post-success reset; linked Supabase schema lint; and disposable production tests for anonymous/unauthorized access, real contact and zero-document request submissions, concurrent idempotent retry, three actual Drive uploads including an exactly 10 MB PDF, protected byte-for-byte downloads, upload rejection boundaries, status/history/audit identity, and production Admin contact/request pages. The disposable files and folders were verified deleted/trashed, and test messages, requests, audit entries, and staff accounts were cleaned up. The live production browser test reported no JavaScript exceptions.
+
+The detailed reproducible suites are `tests/form-validation.test.ts`, `tests/browser-bugs.mjs`, and the explicitly opt-in `tests/production-bugs.mjs --live`. The production suite creates temporary accounts and records and cleans them up in a `finally` block; do not run it against a project unless disposable production verification is intended.
 
 ## How to investigate the next production bug
 

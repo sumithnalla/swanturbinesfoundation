@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Messages — Swan Turbines Foundation Admin</title>
+    <meta name="description" content="Admin panel for reviewing and managing all help requests.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body data-contact-view="detail">
+<div class="adm-shell">
+    <aside class="adm-sidebar" id="admSidebar">
+        <div class="adm-sidebar-logo">
+            <img src="logo.png" alt="Swan Turbines Foundation">
+            <div class="adm-sidebar-logo-text">
+                <span class="brand-name">Swan Turbines</span>
+                <span class="brand-sub">Foundation Admin</span>
+            </div>
+        </div>
+        <nav class="adm-sidebar-nav">
+            <span class="adm-nav-label">Navigation</span>
+            <a class="adm-nav-item" href="admin.html">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+                <span class="nav-text">Campaigns</span>
+            </a>
+            <a class="adm-nav-item" href="admin-requests.html">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+                <span class="nav-text">Help Requests</span>
+                <span class="adm-nav-badge" id="sidebarRequestsBadge">0</span>
+            </a>
+            <a class="adm-nav-item active" href="admin-contacts.html"><span class="nav-text">Contact Messages</span></a>
+            <span class="adm-nav-label">Settings</span>
+            <a class="adm-nav-item" href="admin-profile.html">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span class="nav-text">Admin Profile</span>
+            </a>
+            <a class="adm-nav-item" href="index.html" target="_blank">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                <span class="nav-text">View Website</span>
+            </a>
+        </nav>
+        <div class="adm-sidebar-footer">
+            <div class="adm-sidebar-user" onclick="window.location.href='admin-profile.html'">
+                <div class="adm-user-avatar" id="sidebarUserInitial">A</div>
+                <div class="adm-user-info">
+                    <div class="user-name" id="sidebarUserName">Administrator</div>
+                    <div class="user-role">System Administrator</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+    <div class="adm-main">
+        <header class="adm-topbar">
+            <div class="adm-topbar-title"><span>Contact Messages</span></div>
+            <div class="adm-topbar-actions"><button class="btn-secondary" onclick="SwanAuth.logout()">Logout</button></div></header>
+        <main class="adm-content"><h1>Contact Messages</h1><section id="contactMessagesContent" aria-live="polite"><p>Loading messages…</p></section></main>
+    </div>
+</div>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/admin-contacts.js"></script>
+</body>
+</html>

@@ -228,6 +228,7 @@
             }
         }
     </style>
+<style>.submission-spinner{display:inline-block;width:16px;height:16px;border:2px solid #cbd5e1;border-top-color:#047857;border-radius:50%;animation:submission-spin .8s linear infinite;margin-right:8px}@keyframes submission-spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.submission-spinner{animation:none}}#submissionProgress{font-size:14px;color:#0a3663;padding:12px}#submissionProgress[hidden]{display:none}</style>
 </head>
 <body class="help-request-page">
     <div class="loader" id="loader"><div class="loader-logo"><img src="logo.png" alt="Swan Turbines Foundation" width="48" height="48">Swan Turbines Foundation</div></div>
@@ -285,13 +286,13 @@
                 <div class="step-section active" id="stepSection1">
                     <div class="help-form-grid">
                         <label>Full name *
-                            <input name="full_name" id="field_full_name" autocomplete="name" maxlength="120" required placeholder="e.g. Ramesh Kumar">
+                            <input name="full_name" id="field_full_name" autocomplete="name" minlength="2" maxlength="120" required placeholder="e.g. Ramesh Kumar">
                         </label>
                         <label>Mobile number *
-                            <input name="phone" id="field_phone" type="tel" autocomplete="tel" maxlength="20" required placeholder="e.g. +91 98765 43210">
+                            <input name="phone" id="field_phone" type="tel" autocomplete="tel" minlength="10" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" required placeholder="9876543210">
                         </label>
-                        <label class="help-form-full">Email address (optional)
-                            <input name="email" id="field_email" type="email" autocomplete="email" maxlength="254" placeholder="name@example.com">
+                        <label class="help-form-full">Email address *
+                            <input name="email" id="field_email" type="email" required autocomplete="email" maxlength="254" placeholder="name@example.com">
                         </label>
                         <label class="help-form-full">Address / Street *
                             <input name="address" id="field_address" autocomplete="street-address" maxlength="300" required placeholder="Door number, street, or landmark">
@@ -337,7 +338,8 @@
                             </select>
                         </label>
                         <label class="help-form-full">Describe your situation & what happened *
-                            <textarea name="description" id="field_description" rows="5" maxlength="2500" required placeholder="Provide context about what happened, who is affected, and how this support will help your family."></textarea>
+                            <textarea name="description" id="field_description" rows="5" minlength="10" maxlength="1000" required placeholder="Provide context about what happened, who is affected, and how this support will help your family."></textarea>
+                            <small id="descriptionCount" aria-live="polite">0 / 1,000 characters</small>
                         </label>
                     </div>
                     <div class="wizard-actions">
@@ -359,7 +361,7 @@
                             <line x1="12" y1="3" x2="12" y2="15"></line>
                         </svg>
                         <div style="font-weight:700;color:#0a3663;font-size:14px;">Click to browse or drag & drop documents</div>
-                        <div style="font-size:12px;color:#94a3b8;margin-top:4px;">PDF, PNG, JPG, WEBP (Max 10MB each)</div>
+                        <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Up to 3 optional documents: PDF, PNG, JPG, WEBP (max 10 MB each)</div>
                         <input type="file" id="fileInput" multiple accept=".pdf,.png,.jpg,.jpeg,.webp" style="display:none;" onchange="HelpWizard.handleFileSelect(event)">
                     </div>
 
@@ -378,6 +380,7 @@
                     </div>
                 </div>
 
+                <div id="submissionProgress" hidden role="status" aria-live="polite"><span class="submission-spinner" aria-hidden="true"></span> Please wait while we securely save your application and documents. Do not close this page.</div>
             </form>
 
             <!-- ================= DEDICATED SUCCESS VIEW ================= -->
@@ -418,304 +421,6 @@
 
     <script src="js/db.js"></script>
     <script src="js/main.js"></script>
-    <script>
-        (function () {
-            const API_BASE = window.__API_BASE_URL__ || (
-                window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                    ? 'http://localhost:8000'
-                    : 'https://qlfdbimnswbaiouvmtau.supabase.co/functions/v1/api'
-            );
-
-            let wizardCurrentStep = 1;
-            let selectedFiles = [];
-            // Set only after the request record has been created.  This lets a
-            // visitor retry a failed document upload without creating a second
-            // help request.
-            let pendingUpload = null;
-
-            const HelpWizard = {
-                goToStep(step) {
-                    if (step > wizardCurrentStep) {
-                        if (!this.validateStep(wizardCurrentStep)) return;
-                    }
-
-                    wizardCurrentStep = step;
-
-                    // Update Progress Pills
-                    for (let i = 1; i <= 3; i++) {
-                        const pill = document.getElementById(`pillStep${i}`);
-                        if (!pill) continue;
-                        pill.classList.remove('active', 'completed');
-                        if (i < wizardCurrentStep) pill.classList.add('completed');
-                        else if (i === wizardCurrentStep) pill.classList.add('active');
-                    }
-
-                    // Show target section
-                    document.querySelectorAll('.step-section').forEach(sec => sec.classList.remove('active'));
-                    const targetSec = document.getElementById(`stepSection${step}`);
-                    if (targetSec) targetSec.classList.add('active');
-
-                    // Clear any error messages
-                    const msg = document.getElementById('helpFormMessage');
-                    if (msg) {
-                        msg.className = 'help-form-message';
-                        msg.textContent = '';
-                    }
-
-                    const card = document.querySelector('.help-request-card');
-                    if (card) {
-                        window.scrollTo({ top: card.offsetTop - 100, behavior: 'smooth' });
-                    }
-                },
-
-                validateStep(step) {
-                    const msg = document.getElementById('helpFormMessage');
-                    if (msg) {
-                        msg.className = 'help-form-message';
-                        msg.textContent = '';
-                    }
-
-                    if (step === 1) {
-                        const name = (document.getElementById('field_full_name')?.value || '').trim();
-                        const phone = (document.getElementById('field_phone')?.value || '').trim();
-                        const addr = (document.getElementById('field_address')?.value || '').trim();
-                        const city = (document.getElementById('field_city')?.value || '').trim();
-                        const state = (document.getElementById('field_state')?.value || '').trim();
-
-                        if (!name || name.length < 2) {
-                            this.showError('Please enter your full name (minimum 2 characters).');
-                            return false;
-                        }
-                        if (!phone || phone.length < 10) {
-                            this.showError('Please enter a valid mobile number (minimum 10 digits).');
-                            return false;
-                        }
-                        if (!addr || addr.length < 3) {
-                            this.showError('Please enter your street address or location.');
-                            return false;
-                        }
-                        if (!city) {
-                            this.showError('Please enter your city/town.');
-                            return false;
-                        }
-                        if (!state) {
-                            this.showError('Please enter your state.');
-                            return false;
-                        }
-                    } else if (step === 2) {
-                        const type = document.getElementById('field_help_type')?.value;
-                        const amount = (document.getElementById('field_amount')?.value || '').trim();
-                        const desc = (document.getElementById('field_description')?.value || '').trim();
-
-                        if (!type) {
-                            this.showError('Please select the type of support needed.');
-                            return false;
-                        }
-                        if (!amount) {
-                            this.showError('Please enter the estimated assistance amount needed.');
-                            return false;
-                        }
-                        if (!desc || desc.length < 10) {
-                            this.showError('Please describe your situation in more detail (minimum 10 characters).');
-                            return false;
-                        }
-                    }
-                    return true;
-                },
-
-                showError(text) {
-                    const msg = document.getElementById('helpFormMessage');
-                    if (msg) {
-                        msg.className = 'help-form-message error';
-                        msg.textContent = text;
-                    }
-                },
-
-                handleFileSelect(event) {
-                    const files = Array.from(event.target.files || []);
-                    files.forEach(file => {
-                        if (file.size > 10 * 1024 * 1024) {
-                            alert(`File ${file.name} exceeds 10MB limit.`);
-                            return;
-                        }
-                        selectedFiles.push(file);
-                    });
-                    this.renderFileList();
-                },
-
-                removeFile(index) {
-                    selectedFiles.splice(index, 1);
-                    this.renderFileList();
-                },
-
-                renderFileList() {
-                    const list = document.getElementById('selectedFilesList');
-                    if (!list) return;
-                    if (!selectedFiles.length) {
-                        list.innerHTML = '';
-                        return;
-                    }
-                    list.innerHTML = selectedFiles.map((file, idx) => `
-                        <div class="file-item">
-                            <span><strong>📄 ${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)</span>
-                            <button type="button" class="file-remove" onclick="HelpWizard.removeFile(${idx})">✕</button>
-                        </div>
-                    `).join('');
-                },
-
-                copyReference() {
-                    const ref = document.getElementById('successRefNumber')?.textContent || '';
-                    navigator.clipboard.writeText(ref).then(() => {
-                        alert('Reference code copied to clipboard!');
-                    }).catch(() => {
-                        alert('Reference code: ' + ref);
-                    });
-                },
-
-                resetForm() {
-                    const form = document.getElementById('helpRequestForm');
-                    if (form) form.reset();
-                    selectedFiles = [];
-                    this.renderFileList();
-                    document.getElementById('helpSuccessCard')?.classList.remove('active');
-                    if (form) form.style.display = 'grid';
-                    const prog = document.getElementById('stepProgressBar');
-                    if (prog) prog.style.display = 'flex';
-                    const sub = document.getElementById('helpFormSubtitle');
-                    if (sub) sub.style.display = 'block';
-                    this.goToStep(1);
-                }
-            };
-
-            // Expose globally so onclick handlers work
-            window.HelpWizard = HelpWizard;
-
-            // Form Submission
-            const helpForm = document.getElementById('helpRequestForm');
-            if (helpForm) {
-                helpForm.addEventListener('submit', async function (event) {
-                    event.preventDefault();
-                    const consentChecked = document.getElementById('field_consent')?.checked;
-                    if (!consentChecked) {
-                        HelpWizard.showError('Please confirm your consent by checking the declaration box.');
-                        return;
-                    }
-
-                    const submitBtn = document.getElementById('submitHelpBtn');
-                    const originalText = submitBtn ? submitBtn.textContent : 'Send Request';
-                    if (submitBtn) {
-                        submitBtn.disabled = true;
-                        submitBtn.textContent = 'Submitting Application...';
-                    }
-
-                    const payload = {
-                        applicant: {
-                            full_name: (document.getElementById('field_full_name')?.value || '').trim(),
-                            mobile: (document.getElementById('field_phone')?.value || '').trim(),
-                            email: (document.getElementById('field_email')?.value || '').trim() || null,
-                            address: (document.getElementById('field_address')?.value || '').trim(),
-                            city: (document.getElementById('field_city')?.value || '').trim(),
-                            state: (document.getElementById('field_state')?.value || '').trim()
-                        },
-                        request: {
-                            support_type: document.getElementById('field_help_type')?.value || 'other',
-                            description: (document.getElementById('field_description')?.value || '').trim(),
-                            beneficiaries: parseInt(document.getElementById('field_beneficiaries')?.value, 10) || 1,
-                            amount_required: (document.getElementById('field_amount')?.value || '').trim(),
-                            urgency: document.getElementById('field_urgency')?.value || 'medium'
-                        },
-                        consent: true
-                    };
-
-                    let reference = '';
-                    let requestId = '';
-                    let documentUploadToken = '';
-
-                    try {
-                        if (pendingUpload) {
-                            reference = pendingUpload.reference;
-                            requestId = pendingUpload.requestId;
-                            documentUploadToken = pendingUpload.documentUploadToken;
-                        } else {
-                        const response = await fetch(`${API_BASE}/api/v1/requests`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-
-                        if (!response.ok) {
-                            const errData = await response.json().catch(() => ({}));
-                            throw new Error((errData.error && errData.error.message) || 'Submission failed');
-                        }
-
-                        const data = await response.json();
-                        reference = data.reference;
-                        requestId = data.id || data.request_id;
-                        documentUploadToken = data.document_upload_token || '';
-                        if (!reference || !requestId) {
-                            throw new Error('The server did not confirm a tracking reference. Your request was not completed.');
-                        }
-
-                        // Mirror to SwanDB as offline backup using the exact reference and id
-                        if (window.SwanDB && window.SwanDB.createHelpRequest) {
-                            try {
-                                const localData = {
-                                    id: reference,
-                                    full_name: payload.applicant.full_name,
-                                    phone: payload.applicant.mobile,
-                                    email: payload.applicant.email,
-                                    address: `${payload.applicant.address}, ${payload.applicant.city}, ${payload.applicant.state}`,
-                                    help_type: payload.request.support_type,
-                                    description: payload.request.description,
-                                    estimated_amount: payload.request.amount_required,
-                                    urgency: payload.request.urgency,
-                                    consent: true
-                                };
-                                window.SwanDB.createHelpRequest(localData);
-                            } catch (_) {}
-                        }
-
-                        }
-                        // Never show a successful application when selected documents
-                        // did not reach secure storage. HTTP errors must be checked
-                        // explicitly: fetch() only rejects for network failures.
-                        if (selectedFiles.length) {
-                            const formData = new FormData();
-                            selectedFiles.forEach(file => formData.append('files', file));
-                            const uploadResponse = await fetch(`${API_BASE}/api/v1/requests/${encodeURIComponent(requestId)}/documents`, {
-                                method: 'POST',
-                                headers: documentUploadToken ? { 'X-Request-Upload-Token': documentUploadToken } : {},
-                                body: formData
-                            });
-                            if (!uploadResponse.ok) {
-                                const uploadError = await uploadResponse.json().catch(() => ({}));
-                                const detail = uploadError?.error?.message || uploadResponse.statusText || 'The document storage service did not accept the upload.';
-                                const code = uploadError?.error?.code || `HTTP_${uploadResponse.status}`;
-                                pendingUpload = { reference, requestId, documentUploadToken };
-                                throw new Error(`Your application was created as ${reference}, but ${selectedFiles.length} document(s) were not uploaded. Reason: ${detail} (code: ${code}, HTTP ${uploadResponse.status}). Please retry the upload; do not submit a new application.`);
-                            }
-                            const uploadData = await uploadResponse.json().catch(() => ({}));
-                            if (!Array.isArray(uploadData.uploaded) || uploadData.uploaded.length !== selectedFiles.length) {
-                                pendingUpload = { reference, requestId, documentUploadToken };
-                                throw new Error(`Your application was created as ${reference}, but the server only confirmed ${uploadData.uploaded?.length || 0} of ${selectedFiles.length} document(s). Please retry the upload; do not submit a new application.`);
-                            }
-                        }
-                        pendingUpload = null;
-                    } catch (apiErr) {
-                        HelpWizard.showError(apiErr?.message || 'We could not submit your request. No confirmation was received from the server.');
-                        if (pendingUpload && submitBtn) submitBtn.textContent = 'Retry Document Upload →';
-                        return;
-                    } finally {
-                        if (submitBtn) {
-                            submitBtn.disabled = false;
-                            submitBtn.textContent = pendingUpload ? 'Retry Document Upload →' : originalText;
-                        }
-                    }
-
-                    window.location.assign('requests-thank-you.html?reference=' + encodeURIComponent(reference));
-                });
-            }
-        })();
-    </script>
+    <script src="js/help-request.js"></script>
 </body>
 </html>

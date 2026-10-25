@@ -35,7 +35,7 @@
         try {
             const dt = new Date(d);
             if (isNaN(dt.getTime())) return d;
-            return dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+            return dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
         } catch (_) {
             return d;
         }
@@ -168,53 +168,28 @@
         loadRequests: async function () {
             const tbody = document.getElementById('reqTableBody');
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="7"><div class="adm-empty">' + ICONS.clock + '<h3>Loading requests...</h3><p>Fetching records from backend system.</p></div></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8"><div class="adm-empty">' + ICONS.clock + '<h3>Loading requests...</h3><p>Fetching records from backend system.</p></div></td></tr>';
             }
 
-            let apiRequests = [];
             try {
-                const url = new URL(API_BASE + '/api/v1/requests/admin', window.location.origin);
-                url.searchParams.set('page_size', '50');
-                if (statusFilter !== 'all') url.searchParams.set('status', statusFilter);
-                if (searchQuery.trim()) url.searchParams.set('search', searchQuery.trim());
-
-                const r = await apiFetch(url.toString());
-                if (r.ok) {
-                    const d = await r.json();
-                    apiRequests = d.requests || [];
-                }
-            } catch (_) {}
-
-            let localRequests = [];
-            try {
-                if (window.SwanDB && window.SwanDB.getHelpRequests) {
-                    localRequests = window.SwanDB.getHelpRequests() || [];
-                }
-            } catch (_) {}
-
-            // Merge API and local DB deduplicating by reference / id
-            const seen = new Set();
-            const merged = [];
-
-            apiRequests.forEach(function (r) {
-                const key = r.reference || r._id || r.id;
-                if (key && !seen.has(key)) {
-                    seen.add(key);
-                    if (r.reference) seen.add(r.reference);
-                    if (r.id) seen.add(r.id);
-                    merged.push(r);
-                }
-            });
-
-            localRequests.forEach(function (r) {
-                const key = r.reference || r.id;
-                if (key && !seen.has(key)) {
-                    seen.add(key);
-                    merged.push(r);
-                }
-            });
-
-            cachedRequests = merged;
+                const records = [];
+                let page = 1, total = 0;
+                do {
+                    const url = new URL(API_BASE + '/api/v1/requests/admin');
+                    url.searchParams.set('page_size','500'); url.searchParams.set('page',String(page++));
+                    if (statusFilter !== 'all') url.searchParams.set('status', statusFilter);
+                    const response = await apiFetch(url.toString());
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error?.message || 'Unable to load requests.');
+                    records.push(...data.requests); total = data.total;
+                } while (records.length < total);
+                cachedRequests = records;
+            } catch (error) {
+                cachedRequests = [];
+                if (tbody) tbody.innerHTML = '<tr><td colspan="8">' + esc(error.message) + ' Refresh to retry.</td></tr>';
+                toast('Request list could not be verified. ' + error.message,'error');
+                return;
+            }
             ReqPage.renderTable();
             ReqPage.loadStats();
         },
@@ -280,7 +255,7 @@
             if (cl) cl.textContent = 'Showing ' + list.length + ' request' + (list.length !== 1 ? 's' : '');
 
             if (!list.length) {
-                tbody.innerHTML = '<tr><td colspan="7"><div class="adm-empty">'
+                tbody.innerHTML = '<tr><td colspan="8"><div class="adm-empty">'
                     + ICONS.search
                     + '<h3>No help requests found</h3>'
                     + '<p>Try clearing filters or adjusting your search term.</p>'
@@ -315,6 +290,7 @@
                     + '<td><span class="support-tag">' + esc(typeLabel) + '</span></td>'
                     + '<td><span class="urgency-badge ' + esc(urgency) + '">' + esc(urgency) + '</span></td>'
                     + '<td>' + (created ? fmt(created) : '--') + '</td>'
+                    + '<td>' + (created ? new Date(created).toLocaleTimeString('en-IN', {timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}) : '--') + '</td>'
                     + '<td><span class="status-pill ' + esc(status) + '"><span class="status-dot"></span>' + esc(status.replace('_', ' ')) + '</span></td>'
                     + '<td><button class="btn-secondary" style="height:32px;font-size:12px;padding:0 12px;" onclick="event.stopPropagation();ReqPage.openRequest(\'' + esc(targetId) + '\')">'
                     + 'Review'

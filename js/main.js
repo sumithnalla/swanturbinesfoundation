@@ -688,25 +688,27 @@ async function submitContact(event) {
     const form = event.currentTarget;
     const alertBox = document.getElementById('contactFormAlert');
     const submitBtn = form.querySelector('.submit-btn');
+    if (submitBtn.disabled || !form.reportValidity()) return;
     const originalText = submitBtn.textContent;
     submitBtn.disabled = true;
     submitBtn.textContent = 'Sending message...';
 
     const formData = new FormData(form);
-    const firstName = (formData.get('first_name') || '').trim();
-    const lastName = (formData.get('last_name') || '').trim();
+    const fullName = (formData.get('full_name') || '').trim();
+    const mobile = (formData.get('mobile') || '').trim();
     const email = (formData.get('email') || '').trim();
     const message = (formData.get('message') || '').trim();
 
     const API_BASE = window.__API_BASE_URL__ || 'https://qlfdbimnswbaiouvmtau.supabase.co/functions/v1/api';
 
     try {
+        if (fullName.length < 2 || fullName.length > 120 || !/^[0-9]{10}$/.test(mobile) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || message.length < 10 || message.length > 1000) throw new Error('Check all required fields. Message must contain 10–1,000 characters.');
         const response = await fetch(`${API_BASE}/api/v1/contact`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                first_name: firstName,
-                last_name: lastName,
+                full_name: fullName,
+                mobile: mobile,
                 email: email,
                 phone: '',
                 subject: 'General inquiry from website contact form',
@@ -721,6 +723,8 @@ async function submitContact(event) {
 
         const result = await response.json().catch(() => ({}));
         if (!result.submission_id) throw new Error('The server did not return a submission confirmation. Please try again.');
+        form.reset();
+        document.getElementById('contactMessageCount').textContent = '0 / 1,000 characters';
         window.location.assign('contact-thank-you.html?submission=' + encodeURIComponent(result.submission_id));
     } catch (err) {
         if (alertBox) {

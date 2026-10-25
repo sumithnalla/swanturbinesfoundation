@@ -42,12 +42,13 @@
         try {
             const dt = new Date(d);
             if (isNaN(dt.getTime())) return d;
-            return dt.toLocaleDateString('en-IN', {
+            return dt.toLocaleString('en-IN', {
                 day: '2-digit',
                 month: 'short',
                 year: 'numeric',
                 hour: '2-digit',
-                minute: '2-digit'
+                minute: '2-digit',
+                timeZone: 'Asia/Kolkata'
             });
         } catch (_) {
             return d;
@@ -307,6 +308,11 @@
                 + '<div class="adm-decision-card">'
                 + '<h3>' + ICONS.check + ' Case Adjudication</h3>'
                 + '<p style="font-size:12.5px;color:var(--text-secondary);margin-bottom:16px;">Update the workflow status for this application. Changes are recorded in audit logs.</p>'
+                + '<div class="adm-card" style="padding:12px;margin-bottom:16px;"><strong>Last status change</strong><p>'
+                + (req.last_status_change ? esc(req.last_status_change.changed_by_name || req.last_status_change.changed_by_email || 'Historical administrator unavailable') + ' — ' + esc(fmt(req.last_status_change.created_at)) + ' IST' : 'No status change recorded yet.')
+                + '</p><details><summary>Status history</summary>'
+                + (req.status_history || []).map(function(h) { return '<p>' + esc(h.from_status || 'New') + ' → ' + esc(h.to_status) + '<br>' + esc(h.changed_by_name || h.changed_by_email || 'Historical administrator unavailable') + '<br>' + esc(fmt(h.created_at)) + ' IST</p>'; }).join('')
+                + '</details></div>'
                 + '<div class="adm-status-choices">'
                 + statusOptions.map(function (opt) {
                     const active = isSel(opt.val);
@@ -317,7 +323,7 @@
                 }).join('')
                 + '</div>'
                 + '<div style="margin-bottom:6px;font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.6px;">Internal Case &amp; Verification Notes</div>'
-                + '<textarea class="adm-textarea" id="adminCaseNotes" rows="4" placeholder="Record verification remarks, interview outcomes, or reasons for decision...">' + esc(adminNote) + '</textarea>'
+                + '<textarea class="adm-textarea" id="adminCaseNotes" maxlength="1500" rows="4" placeholder="Record verification remarks, interview outcomes, or reasons for decision...">' + esc(adminNote) + '</textarea>'
                 + '<div style="display:flex;flex-direction:column;gap:10px;margin-top:14px;">'
                 + '<button class="btn-primary" id="saveDecisionBtn" style="width:100%;height:44px;justify-content:center;font-weight:700;" onclick="RequestDetail.saveDecision(\'' + esc(targetId) + '\')">' + ICONS.save + ' Save Case Decision</button>'
                 + '<a href="admin-requests.html" class="btn-secondary" style="width:100%;height:38px;justify-content:center;text-decoration:none;display:flex;align-items:center;">Cancel &amp; Return to List</a>'
@@ -438,12 +444,18 @@
                         + '<div style="font-size:11.5px;color:var(--text-secondary);margin-top:3px;">' + ftype + (fsize ? ' &bull; ' + fsize : '') + '</div>'
                         + '</div></div>'
                         + '<div style="display:flex;align-items:center;gap:8px;">'
-                        + (isImg || isPdf ? '<button class="btn-ghost" style="height:34px;padding:0 12px;font-size:12px;" onclick="RequestDetail.previewDocument(\'' + dlUrl + '\', \'' + fname + '\')">' + ICONS.externalLink + ' Preview</button>' : '')
-                        + '<button class="btn-primary" style="height:34px;padding:0 14px;font-size:12px;font-weight:700;" onclick="RequestDetail.authDownload(\'' + dlUrl + '\', \'' + fname + '\')">' + ICONS.download + ' Download</button>'
+                        + (isImg || isPdf ? '<button class="btn-ghost" style="height:34px;padding:0 12px;font-size:12px;" data-doc-action="preview" data-url="' + esc(dlUrl) + '" data-filename="' + fname + '">' + ICONS.externalLink + ' Preview</button>' : '')
+                        + '<button class="btn-primary" style="height:34px;padding:0 14px;font-size:12px;font-weight:700;" data-doc-action="download" data-url="' + esc(dlUrl) + '" data-filename="' + fname + '">' + ICONS.download + ' Download</button>'
                         + '</div>'
                         + '</div>';
                 }).join('')
                 + '</div>';
+            docsContent.onclick = function(event) {
+                const button = event.target.closest('button[data-doc-action]');
+                if (!button || !docsContent.contains(button)) return;
+                if (button.dataset.docAction === 'preview') RequestDetail.previewDocument(button.dataset.url, button.dataset.filename);
+                else RequestDetail.authDownload(button.dataset.url, button.dataset.filename);
+            };
         },
 
         authDownload: async function (url, filename) {
