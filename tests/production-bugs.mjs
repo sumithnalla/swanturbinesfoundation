@@ -30,7 +30,7 @@ async function staffUser(role) {
   const login=await call('/auth/login',{method:'POST',body:{email,password}});assert.equal(login.status,200,'test staff login');
   return {id:created.data.id,email,password,token:login.data.access_token};
 }
-const requestBody=()=>({submission_key:randomBytes(32).toString('hex'),applicant:{full_name:'Disposable Bugs Verification',mobile:'9876543210',email:'qa@example.com',address:'Disposable test address',city:'Hyderabad',state:'Telangana'},request:{support_type:'medical',description:'Disposable verification request; no aid is needed.',beneficiaries:1,amount_required:'1',urgency:'normal'},consent:true});
+const requestBody=()=>({submission_key:randomBytes(32).toString('hex'),applicant:{full_name:'Disposable Bugs Verification',mobile:'9876543210',email:'delivered@resend.dev',address:'Disposable test address',city:'Hyderabad',state:'Telangana'},request:{support_type:'medical',description:'Disposable verification request; no aid is needed.',beneficiaries:1,amount_required:'1',urgency:'normal'},consent:true});
 function pdf() {
   const objects=['<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids [3 0 R] /Count 1 >>','<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 4 0 R >>','<< /Length 0 >>\nstream\n\nendstream'];
   let text='%PDF-1.4\n';const offsets=[0];
@@ -70,7 +70,9 @@ try {
   assert.equal((await call(contactRoute,{method:'POST',token:staff.token,body:{}})).status,415,'email route requires multipart content');
   const badMail=new FormData();badMail.set('subject','Invalid attachment QA');badMail.set('message','This must be rejected before delivery.');badMail.append('attachments',new Blob(['not an allowed document'],{type:'text/plain'}),'payload.txt');
   const rejectedMail=await fetch(api+contactRoute,{method:'POST',headers:{Origin:origin,Authorization:'Bearer '+staff.token},body:badMail});assert.equal(rejectedMail.status,422,'email attachment type rejected before Resend');
-  pass('applicant email API requires staff authorization and rejects unsupported attachment types');
+  const validMail=new FormData();validMail.set('subject','Disposable applicant email integration test');validMail.set('message','This is a disposable test message sent through the Resend test recipient.');validMail.append('attachments',new Blob([pdf()],{type:'application/pdf'}),'verification.pdf');
+  const sentMail=await fetch(api+contactRoute,{method:'POST',headers:{Origin:origin,Authorization:'Bearer '+staff.token},body:validMail});assert.equal(sentMail.status,202,'Resend test-recipient email with validated PDF attachment');assert.equal((await sentMail.json()).sent,true);
+  pass('applicant email API authorization, attachment validation and real Resend test-recipient send');
   const capability=await rest('/rest/v1/help_requests?id=eq.'+request.id+'&select=document_upload_token_hash,document_upload_token_expires_at');
   assert.equal(capability.status,200);assert.equal(capability.data.length,1);
   assert.equal(capability.data[0].document_upload_token_hash===createHash('sha256').update(request.document_upload_token).digest('hex'),true,'returned upload capability matches stored hash');
