@@ -67,16 +67,7 @@
 
     async function apiFetch(url, opts) {
         opts = opts || {};
-        opts.headers = opts.headers || {};
-        const getToken = (window.SwanAuth && window.SwanAuth.getAdminToken)
-            ? window.SwanAuth.getAdminToken
-            : (window.SwanAuth && window.SwanAuth.getToken ? window.SwanAuth.getToken : null);
-        if (getToken) {
-            const token = getToken();
-            if (token) {
-                opts.headers['Authorization'] = 'Bearer ' + token;
-            }
-        }
+        if (window.SwanAuth && window.SwanAuth.authorizedFetch) return window.SwanAuth.authorizedFetch(url, opts);
         return fetch(url, opts);
     }
 
@@ -183,7 +174,7 @@
             let apiRequests = [];
             try {
                 const url = new URL(API_BASE + '/api/v1/requests/admin', window.location.origin);
-                url.searchParams.set('page_size', '500');
+                url.searchParams.set('page_size', '50');
                 if (statusFilter !== 'all') url.searchParams.set('status', statusFilter);
                 if (searchQuery.trim()) url.searchParams.set('search', searchQuery.trim());
 

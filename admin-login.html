@@ -1,2 +1,65 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=adminlogin/"><title>Administrator sign in</title><script>window.location.replace('adminlogin/');</script></head><body></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Company Admin Login | Swan Turbines Foundation</title>
+  <style>
+    body{margin:0;min-height:100vh;display:grid;place-items:center;background:#071a31;font-family:Arial,sans-serif;color:#102a43}
+    .card{width:min(420px,calc(100% - 32px));background:#fff;border-radius:18px;padding:32px;box-shadow:0 20px 60px #0005}
+    h1{margin:0 0 8px;font-size:26px}p{color:#60758b}.field{margin:18px 0}
+    .field label{display:block;font-weight:700;margin-bottom:7px}
+    .field input{box-sizing:border-box;width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:8px;font-size:16px}
+    .btn{width:100%;padding:14px;border:0;border-radius:8px;background:#0b4775;color:white;font-weight:700;font-size:16px;cursor:pointer}
+    .error{display:none;padding:10px;background:#fee2e2;color:#991b1b;border-radius:8px;margin:12px 0}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Company Admin sign in</h1>
+    <p>Authorized Swan Turbines Foundation staff only.</p>
+    <div id="error" class="error" role="alert"></div>
+    <form id="login">
+      <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="username" required></div>
+      <div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+      <button class="btn" type="submit">Sign in to Company Admin</button>
+    </form>
+  </main>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    (() => {
+      const api = 'https://qlfdbimnswbaiouvmtau.supabase.co/functions/v1/api';
+      const form = document.getElementById('login');
+      const errorBox = document.getElementById('error');
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        errorBox.style.display = 'none';
+        try {
+          const response = await fetch(`${api}/api/v1/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              email: document.getElementById('email').value.trim().toLowerCase(),
+              password: document.getElementById('password').value
+            })
+          });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error?.message || 'Sign in failed.');
+          if (!result.user?.role_names?.includes('foundation_admin')) throw new Error('This account does not have Company Admin access.');
+          if (!result.access_token || !result.user.id || !window.SwanAuth) throw new Error('Sign-in completed, but the admin session could not be initialized. Please try again.');
+          const user = { ...result.user, role: 'admin' };
+          localStorage.setItem('swan_admin_token', result.access_token);
+          if (result.refresh_token) localStorage.setItem('swan_admin_refresh_token', result.refresh_token);
+          window.SwanAuth.createSession(user.id, true, user);
+          window.location.assign('/admin.html');
+        } catch (error) {
+          errorBox.textContent = error.message || 'Unable to reach the sign-in service.';
+          errorBox.style.display = 'block';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Request received | Swan Turbines Foundation</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <style>
+    :root{--ink:#062b52;--blue:#087cc2;--line:#dce7f0;--muted:#506780}*{box-sizing:border-box}body{margin:0;background:#f3f8fc;color:var(--ink);font:16px/1.55 Arial,sans-serif}.nav{height:74px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 max(24px,7vw)}.brand{display:flex;align-items:center;gap:11px;font-weight:800;text-decoration:none;color:var(--ink)}.brand img{width:42px;height:42px}.nav a:not(.brand){color:var(--ink);text-decoration:none;font-weight:700}.wrap{min-height:calc(100vh - 74px);display:grid;place-items:center;padding:42px 20px}.card{width:min(640px,100%);padding:48px;background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 12px 40px #0b41611a;text-align:center}.tick{width:72px;height:72px;display:grid;place-items:center;border-radius:50%;margin:0 auto 18px;background:#e9fbf3;color:#07875d;font-size:40px;font-weight:700}h1{margin:0 0 10px;font-size:30px;line-height:1.18}p{color:var(--muted);margin:0 auto 22px;max-width:520px}.reference{margin:24px auto;padding:17px;border:2px dashed #38a8e9;border-radius:13px;background:#f3fbff;max-width:400px}.reference small{display:block;color:#28628c;text-transform:uppercase;font-weight:700;letter-spacing:.05em}.reference strong{display:block;margin-top:5px;font:700 25px ui-monospace,Consolas,monospace;letter-spacing:.05em;color:#006eaf;word-break:break-word}.actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:25px}.button{display:inline-block;border-radius:9px;padding:11px 17px;background:var(--ink);color:#fff;text-decoration:none;font-weight:700}.button.alt{background:#fff;color:var(--ink);border:1px solid var(--line)}.notice{font-size:13px;color:#627890;margin-top:24px}@media(max-width:520px){.nav{padding:0 18px}.nav a:not(.brand){display:none}.card{padding:34px 22px}}
+  </style>
+</head>
+<body>
+  <header class="nav"><a class="brand" href="index.html"><img src="logo.png" alt="Swan Turbines Foundation">Swan Turbines Foundation</a><a href="request-help.html">Request help</a></header>
+  <main class="wrap"><section class="card" aria-labelledby="title"><div class="tick" aria-hidden="true">✓</div><h1 id="title">Application received</h1><p>Your request and any selected supporting documents were securely recorded. Please save your tracking reference for future follow-up.</p><div class="reference"><small>Your tracking reference</small><strong id="reference">Loading…</strong></div><p>Our team will review your request and contact you if further information is needed.</p><div class="actions"><button class="button" id="copy" type="button">Copy reference</button><a class="button alt" href="index.html">Return home</a></div><p class="notice">If the reference is missing, return to the request form and submit again only after confirming the earlier submission did not complete.</p></section></main>
+  <script>
+    const ref = new URLSearchParams(location.search).get('reference');
+    const refEl = document.getElementById('reference');
+    refEl.textContent = ref || 'Not available';
+    document.getElementById('copy').addEventListener('click', async () => { if (!ref) return; try { await navigator.clipboard.writeText(ref); document.getElementById('copy').textContent = 'Copied'; } catch (_) { window.prompt('Copy your reference:', ref); } });
+  </script>
+</body>
+</html>

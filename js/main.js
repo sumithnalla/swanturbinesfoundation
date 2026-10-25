@@ -719,23 +719,17 @@ async function submitContact(event) {
             throw new Error((errData.error && errData.error.message) || 'Failed to send message');
         }
 
-        if (alertBox) {
-            alertBox.style.display = 'block';
-            alertBox.style.background = '#ecfdf5';
-            alertBox.style.color = '#065f46';
-            alertBox.style.border = '1px solid #a7f3d0';
-            alertBox.textContent = 'Thank you for reaching out to Swan Turbines Foundation. We have received your message and will respond shortly.';
-        } else {
-            alert('Thank you for contacting Swan Turbines Foundation. Your message has been received.');
-        }
-        form.reset();
+        const result = await response.json().catch(() => ({}));
+        if (!result.submission_id) throw new Error('The server did not return a submission confirmation. Please try again.');
+        window.location.assign('contact-thank-you.html?submission=' + encodeURIComponent(result.submission_id));
     } catch (err) {
         if (alertBox) {
             alertBox.style.display = 'block';
             alertBox.style.background = '#fef2f2';
             alertBox.style.color = '#991b1b';
             alertBox.style.border = '1px solid #fecaca';
-            alertBox.textContent = err.message || 'Unable to send message at this time. Please try again.';
+            const diagnostic = err.message || 'Unable to send message at this time. Please try again.';
+            alertBox.textContent = `Message was not confirmed as sent. ${diagnostic}`;
         } else {
             alert(err.message || 'Unable to send message at this time.');
         }

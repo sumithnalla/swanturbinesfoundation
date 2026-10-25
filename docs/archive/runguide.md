@@ -36,14 +36,14 @@ Platform A: Foundation Staff Admin Portal
 Where to open: http://localhost:5500/adminlogin/index.html (redirects to admin.html)
 Credentials:
 Email: admin@swanturbinesfoundation.com
-Password: AdminSwan2026!#Secure
-(Alternative Officer: aruna@swanturbinesfoundation.com / FoundationAdmin2026!)
+Password: [REDACTED; historical local test credential]
+(Alternative Officer: aruna@swanturbinesfoundation.com; historical password redacted)
 What it does: Allows foundation staff to inspect incoming help requests, change request statuses (e.g. from pending to under_review), view uploaded applicant documents, and export CSV reports.
 Platform B: WEBSITTER Super-Admin Management Application
 Where to open: http://localhost:5500/manage/index.html
 Credentials:
 Email: websitter@swanturbinesfoundation.com
-Password: WebsitterSuperAdmin2026!
+Password: [REDACTED; historical local test credential]
 What it does: The dedicated technical management console to:
 Create and manage user accounts (Foundations Admins, Staff, Reviewers).
 Activate or deactivate accounts.

@@ -4,6 +4,7 @@
 
 (function () {
     const SESSION_KEY = 'swan_auth_session_v2';
+    const ADMIN_REFRESH_TOKEN_KEY = 'swan_admin_refresh_token';
     const LOGIN_ATTEMPTS_KEY = 'swan_login_attempts_v1';
     const SESSION_DURATION_MS = 8 * 60 * 60 * 1000;
     const MAX_LOGIN_ATTEMPTS = 5;
@@ -149,6 +150,9 @@
                     if (data.access_token) {
                         try { localStorage.setItem('swan_admin_token', data.access_token); } catch (_) {}
                     }
+                    if (data.refresh_token) {
+                        try { localStorage.setItem(ADMIN_REFRESH_TOKEN_KEY, data.refresh_token); } catch (_) {}
+                    }
                     const user = {
                         id: data.user.id,
                         full_name: data.user.full_name,
@@ -194,9 +198,56 @@
             }
         },
 
-        // Get stored admin JWT token (for Authorization header usage)
-        getAdminToken: function () {
-            try { return localStorage.getItem('swan_admin_token') || null; } catch (_) { return null; }
+        // Renew short-lived Supabase sessions through the server-side API.
+        refreshAdminToken: async function () {
+            let refreshToken;
+            try { refreshToken = localStorage.getItem(ADMIN_REFRESH_TOKEN_KEY); } catch (_) { return null; }
+            if (!refreshToken) return null;
+            try {
+                const response = await fetch(`${API_BASE}/api/v1/auth/refresh`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                    body: JSON.stringify({ refresh_token: refreshToken })
+                });
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok || !result.access_token || !result.refresh_token) {
+                    localStorage.removeItem('swan_admin_token');
+                    localStorage.removeItem(ADMIN_REFRESH_TOKEN_KEY);
+                    return null;
+                }
+                localStorage.setItem('swan_admin_token', result.access_token);
+                localStorage.setItem(ADMIN_REFRESH_TOKEN_KEY, result.refresh_token);
+                return result.access_token;
+            } catch (_) { return null; }
+        },
+
+        // Refresh proactively before the JWT expires, then retry an expired request once.
+        getAdminToken: async function () {
+            try {
+                const token = localStorage.getItem('swan_admin_token');
+                if (!token) return null;
+                const payload = token.split('.')[1];
+                const claims = payload ? JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/'))) : {};
+                if (!claims.exp || claims.exp * 1000 < Date.now() + 60000) return Auth.refreshAdminToken();
+                return token;
+            } catch (_) { return Auth.refreshAdminToken(); }
+        },
+
+        authorizedFetch: async function (url, options) {
+            const opts = options || {};
+            const headers = new Headers(opts.headers || {});
+            let token = await Auth.getAdminToken();
+            if (token) headers.set('Authorization', 'Bearer ' + token);
+            const send = () => fetch(url, { ...opts, headers });
+            let response = await send();
+            if ((response.status === 401 || response.status === 403) && token) {
+                const renewed = await Auth.refreshAdminToken();
+                if (renewed && renewed !== token) {
+                    token = renewed;
+                    headers.set('Authorization', 'Bearer ' + token);
+                    response = await send();
+                }
+            }
+            return response;
         },
 
         // Password Reset Request
@@ -248,6 +299,8 @@
             }
             sessionStorage.removeItem(SESSION_KEY);
             localStorage.removeItem(SESSION_KEY);
+            localStorage.removeItem('swan_admin_token');
+            localStorage.removeItem(ADMIN_REFRESH_TOKEN_KEY);
             window.location.href = 'index.html';
         },
 
@@ -256,7 +309,7 @@
             const user = Auth.getCurrentUser();
             if (!user) {
                 if (requiredRole === 'admin') {
-                    window.location.href = 'adminlogin/';
+                    window.location.href = 'admin-login.html';
                 } else {
                     window.location.href = 'login.html';
                 }
@@ -265,7 +318,7 @@
             if (requiredRole === 'admin') {
                 if (!Auth.isAdmin()) {
                     alert('Access Denied: You do not have administrator permissions.');
-                    window.location.href = 'adminlogin/';
+                    window.location.href = 'admin-login.html';
                     return false;
                 }
                 return true;

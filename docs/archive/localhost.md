@@ -48,12 +48,12 @@ Use these pre-configured credentials to access both management platforms:
 | Field | Value |
 |---|---|
 | **Email** | `admin@swanturbinesfoundation.com` |
-| **Password** | `AdminSwan2026!#Secure` |
+| **Password** | [REDACTED; historical local test credential] |
 | **Role** | `foundation_admin` (Campaigns, Requests, Review, Contact, Audit) |
 
 *Alternative Foundation Officer account:*
 - **Email:** `aruna@swanturbinesfoundation.com`
-- **Password:** `FoundationAdmin2026!`
+- **Password:** [REDACTED; historical local test credential]
 
 ---
 
@@ -63,7 +63,7 @@ Use these pre-configured credentials to access both management platforms:
 | Field | Value |
 |---|---|
 | **Email** | `websitter@swanturbinesfoundation.com` |
-| **Password** | `WebsitterSuperAdmin2026!` |
+| **Password** | [REDACTED; historical local test credential] |
 | **Role** | `super_admin` (Unrestricted `*` master permissions) |
 
 ---
@@ -131,9 +131,9 @@ cd "d:\sumith\swan 2\swan\backend"
    - You will see the generated reference code (e.g. `STF-2026-000001`).
 3. **Foundation Admin Review:**
    - Go to [http://localhost:5500/adminlogin/index.html](http://localhost:5500/adminlogin/index.html).
-   - Sign in using `admin@swanturbinesfoundation.com` / `AdminSwan2026!#Secure`.
+   - Historical local sign-in details were removed; use the current root README.
    - In [admin.html](http://localhost:5500/admin.html), inspect the real-time request counts and open the submitted application to review details and change the case status.
 4. **WEBSITTER Super-Admin Management:**
    - Go to [http://localhost:5500/manage/index.html](http://localhost:5500/manage/index.html).
-   - Authorize with `websitter@swanturbinesfoundation.com` / `WebsitterSuperAdmin2026!`.
+   - Historical local sign-in details were removed; use the current root README.
    - View the live audit log telemetry stream, create new staff accounts, toggle account activation, and inspect the RBAC permissions matrix.

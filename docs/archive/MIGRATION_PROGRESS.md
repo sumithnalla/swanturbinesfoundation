@@ -1,5 +1,131 @@
 # Migration Progress — Swan Turbines Foundation
 
+## Production large-document upload regression (2026-10-15)
+
+- The applicant screenshot's HTTP 546 is a Supabase Edge Function worker resource-limit termination, not a rejection from Google Drive. Supabase documents 546 as CPU/memory worker exhaustion: https://supabase.com/docs/guides/troubleshooting/edge-function-546-error-response
+- Root cause in the upload path: the Edge Function encoded every file byte into a JavaScript string one byte at a time, then reread the complete file to hash it. This created avoidable CPU work and duplicate file buffers for larger uploads.
+- Optimized `supabase/functions/api/index.ts` to use the native `node:buffer` Base64 encoder and reuse the upload `ArrayBuffer` for SHA-256. No file-size policy, authorization, destination, or privacy setting was weakened.
+- Deployed successfully; Supabase confirms active `api` version 35 (`2026-10-15 11:16:24 UTC`).
+- A disposable production test with a 7,768,576-byte PDF (matching the screenshot's approximate size) passed once through upload and returned a Drive file ID. A second immediate attempt returned HTTP 503 from the storage path rather than 546; investigate Apps Script execution logs if the applicant's retry also returns 503. The production request page retains the existing request and upload token, so use its Retry Document Upload button; do not submit a second application.
+- Test request rows were removed from Supabase. Drive cleanup for the first large test could not be confirmed after the test harness's Apps Script deletion request failed; audit records identify disposable reference `STF-2026-000019`. The execution environment's Google OAuth token requires interactive reauthentication, so no Drive cleanup was performed. If present, trash only `disposable-large-test.pdf` inside `Charity Requests/STF-2026-000019` and then the empty test folder; do not touch any other folder or file.
+
+## Phase 6 automation pass (2026-10-13)
+
+- Phase 6 was explicitly approved to begin. No destructive cutover or legacy-system retirement has been performed.
+- Completed safe repository checks: JavaScript syntax checks passed for all files under `js/` and `manage/`; `git diff --check` passed; the four version-controlled Supabase migrations and `supabase/config.toml` are present; frontend modules point to the deployed Supabase API with `window.__API_BASE_URL__` overrides preserved.
+- Attempted automated remote verification: `supabase migration list --linked`, `supabase db lint --linked`, `supabase functions list`, the deployed `/health` endpoint, and the read-only Supabase Auth/API check. Each was blocked before reaching the provider by the current environment proxy (`127.0.0.1:9` connection refused / closed connection). No remote state was changed.
+- Earlier Cloudflare Pages automation was blocked in the restricted process; this was resolved on 2026-10-14 using the authenticated cached Wrangler CLI. Custom DNS/domain configuration remains pending because no approved custom domain was supplied.
+- Current production readiness blockers are provider-owner actions: restore outbound Supabase access, provide/authenticate the approved Cloudflare Pages project and domain, configure production Auth redirect URLs and disable public signup, verify Resend sender/DNS, and provision the approved real staff accounts with least-privilege roles. These actions are required before claiming production end-to-end readiness.
+- Phase 5 remains the last verified application phase. Phase 6 implementation is in progress only as a safe automation audit; production cutover is not complete.
+
+## Phase 6 continuation (2026-10-14)
+
+- Read `begin-phase-6.md`. Production Auth redirect/sign-up settings remain intentionally deferred as requested; the security implication is that public signup and unfinalized redirect policy must not be treated as production-ready.
+- Implemented the mandatory sender rule in `supabase/functions/api/index.ts`: all Resend messages emitted by the Edge Function now use the verified `aruna@swanturbinesfoundation.com` sender, regardless of the authenticated staff member. No password or secret was added to source control.
+- Local validation passed with `git diff --check` and source inspection confirms the sender is fixed at the single email dispatch helper used by applicant, notification, status, contact and Company Admin messages.
+- Five requested staff accounts and role assignments could not yet be created or verified because the Supabase control plane remains unreachable from this environment (`127.0.0.1:9` proxy connection refused) for `supabase functions`, `supabase secrets`, migration, and Auth/API operations. No partial account creation was attempted and no passwords were logged or stored.
+- The sender change is not deployed until Supabase connectivity is restored. After connectivity returns, deploy `api`, create the five accounts through the protected admin workflow, assign `foundation_admin` to Aruna and Finance, assign both `super_admin` and `foundation_admin` to Sumith, Mohit and Websitter, then verify backend permission responses (not just UI visibility).
+
+## Phase 6 remote execution (2026-10-14)
+
+- Root cause of the earlier Supabase failure: this execution environment injects `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `GIT_HTTP_PROXY` and `GIT_HTTPS_PROXY`, all pointing to `http://127.0.0.1:9`. WinHTTP is configured for direct access. The variables were removed only from individual child processes for the commands below; persistent settings were not changed and no token was exposed.
+- Remote checks passed with direct child-process connectivity: `supabase functions list`, `supabase secrets list`, `supabase migration list --linked`, and `supabase db lint --linked` (no schema errors). The deployed `api` function was version 15 before this deployment.
+- Deployed the fixed-sender Edge Function successfully with `supabase functions deploy api --project-ref qlfdbimnswbaiouvmtau`. Docker was not required; Supabase uploaded the function source.
+- Created all five requested Supabase Auth users with confirmed emails, and verified the Auth-to-profile trigger produced one profile for each. Passwords were used only in memory during the administrative request and were not written to files, logs, Git or this document.
+- Assigned roles: Aruna and Finance → `foundation_admin`; Sumith, Mohit and Websitter → `super_admin` plus `foundation_admin`.
+- Deployed backend authorization verification passed: all five logins returned HTTP 200 and `/api/v1/admin/dashboard` returned HTTP 200. `/api/v1/admin/users` returned HTTP 403 for Aruna and Finance, and HTTP 200 for Sumith, Mohit and Websitter. This verifies the company-admin/super-admin boundary server-side, not merely through frontend visibility.
+- The sender implementation is now live and uses the verified `aruna@swanturbinesfoundation.com` address in the shared email dispatch helper. An unsolicited real email was not sent during verification; delivery testing remains a controlled acceptance step.
+- Auth redirect URLs and public signup remain unchanged by explicit instruction. Until those settings are finalized, public signup remains a security limitation and the production redirect allowlist is not fully hardened.
+- Direct deployed smoke checks passed after deployment: `/health` HTTP 200, public `/api/v1/campaigns` HTTP 200, unauthenticated `/api/v1/admin/dashboard` HTTP 403.
+- Cloudflare Pages was initially incomplete because the restricted process lacked usable Wrangler execution; the deployment is now complete. Custom DNS/domain configuration remains pending.
+
+## Phase 6 Cloudflare deployment (2026-10-14)
+
+- Confirmed Wrangler 4.151.0 and authenticated Cloudflare account `b75f58ef74278687282a88279c99f275` using the cached CLI outside the restricted child process. The injected proxy variables were removed only for the Wrangler process; no persistent proxy or credential settings were changed.
+- No existing Pages project was present, so created `swan-turbines-foundation` on the authenticated account.
+- Built a static-only deployment staging set containing the website HTML, CSS, JavaScript, management assets and public images. Explicitly excluded `backend`, `.env`, Supabase files, Google Apps Script/broker files, Git metadata, migration docs and other server-side material. A forbidden-name scan found no environment/secret/credential files in the staged set.
+- Production deployment succeeded: `https://ae602861.swan-turbines-foundation-11f.pages.dev` (deployment `ae602861-6c59-4a65-8b0a-b1b305113cb3`, branch `main`). HTTP checks returned 200 for `/`, `/index.html`, `/request-help.html` and `/admin-login.html`.
+- Set Supabase `ALLOWED_ORIGINS` to include the exact Pages origin plus existing local development origins. Origin-aware API checks returned HTTP 200 and the correct `Access-Control-Allow-Origin` for `/health` and public campaigns.
+- No custom domain or DNS record was changed because no approved production domain was supplied. The Pages project currently uses its generated `pages.dev` hostname.
+- Added `website-routes.md` with production page routes, staff/admin URLs, role assignments, non-secret login guidance and public/staff/document request flows. Passwords and service credentials are intentionally excluded.
+
+## Production bug fix verification (2026-10-15)
+
+- Diagnosed the reported failures from browser console evidence. The request form had a production fallback of an empty API base, causing POST requests to the Cloudflare Pages origin and HTTP 405. The API CORS helper also omitted `Access-Control-Allow-Credentials`, blocking cookie/session login from the deployed site.
+- Fixed `request-help.html` to use the deployed Supabase API base outside local development, and fixed `supabase/functions/api/index.ts` to return `Access-Control-Allow-Credentials: true` for credentialed requests and preflight responses.
+- Redeployed the Supabase `api` function and redeployed the corrected static frontend to Cloudflare Pages. Latest deployment: `https://fbe0ebdc.swan-turbines-foundation-11f.pages.dev`.
+- Updated `ALLOWED_ORIGINS` to include the latest deployment URL, prior deployment URL, project hostname and local development origins.
+- Verified production-origin preflight: HTTP 200 with the matching origin and `Access-Control-Allow-Credentials=true`.
+- Verified Aruna production-origin login: HTTP 200.
+- Verified a disposable public help-request POST from the production origin: HTTP 201 with a reference returned; the disposable row was deleted immediately with service-role cleanup (HTTP 204).
+- Remaining frontend action: operators should hard-refresh the new Pages URL (`Ctrl+F5`) and use the latest deployment URL. The old deployment may remain cached in an existing browser tab.
+
+## Admin/status and super-admin console fix (2026-10-15)
+
+- Diagnosed the new screenshots: local development origin `http://127.0.0.1:5503` was missing from `ALLOWED_ORIGINS`, so PATCH preflight requests for status/admin notes were blocked by CORS. The management console also authenticated successfully but did not persist/use the returned bearer token for subsequent API calls; it relied on a cross-origin cookie, producing `/auth/me` 401 and admin 403 responses.
+- Added `http://127.0.0.1:5503` and `http://localhost:5503` to `ALLOWED_ORIGINS`.
+- Updated `manage/manage.js` to persist the login access token and attach it to `/auth/me`, dashboard, users, roles, audit and logout requests.
+- Corrected `js/auth.js` redirects from the invalid `adminlogin/` directory to `admin-login.html`.
+- Redeployed the API and frontend. Latest frontend deployment: `https://6ea5962d.swan-turbines-foundation-11f.pages.dev`.
+- Verified PATCH preflight from both local port 5503 and the latest Pages URL: HTTP 200, matching `Access-Control-Allow-Origin`, and `Access-Control-Allow-Credentials=true`.
+- The live admin login URL is `https://6ea5962d.swan-turbines-foundation-11f.pages.dev/admin-login.html`. `/adminlogin/` is not a production route.
+
+## Production route and Super Admin UX fix (2026-10-15)
+
+- Added production route wrappers: `/adminlogin/`, `/company-admin/`, and `/super-admin/`. The first two redirect to the valid `/admin-login.html`; the Super Admin route opens `/manage/index.html`.
+- Added separate Super Admin entry URLs for overview, users, roles, audit and system sections. They use the same authenticated server-side permission checks rather than duplicating privileged logic.
+- Added `role_names` to login and `/auth/me` responses. The management portal now requires the `super_admin` role and no longer admits a `foundation_admin` user into the Super Admin shell where expected 403 errors appeared.
+- Latest frontend deployment: `https://ff805b29.swan-turbines-foundation-11f.pages.dev`.
+- Updated `website-routes.md` with the new production URLs. Hard-refresh the latest deployment before testing.
+
+## Real login pages and logout fix (2026-10-15)
+
+- Replaced the redirect-only `admin-login.html` with a real Company Admin login form that authenticates against the deployed API and requires `foundation_admin`.
+- Added a real `/super-admin/login` page that requires `super_admin` before opening the management dashboard.
+- Fixed Super Admin logout to remove `swan_admin_token` and redirect to the Super Admin login page instead of reloading the authenticated dashboard.
+- Fixed shared Auth logout to remove the bearer token as well as the local session.
+- Added Cloudflare `_redirects` rules so `/adminlogin/`, `/company-admin/` and `/super-admin/` are one-way redirects, not mutually recursive HTML meta-refresh pages.
+- Latest frontend deployment: `https://bbba7af5.swan-turbines-foundation-11f.pages.dev`.
+
+## Canonical login simplification (2026-10-15)
+
+- Removed redirect-only shortcut pages and the `_redirects` compatibility file after they caused confusing navigation and fallback pages.
+- The production site now has only two canonical login entry points: `/admin-login` for Company Admin and `/super-admin/login` for Super Admin.
+- Deployed and verified both canonical routes return HTTP 200 with their actual login forms. Latest deployment: `https://caaeffa7.swan-turbines-foundation-11f.pages.dev`.
+
+## Blank Company Admin login and incognito CORS fix (2026-10-15)
+
+- Confirmed the blank Company Admin page was caused by malformed markup in the previously deployed `admin-login.html`: its `<title>` element lacked a closing `</title>`, so the browser parsed the following login UI as title text. Fixed the markup and redeployed.
+- Confirmed the screenshot's Super Admin `Failed to fetch` cause: the API CORS configuration still returned an older Pages deployment origin for a request from `caaeffa7...`, so credentialed login preflight failed. Added the stable project Pages hostname and the screenshot host to `ALLOWED_ORIGINS`; changed CORS code to emit `Access-Control-Allow-Origin` only for an exact allowed origin, avoiding an invalid fallback origin.
+- Stable production origin: `https://swan-turbines-foundation-11f.pages.dev`. Latest deployment preview: `https://26e90804.swan-turbines-foundation-11f.pages.dev`.
+- Verification: stable and latest preview Company Admin routes both return HTTP 200 and contain the login form with a closed title tag. CORS preflight from the screenshot host and stable hostname returns HTTP 200, matching origin, and credentials=true. The preview origin is also now allowlisted.
+- Old immutable deployment URLs may continue serving their old HTML. Use the stable project URL above to get the current production version.
+
+## Company Admin login-to-dashboard session fix (2026-10-15)
+
+- Root cause: `admin-login.html` authenticated against the API and saved `swan_admin_token`, but did not create the `swan_auth_session_v2` session that `js/auth.js` / `js/admin.js` require. The dashboard therefore redirected a successful login straight back to the login form.
+- Fixed the login handoff to load the existing `js/db.js` and `js/auth.js` modules. After the API confirms `foundation_admin`, it now stores the access token and calls `SwanAuth.createSession(user.id, true, user)` with the verified API user and admin role before navigating to `/admin.html`. The existing session expiration remains eight hours; no authorization checks were weakened.
+- Deployed to the existing Cloudflare Pages project. New preview: `https://5633ec71.swan-turbines-foundation-11f.pages.dev`; stable production URL remains `https://swan-turbines-foundation-11f.pages.dev`.
+- Live HTTP verification: stable and preview `/admin-login` returned 200 and contain both the Auth module and `createSession` handoff. `/js/auth.js` returned 200. `/admin.html` correctly receives Cloudflare's 308 clean-URL redirect to `/admin`; both stable and preview `/admin` returned 200 with the actual dashboard and its Auth guard.
+- Local verification: `node --check js/auth.js` and `git diff --check` passed. A fresh browser login with an actual staff password was not performed in this environment; user acceptance is to sign in at the stable `/admin-login` URL and confirm the dashboard remains open. No credentials were printed or stored during this fix.
+
+## Google Drive document-routing regression (2026-10-15)
+
+- Root cause found in the local API changes that were deployed as Edge Function version 32: the applicant upload route had been changed to upload into a private Supabase Storage bucket and write synthetic `supabase-storage:` paths into `request_documents.google_drive_file_id`. This bypassed Google Drive/Apps Script, left `help_requests.google_drive_folder_id` unset, and the download route then treated those storage paths as Drive file IDs, producing the observed 503 responses.
+- Restored Google Drive as the destination for all new document uploads: Apps Script is preferred when configured; the existing direct Drive path remains the fallback. The handler stores the real Drive file ID, request-folder ID, and a private Drive URL in the metadata row. It keeps existing upload-token, file-type, size, and file-signature checks. It does not grant public Drive access.
+- Added a protected compatibility path so documents already represented by a `supabase-storage:` metadata path can still be downloaded from the existing private `request-documents` bucket; new documents are no longer sent there.
+- Deployed the correction to Supabase Edge Function `api`, now version 33 (`2026-10-15 10:22:18 UTC`). Docker was not running; Supabase CLI deployed the function successfully without Docker.
+- Production configuration blocker: `supabase secrets list` shows neither `GOOGLE_APPS_SCRIPT_URL` nor `GOOGLE_APPS_SCRIPT_SHARED_SECRET`; the only local `.env` (`backend/.env`) also has neither setting. The deployed function therefore cannot call the Apps Script Drive broker, and this environment has no `GOOGLE_SERVICE_ACCOUNT_JSON` keyless/direct Drive credential. No real Drive upload/download lifecycle test is possible until the two Apps Script secrets are restored. The function now fails closed rather than returning a false Drive success.
+- Next action: in Supabase Dashboard for project `qlfdbimnswbaiouvmtau` → Edge Functions → Secrets, set `GOOGLE_APPS_SCRIPT_URL` to the deployed Apps Script `/exec` URL and `GOOGLE_APPS_SCRIPT_SHARED_SECRET` to the exact matching Apps Script `SHARED_SECRET` Script Property. Do not paste the secret into chat. Then rerun upload/download and verify both `help_requests.google_drive_folder_id` and `request_documents.google_drive_file_id`/`internal_url` for a disposable request before considering this resolved.
+
+## Google Drive configuration restored and production verification (2026-10-15)
+
+- Supersedes the configuration blocker recorded above: the project now has `GOOGLE_APPS_SCRIPT_URL` and `GOOGLE_APPS_SCRIPT_SHARED_SECRET` configured. Secret values were not printed or written to this file. The active Apps Script `/exec` health check returned `status=ok`, `configured=true`, and `folder_accessible=true`.
+- Re-tested the deployed API using disposable data. Results: upload to Drive succeeded; Supabase metadata contained a real Drive file ID, request-folder ID, and private Drive URL (not a `supabase-storage:` path); protected download returned the same PDF bytes.
+- The protected API delete call returned HTTP 503, so the complete API lifecycle assertion is not yet green. An independent authenticated disposable Apps Script upload/delete probe then returned `deleted=true` and `folder_cleaned=true`, confirming the deployed Apps Script can trash both the file and its now-empty per-request folder. The remaining failure is in the protected API delete handoff or subsequent Supabase metadata deletion, not the Apps Script Drive delete operation.
+- The disposable API test request and temporary Auth user were cleaned up. No Phase 6 work was started. Do not claim the protected API delete flow or complete Phase 5 lifecycle is verified until that 503 is diagnosed and the API-level delete/folder-trash test passes.
+- New uploads are verified to use private Google Drive and save metadata in Supabase. Existing legacy `supabase-storage:` documents remain downloadable through the compatibility path but are not retroactively copied to Drive.
+
 ## Phase 5 implementation update (2026-10-12)
 
 - Private Google Drive folders `Swan Turbines Foundation` -> `Charity Requests` were created/reused after Drive-scoped OAuth; the dedicated service account was granted Writer access to the private root.

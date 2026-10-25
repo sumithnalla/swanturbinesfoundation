@@ -9,6 +9,19 @@
 
     const API_BASE = window.__API_BASE_URL__ || 'https://qlfdbimnswbaiouvmtau.supabase.co/functions/v1/api';
 
+    async function apiFetch(url, options) {
+        const opts = options || {};
+        if (window.SwanAuth && window.SwanAuth.authorizedFetch) return window.SwanAuth.authorizedFetch(url, opts);
+        const headers = new Headers(opts.headers || {});
+        try {
+            const token = localStorage.getItem('swan_admin_token');
+            if (token) headers.set('Authorization', 'Bearer ' + token);
+        } catch (_) {}
+        opts.headers = headers;
+        opts.credentials = 'include';
+        return fetch(url, opts);
+    }
+
     const FALLBACK_ROLES = [
         { id: 'role_super', name: 'super_admin', description: 'WEBSITTER Super Administrator with full unrestricted access', permissions: ['*'] },
         { id: 'role_fadmin', name: 'foundation_admin', description: 'Foundation Executive / Administrator', permissions: ['campaigns.*', 'requests.*', 'documents.*', 'contact.*', 'audit.read'] },
@@ -24,7 +37,7 @@
         async init() {
             // Check session
             try {
-                const meRes = await fetch(`${API_BASE}/api/v1/auth/me`, {
+                const meRes = await apiFetch(`${API_BASE}/api/v1/auth/me`, {
                     credentials: 'include'
                 });
                 if (meRes.ok) {
@@ -54,11 +67,10 @@
         isSuperAdminOrAdmin(user) {
             if (!user) return false;
             if (user.role === 'super_admin' || user.role === 'admin') return true;
+            if (Array.isArray(user.role_names) && user.role_names.includes('super_admin')) return true;
             if (Array.isArray(user.permissions) && (user.permissions.includes('*') || user.permissions.includes('users.read'))) {
                 return true;
             }
-            if (Array.isArray(user.role_ids) && user.role_ids.length > 0) return true;
-            if (user.email === 'websitter@swanturbinesfoundation.com') return true;
             return false;
         },
 
@@ -70,6 +82,10 @@
             }
             this.refreshOverview();
             this.loadRoles();
+            const requestedTab = window.location.hash.replace(/^#/, '');
+            if (['overview', 'users', 'roles', 'audit', 'system'].includes(requestedTab)) {
+                this.switchTab(requestedTab);
+            }
         },
 
         async handleLogin(event) {
@@ -94,6 +110,12 @@
 
                 if (res.ok) {
                     const loginData = await res.json();
+                    if (loginData.access_token) {
+                        try { localStorage.setItem('swan_admin_token', loginData.access_token); } catch (_) {}
+                    }
+                    if (loginData.refresh_token) {
+                        try { localStorage.setItem('swan_admin_refresh_token', loginData.refresh_token); } catch (_) {}
+                    }
                     currentUser = loginData.user;
                     if (!this.isSuperAdminOrAdmin(currentUser)) {
                         throw new Error('Access denied: this account lacks WEBSITTER super-admin privileges.');
@@ -118,15 +140,16 @@
 
         async logout() {
             try {
-                await fetch(`${API_BASE}/api/v1/auth/logout`, {
+                await apiFetch(`${API_BASE}/api/v1/auth/logout`, {
                     method: 'POST',
                     credentials: 'include'
                 });
             } catch (e) {
                 // Ignore network errors on logout
             }
+            try { localStorage.removeItem('swan_admin_token'); } catch (_) {}
             if (window.SwanAuth) window.SwanAuth.logout();
-            window.location.reload();
+            window.location.href = '../super-admin/login.html';
         },
 
         switchTab(tabName) {
@@ -153,9 +176,9 @@
 
             try {
                 const [dashRes, usersRes, auditRes] = await Promise.all([
-                    fetch(`${API_BASE}/api/v1/admin/dashboard`, { credentials: 'include' }).catch(() => null),
-                    fetch(`${API_BASE}/api/v1/admin/users`, { credentials: 'include' }).catch(() => null),
-                    fetch(`${API_BASE}/api/v1/admin/audit-logs?page_size=5`, { credentials: 'include' }).catch(() => null)
+                    apiFetch(`${API_BASE}/api/v1/admin/dashboard`).catch(() => null),
+                    apiFetch(`${API_BASE}/api/v1/admin/users`).catch(() => null),
+                    apiFetch(`${API_BASE}/api/v1/admin/audit-logs?page_size=5`).catch(() => null)
                 ]);
 
                 if (dashRes && dashRes.ok) {
@@ -239,7 +262,7 @@
             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);">Loading accounts...</td></tr>';
 
             try {
-                const res = await fetch(`${API_BASE}/api/v1/admin/users`, { credentials: 'include' });
+                const res = await apiFetch(`${API_BASE}/api/v1/admin/users`);
                 if (res.ok) {
                     const data = await res.json();
                     cachedUsers = data.users || [];
@@ -319,7 +342,7 @@
             if (!confirm(`Are you sure you want to ${verb} this user account?`)) return;
 
             try {
-                const res = await fetch(`${API_BASE}/api/v1/admin/users/${userId}/status`, {
+                const res = await apiFetch(`${API_BASE}/api/v1/admin/users/${userId}/status`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
@@ -337,7 +360,7 @@
 
         async loadRoles() {
             try {
-                const res = await fetch(`${API_BASE}/api/v1/admin/roles`, { credentials: 'include' });
+                const res = await apiFetch(`${API_BASE}/api/v1/admin/roles`);
                 if (res.ok) {
                     const data = await res.json();
                     if (data.roles && data.roles.length) cachedRoles = data.roles;
@@ -393,7 +416,7 @@
             const roleId = document.getElementById('newRoleSelect').value;
 
             try {
-                const res = await fetch(`${API_BASE}/api/v1/admin/users`, {
+                const res = await apiFetch(`${API_BASE}/api/v1/admin/users`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
@@ -445,7 +468,7 @@
 
             let logs = [];
             try {
-                const res = await fetch(`${API_BASE}/api/v1/admin/audit-logs?page=1&page_size=50`, { credentials: 'include' });
+                const res = await apiFetch(`${API_BASE}/api/v1/admin/audit-logs?page=1&page_size=50`);
                 if (res.ok) {
                     const data = await res.json();
                     logs = data.logs || [];

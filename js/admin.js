@@ -25,13 +25,10 @@
     const API_BASE = window.__API_BASE_URL__ || 'https://qlfdbimnswbaiouvmtau.supabase.co/functions/v1/api';
 
     // Fetch wrapper that always attaches the admin JWT token as Authorization header
-    function apiFetch(url, options) {
+    async function apiFetch(url, options) {
         options = options || {};
         options.credentials = 'include';
-        const token = window.SwanAuth && window.SwanAuth.getAdminToken ? window.SwanAuth.getAdminToken() : null;
-        if (token) {
-            options.headers = Object.assign({ 'Authorization': 'Bearer ' + token }, options.headers || {});
-        }
+        if (window.SwanAuth && window.SwanAuth.authorizedFetch) return window.SwanAuth.authorizedFetch(url, options);
         return fetch(url, options);
     }
 

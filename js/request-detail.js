@@ -80,16 +80,7 @@
 
     async function apiFetch(url, opts) {
         opts = opts || {};
-        opts.headers = opts.headers || {};
-        const getToken = (window.SwanAuth && window.SwanAuth.getAdminToken)
-            ? window.SwanAuth.getAdminToken
-            : (window.SwanAuth && window.SwanAuth.getToken ? window.SwanAuth.getToken : null);
-        if (getToken) {
-            const token = getToken();
-            if (token) {
-                opts.headers['Authorization'] = 'Bearer ' + token;
-            }
-        }
+        if (window.SwanAuth && window.SwanAuth.authorizedFetch) return window.SwanAuth.authorizedFetch(url, opts);
         return fetch(url, opts);
     }
 
@@ -141,22 +132,26 @@
             if (!container) return;
 
             let req = null;
+            let loadError = '';
             try {
                 const r = await apiFetch(API_BASE + '/api/v1/requests/admin/' + encodeURIComponent(id));
                 if (r.ok) {
                     req = await r.json();
+                } else {
+                    const body = await r.json().catch(function () { return {}; });
+                    loadError = body?.error?.message || `Request could not be loaded (HTTP ${r.status}).`;
                 }
-            } catch (_) {}
+            } catch (error) { loadError = error?.message || 'Network error while loading the request.'; }
 
-            if (!req && window.SwanDB && window.SwanDB.getHelpRequestById) {
+            if (!req && !loadError && window.SwanDB && window.SwanDB.getHelpRequestById) {
                 req = window.SwanDB.getHelpRequestById(id);
             }
 
             if (!req) {
                 container.innerHTML = '<div class="adm-empty">'
                     + ICONS.xCircle
-                    + '<h3>Request Not Found</h3>'
-                    + '<p>The requested file (' + esc(id) + ') could not be located in the database.</p>'
+                    + '<h3>' + (loadError ? 'Request Could Not Be Verified' : 'Request Not Found') + '</h3>'
+                    + '<p>' + esc(loadError || ('The requested file (' + id + ') could not be located in the database.')) + '</p>'
                     + '<a href="admin-requests.html" class="btn-secondary" style="margin-top:14px;text-decoration:none;">← Return to Requests</a>'
                     + '</div>';
                 const title = document.getElementById('detailHeaderTitle');
@@ -366,12 +361,16 @@
             if (!docsContent) return;
 
             let docs = [];
+            let documentError = '';
             try {
                 const r = await apiFetch(API_BASE + '/api/v1/requests/admin/' + encodeURIComponent(requestId) + '/documents');
                 if (r.ok) {
                     docs = await r.json();
+                } else {
+                    const body = await r.json().catch(function () { return {}; });
+                    documentError = body?.error?.message || `Document list could not be loaded (HTTP ${r.status}).`;
                 }
-            } catch (_) {}
+            } catch (error) { documentError = error?.message || 'Network error while loading documents.'; }
 
             if ((!docs || !docs.length) && refId && refId !== requestId) {
                 try {
@@ -387,6 +386,13 @@
                 badge.textContent = (docs ? docs.length : 0) + ' file(s)';
             }
 
+            if (documentError) {
+                if (badge) badge.textContent = 'Unavailable';
+                docsContent.innerHTML = '<div style="padding:16px 18px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:13.5px;">'
+                    + '<strong>Documents could not be verified.</strong> ' + esc(documentError) + ' Refresh the page to retry. This is not the same as “no documents uploaded.”'
+                    + '</div>';
+                return;
+            }
             if (!docs || !docs.length) {
                 docsContent.innerHTML = '<div style="display:flex;align-items:center;gap:12px;padding:16px 18px;border-radius:10px;background:var(--surface-2);border:1px dashed var(--border);color:var(--text-muted);font-size:13.5px;">'
                     + '<span style="flex-shrink:0;color:var(--text-secondary);">' + ICONS.paperclip + '</span>'
@@ -419,13 +425,14 @@
                     const dlUrl = API_BASE + '/api/v1/requests/admin/' + encodeURIComponent(requestId) + '/documents/' + encodeURIComponent(docId) + '/download';
                     const fname = esc(doc.original_filename || 'document');
                     const fsize = fmtSize(doc.size_bytes);
-                    const ftype = esc(doc.content_type || 'Document');
-                    const isImg = (doc.content_type || '').includes('image');
-                    const isPdf = (doc.content_type || '').includes('pdf');
+                    const mimeType = doc.mime_type || doc.content_type || '';
+                    const ftype = esc(mimeType || 'Document');
+                    const isImg = mimeType.includes('image');
+                    const isPdf = mimeType.includes('pdf');
 
                     return '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);gap:16px;flex-wrap:wrap;">'
                         + '<div style="display:flex;align-items:center;gap:14px;min-width:0;flex:1 1 240px;">'
-                        + '<span style="flex-shrink:0;width:40px;height:40px;border-radius:8px;background:rgba(10,54,99,0.1);display:flex;align-items:center;justify-content:center;color:var(--primary);">' + fileIcon(doc.content_type) + '</span>'
+                        + '<span style="flex-shrink:0;width:40px;height:40px;border-radius:8px;background:rgba(10,54,99,0.1);display:flex;align-items:center;justify-content:center;color:var(--primary);">' + fileIcon(mimeType) + '</span>'
                         + '<div style="min-width:0;">'
                         + '<div style="font-weight:700;font-size:13.5px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + fname + '">' + fname + '</div>'
                         + '<div style="font-size:11.5px;color:var(--text-secondary);margin-top:3px;">' + ftype + (fsize ? ' &bull; ' + fsize : '') + '</div>'
@@ -443,7 +450,7 @@
             try {
                 toast('Initiating download...', 'info', 1800);
                 const r = await apiFetch(url);
-                if (!r.ok) throw new Error('Download failed: ' + r.statusText);
+                if (!r.ok) { const body = await r.json().catch(function () { return {}; }); throw new Error(body?.error?.message || 'Download failed (HTTP ' + r.status + ').'); }
                 const blob = await r.blob();
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
@@ -508,10 +515,20 @@
                 });
                 if (r.ok) {
                     apiSuccess = true;
+                } else {
+                    const body = await r.json().catch(function () { return {}; });
+                    throw new Error(body?.error?.message || 'The server rejected the status update (HTTP ' + r.status + ').');
                 }
-            } catch (_) {}
+            } catch (error) {
+                toast('Case decision was not saved. ' + (error?.message || 'Please retry.'), 'error', 6000);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = ICONS.save + ' Save Case Decision';
+                }
+                return;
+            }
 
-            if (window.SwanDB && window.SwanDB.updateHelpRequest) {
+            if (apiSuccess && window.SwanDB && window.SwanDB.updateHelpRequest) {
                 window.SwanDB.updateHelpRequest(id, { status: newStatus, admin_note: noteVal });
             }
 

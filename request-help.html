@@ -423,11 +423,15 @@
             const API_BASE = window.__API_BASE_URL__ || (
                 window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
                     ? 'http://localhost:8000'
-                    : ''
+                    : 'https://qlfdbimnswbaiouvmtau.supabase.co/functions/v1/api'
             );
 
             let wizardCurrentStep = 1;
             let selectedFiles = [];
+            // Set only after the request record has been created.  This lets a
+            // visitor retry a failed document upload without creating a second
+            // help request.
+            let pendingUpload = null;
 
             const HelpWizard = {
                 goToStep(step) {
@@ -628,6 +632,11 @@
                     let documentUploadToken = '';
 
                     try {
+                        if (pendingUpload) {
+                            reference = pendingUpload.reference;
+                            requestId = pendingUpload.requestId;
+                            documentUploadToken = pendingUpload.documentUploadToken;
+                        } else {
                         const response = await fetch(`${API_BASE}/api/v1/requests`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -643,6 +652,9 @@
                         reference = data.reference;
                         requestId = data.id || data.request_id;
                         documentUploadToken = data.document_upload_token || '';
+                        if (!reference || !requestId) {
+                            throw new Error('The server did not confirm a tracking reference. Your request was not completed.');
+                        }
 
                         // Mirror to SwanDB as offline backup using the exact reference and id
                         if (window.SwanDB && window.SwanDB.createHelpRequest) {
@@ -663,60 +675,44 @@
                             } catch (_) {}
                         }
 
-                        // Upload documents if selected
-                        if (selectedFiles.length && requestId) {
-                            try {
-                                const formData = new FormData();
-                                selectedFiles.forEach(file => formData.append('files', file));
-                                await fetch(`${API_BASE}/api/v1/requests/${requestId}/documents`, {
-                                    method: 'POST',
-                                    headers: documentUploadToken ? { 'X-Request-Upload-Token': documentUploadToken } : {},
-                                    body: formData
-                                });
-                            } catch (uploadErr) {
-                                console.warn('Document upload deferred:', uploadErr);
+                        }
+                        // Never show a successful application when selected documents
+                        // did not reach secure storage. HTTP errors must be checked
+                        // explicitly: fetch() only rejects for network failures.
+                        if (selectedFiles.length) {
+                            const formData = new FormData();
+                            selectedFiles.forEach(file => formData.append('files', file));
+                            const uploadResponse = await fetch(`${API_BASE}/api/v1/requests/${encodeURIComponent(requestId)}/documents`, {
+                                method: 'POST',
+                                headers: documentUploadToken ? { 'X-Request-Upload-Token': documentUploadToken } : {},
+                                body: formData
+                            });
+                            if (!uploadResponse.ok) {
+                                const uploadError = await uploadResponse.json().catch(() => ({}));
+                                const detail = uploadError?.error?.message || uploadResponse.statusText || 'The document storage service did not accept the upload.';
+                                const code = uploadError?.error?.code || `HTTP_${uploadResponse.status}`;
+                                pendingUpload = { reference, requestId, documentUploadToken };
+                                throw new Error(`Your application was created as ${reference}, but ${selectedFiles.length} document(s) were not uploaded. Reason: ${detail} (code: ${code}, HTTP ${uploadResponse.status}). Please retry the upload; do not submit a new application.`);
+                            }
+                            const uploadData = await uploadResponse.json().catch(() => ({}));
+                            if (!Array.isArray(uploadData.uploaded) || uploadData.uploaded.length !== selectedFiles.length) {
+                                pendingUpload = { reference, requestId, documentUploadToken };
+                                throw new Error(`Your application was created as ${reference}, but the server only confirmed ${uploadData.uploaded?.length || 0} of ${selectedFiles.length} document(s). Please retry the upload; do not submit a new application.`);
                             }
                         }
+                        pendingUpload = null;
                     } catch (apiErr) {
-                        // Fallback to local storage if API is offline
-                        try {
-                            const localData = {
-                                full_name: payload.applicant.full_name,
-                                phone: payload.applicant.mobile,
-                                email: payload.applicant.email,
-                                address: `${payload.applicant.address}, ${payload.applicant.city}, ${payload.applicant.state}`,
-                                help_type: payload.request.support_type,
-                                description: payload.request.description,
-                                estimated_amount: payload.request.amount_required,
-                                urgency: payload.request.urgency,
-                                consent: true
-                            };
-                            const localReq = window.SwanDB ? window.SwanDB.createHelpRequest(localData) : null;
-                            reference = localReq && localReq.id ? localReq.id : 'STF-' + new Date().getFullYear() + '-' + Math.floor(100000 + Math.random() * 900000);
-                        } catch (fallbackErr) {
-                            reference = 'STF-' + new Date().getFullYear() + '-000101';
-                        }
+                        HelpWizard.showError(apiErr?.message || 'We could not submit your request. No confirmation was received from the server.');
+                        if (pendingUpload && submitBtn) submitBtn.textContent = 'Retry Document Upload →';
+                        return;
                     } finally {
                         if (submitBtn) {
                             submitBtn.disabled = false;
-                            submitBtn.textContent = originalText;
+                            submitBtn.textContent = pendingUpload ? 'Retry Document Upload →' : originalText;
                         }
                     }
 
-                    // Show Dedicated Success Screen
-                    document.getElementById('helpRequestForm').style.display = 'none';
-                    document.getElementById('stepProgressBar').style.display = 'none';
-                    const subTitle = document.getElementById('helpFormSubtitle');
-                    if (subTitle) subTitle.style.display = 'none';
-                    const fMsg = document.getElementById('helpFormMessage');
-                    if (fMsg) fMsg.style.display = 'none';
-                    const refNum = document.getElementById('successRefNumber');
-                    if (refNum) refNum.textContent = reference;
-                    document.getElementById('helpSuccessCard')?.classList.add('active');
-                    const cardEl = document.querySelector('.help-request-card');
-                    if (cardEl) {
-                        window.scrollTo({ top: cardEl.offsetTop - 80, behavior: 'smooth' });
-                    }
+                    window.location.assign('requests-thank-you.html?reference=' + encodeURIComponent(reference));
                 });
             }
         })();

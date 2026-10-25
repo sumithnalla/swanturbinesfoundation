@@ -25,8 +25,6 @@ async function request(endpoint, options = {}) {
     const headers = {
         ...(options.headers || {})
     };
-    const token = window.localStorage.getItem('swan_admin_token');
-    if (token && !headers.Authorization) headers.Authorization = `Bearer ${token}`;
 
     // If body is an object and not FormData, stringify it and set JSON header
     let body = options.body;
@@ -43,7 +41,9 @@ async function request(endpoint, options = {}) {
     };
 
     try {
-        const response = await fetch(url, config);
+        const response = window.SwanAuth && window.SwanAuth.authorizedFetch
+            ? await window.SwanAuth.authorizedFetch(url, config)
+            : await fetch(url, config);
 
         // Parse response
         let data = null;
