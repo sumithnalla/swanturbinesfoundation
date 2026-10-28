@@ -210,6 +210,9 @@
                 });
                 const result = await response.json().catch(() => ({}));
                 if (!response.ok || !result.access_token || !result.refresh_token) {
+                    if (result.error?.code === 'ACCOUNT_INACTIVE') {
+                        try { localStorage.setItem('swan_admin_inactive', '1'); } catch (_) {}
+                    }
                     localStorage.removeItem('swan_admin_token');
                     localStorage.removeItem(ADMIN_REFRESH_TOKEN_KEY);
                     return null;
@@ -239,7 +242,7 @@
             if (token) headers.set('Authorization', 'Bearer ' + token);
             const send = () => fetch(url, { ...opts, headers });
             let response = await send();
-            if ((response.status === 401 || response.status === 403) && token) {
+            if (response.status === 401 && token) {
                 const renewed = await Auth.refreshAdminToken();
                 if (renewed && renewed !== token) {
                     token = renewed;

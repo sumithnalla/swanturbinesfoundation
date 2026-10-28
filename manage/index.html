@@ -742,11 +742,6 @@
                         <div class="metric-foot">Across all application statuses</div>
                     </div>
                     <div class="metric-card">
-                        <div class="metric-label">Active Campaigns</div>
-                        <div class="metric-value" id="statCampaignsCount">-</div>
-                        <div class="metric-foot">Fundraising initiatives live</div>
-                    </div>
-                    <div class="metric-card">
                         <div class="metric-label">Audit Log Records</div>
                         <div class="metric-value" id="statAuditCount">-</div>
                         <div class="metric-foot">Immutable event telemetry</div>
@@ -765,7 +760,7 @@
                                 <th>Actor ID</th>
                                 <th>Action</th>
                                 <th>Entity</th>
-                                <th>IP Address</th>
+                                <th>Result</th>
                             </tr>
                         </thead>
                         <tbody id="overviewRecentLogs">
@@ -843,6 +838,19 @@
                     <button class="btn-primary" onclick="WebsitterManage.loadAuditLogs()">Refresh Audit Trail</button>
                 </div>
 
+                <div class="table-toolbar" style="margin-bottom:16px;">
+                    <label for="auditCategoryFilter" class="form-label">Filter events</label>
+                    <select id="auditCategoryFilter" class="form-input" onchange="WebsitterManage.loadAuditLogs()">
+                        <option value="all">All events</option>
+                        <option value="login">Login activity (success and failure)</option>
+                        <option value="accounts">Account and role changes</option>
+                        <option value="status">Status changes</option>
+                        <option value="requests">Help requests submitted</option>
+                        <option value="contacts">Contact messages submitted</option>
+                        <option value="other">Other events</option>
+                    </select>
+                </div>
+
                 <div class="table-card">
                     <table class="data-table">
                         <thead>
@@ -851,7 +859,7 @@
                                 <th>Action</th>
                                 <th>Actor ID</th>
                                 <th>Entity</th>
-                                <th>IP Address</th>
+                                <th>Result</th>
                                 <th>Details</th>
                             </tr>
                         </thead>
@@ -920,7 +928,10 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Password</label>
-                    <input type="password" id="newPassword" class="form-input" required minlength="8" placeholder="Minimum 8 characters">
+                    <div class="password-field-wrap" style="position:relative;">
+                        <input type="password" id="newPassword" class="form-input" required minlength="8" placeholder="Minimum 8 characters" style="padding-right:78px;">
+                        <button type="button" id="toggleNewPassword" class="btn-action" aria-label="Show password" aria-pressed="false" style="position:absolute;right:6px;top:5px;" title="Show password"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Assign Role</label>

@@ -1,1 +1,57 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Super Admin Login</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#050b18;font-family:Arial,sans-serif;color:#fff}.card{width:min(430px,calc(100% - 32px));background:#0d1a31;border:1px solid #29466c;border-radius:16px;padding:32px}.field{margin:18px 0}.field label{display:block;margin-bottom:7px}.field input{box-sizing:border-box;width:100%;padding:13px;border-radius:8px;border:1px solid #426189;background:#071225;color:#fff}.password-wrap{position:relative}.password-wrap input{padding-right:52px}.toggle{position:absolute;right:6px;top:5px;width:38px;height:36px;border:0;border-radius:7px;background:transparent;color:#a9bdd9;display:grid;place-items:center;cursor:pointer}.toggle:hover{background:#152744}.toggle svg{width:19px;height:19px}.btn{width:100%;padding:14px;border:0;border-radius:8px;background:#4d6cf5;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer}.btn:disabled{opacity:.78;cursor:wait}.spinner{display:none;width:16px;height:16px;border:2px solid #ffffff77;border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}.btn.busy .spinner{display:block}@keyframes spin{to{transform:rotate(360deg)}}.error{display:none;background:#5b1d27;padding:10px;border-radius:8px}</style></head><body><main class="card"><h1>Super Admin Login</h1><p>WEBSITTER infrastructure access</p><div id="error" class="error" role="alert"></div><form id="login"><div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="username" required></div><div class="field"><label for="password">Password</label><div class="password-wrap"><input id="password" type="password" autocomplete="current-password" required><button class="toggle" type="button" id="togglePassword" aria-label="Show password" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div><button class="btn" id="signIn" type="submit"><span class="spinner" aria-hidden="true"></span><span class="btn-label">Authorize Super Admin</span></button></form></main><script>(function(){const api='https://qlfdbimnswbaiouvmtau.supabase.co/functions/v1/api',form=document.getElementById('login'),err=document.getElementById('error'),button=document.getElementById('signIn'),label=button.querySelector('.btn-label'),emailInput=document.getElementById('email'),password=document.getElementById('password');let busy=false;document.getElementById('togglePassword').addEventListener('click',event=>{const shown=password.type==='text';password.type=shown?'password':'text';event.currentTarget.setAttribute('aria-pressed',String(!shown));event.currentTarget.setAttribute('aria-label',shown?'Show password':'Hide password')});form.addEventListener('submit',async event=>{event.preventDefault();if(busy)return;busy=true;err.style.display='none';button.disabled=true;button.classList.add('busy');label.textContent='Signing in, please wait...';try{const r=await fetch(api+'/api/v1/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({email:emailInput.value.trim().toLowerCase(),password:password.value})}),b=await r.json();if(!r.ok)throw Error(b.error?.message||'Invalid email or password.');if(!b.user?.role_names?.includes('super_admin'))throw Error('This account does not have Super Admin access.');if(!b.access_token)throw Error('The sign-in service did not return a valid session.');localStorage.setItem('swan_admin_token',b.access_token);if(b.refresh_token)localStorage.setItem('swan_admin_refresh_token',b.refresh_token);location.href='../manage/index.html'}catch(x){err.textContent=x.message||'Unable to reach the sign-in service.';err.style.display='block'}finally{busy=false;button.disabled=false;button.classList.remove('busy');label.textContent='Authorize Super Admin'}})})()</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Super Admin Login</title>
+  <style>
+    body{margin:0;min-height:100vh;display:grid;place-items:center;background:#050b18;font-family:Arial,sans-serif;color:#fff}
+    .card{width:min(430px,calc(100% - 32px));background:#0d1a31;border:1px solid #29466c;border-radius:16px;padding:32px}
+    .field{margin:18px 0}.field label{display:block;margin-bottom:7px}
+    .field input{box-sizing:border-box;width:100%;padding:13px;border-radius:8px;border:1px solid #426189;background:#071225;color:#fff}
+    .password-wrap{position:relative}.password-wrap input{padding-right:52px}
+    .toggle{position:absolute;right:6px;top:5px;width:38px;height:36px;border:0;border-radius:7px;background:transparent;color:#a9bdd9;display:grid;place-items:center;cursor:pointer}
+    .toggle:hover{background:#152744}.toggle svg{width:19px;height:19px}
+    .btn{width:100%;padding:14px;border:0;border-radius:8px;background:#4d6cf5;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer}
+    .btn:disabled{opacity:.78;cursor:wait}.spinner{display:none;width:16px;height:16px;border:2px solid #ffffff77;border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+    .btn.busy .spinner{display:block}@keyframes spin{to{transform:rotate(360deg)}}
+    .error{display:none;background:#5b1d27;padding:10px;border-radius:8px}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Super Admin Login</h1><p>WEBSITTER infrastructure access</p>
+    <div id="error" class="error" role="alert"></div>
+    <form id="login">
+      <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="username" required></div>
+      <div class="field"><label for="password">Password</label><div class="password-wrap"><input id="password" type="password" autocomplete="current-password" required><button class="toggle" type="button" id="togglePassword" aria-label="Show password" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+      <button class="btn" id="signIn" type="submit"><span class="spinner" aria-hidden="true"></span><span class="btn-label">Authorize Super Admin</span></button>
+    </form>
+  </main>
+  <script>
+    (function(){
+      const api='https://qlfdbimnswbaiouvmtau.supabase.co/functions/v1/api',form=document.getElementById('login'),err=document.getElementById('error'),button=document.getElementById('signIn'),label=button.querySelector('.btn-label'),emailInput=document.getElementById('email'),password=document.getElementById('password');
+      let busy=false;
+      const reason=new URLSearchParams(location.search).get('reason');
+      if(reason==='deactivated'||reason==='access-changed'){
+        err.textContent=reason==='deactivated'?'This account was deactivated. Contact an administrator if you believe this is a mistake.':'Your Super Admin access changed. Sign in again or contact an administrator.';
+        err.style.display='block';
+        try{localStorage.removeItem('swan_admin_token');localStorage.removeItem('swan_admin_refresh_token');localStorage.removeItem('swan_admin_inactive')}catch(_){}
+      }
+      document.getElementById('togglePassword').addEventListener('click',event=>{const shown=password.type==='text';password.type=shown?'password':'text';event.currentTarget.setAttribute('aria-pressed',String(!shown));event.currentTarget.setAttribute('aria-label',shown?'Show password':'Hide password')});
+      form.addEventListener('submit',async event=>{
+        event.preventDefault();if(busy)return;busy=true;err.style.display='none';button.disabled=true;button.classList.add('busy');label.textContent='Signing in, please wait...';
+        try{
+          const r=await fetch(api+'/api/v1/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({email:emailInput.value.trim().toLowerCase(),password:password.value})}),b=await r.json();
+          if(!r.ok)throw Error(b.error?.message||'Invalid email or password.');
+          if(!b.user?.role_names?.includes('super_admin'))throw Error('This account does not have Super Admin access.');
+          if(!b.access_token)throw Error('The sign-in service did not return a valid session.');
+          localStorage.removeItem('swan_admin_inactive');localStorage.setItem('swan_admin_token',b.access_token);if(b.refresh_token)localStorage.setItem('swan_admin_refresh_token',b.refresh_token);location.href='../manage/index.html';
+        }catch(x){err.textContent=x.message||'Unable to reach the sign-in service.';err.style.display='block'}
+        finally{busy=false;button.disabled=false;button.classList.remove('busy');label.textContent='Authorize Super Admin'}
+      });
+    })();
+  </script>
+</body>
+</html>

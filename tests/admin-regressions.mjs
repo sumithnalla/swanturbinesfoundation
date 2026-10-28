@@ -59,4 +59,52 @@ try{
   await page.getByRole('link',{name:'Reply by Email'}).waitFor();
   assert.ok(await page.locator('.adm-detail-grid').evaluate(el=>el.getBoundingClientRect().width<=innerWidth));
   console.log('PASS contact list/detail layout, responsive rendering and authorized message display at mobile width');
+
+  const manage=await browser.newPage();
+  const manageToken='header.'+Buffer.from(JSON.stringify({exp:Math.floor(Date.now()/1000)+3600})).toString('base64url')+'.signature';
+  await manage.addInitScript(({token})=>{localStorage.setItem('swan_admin_token',token);window.confirm=()=>true;window.alert=()=>{};},{token:manageToken});
+  const userId='3c9c2e84-64c1-4f77-8fa3-732ff36c5f5b',superRole='d29a2471-84de-4fc9-9f53-46f7c1f5cb15',staffRole='70ed1b2c-074e-4665-b0be-2688cd6550a3';
+  let requestedAuditCategory='';let savedRoles=null;
+  await manage.route('**/functions/v1/api/api/v1/**',async route=>{
+    const request=route.request(),url=new URL(request.url()),path=url.pathname;
+    if(path.endsWith('/auth/me'))return route.fulfill({json:{id:userId,email:'qa-admin@example.com',full_name:'QA Admin',is_active:true,role_ids:[superRole],role_names:['super_admin']}});
+    if(path.endsWith('/admin/dashboard'))return route.fulfill({json:{requests:{total:7}}});
+    if(path.endsWith('/admin/users')&&request.method()==='GET')return route.fulfill({json:{users:[{id:userId,email:'qa-admin@example.com',full_name:'QA Admin',is_active:true,role_ids:[superRole],created_at:'2026-10-01T00:00:00Z'}]}});
+    if(path.endsWith('/admin/roles'))return route.fulfill({json:{roles:[{id:superRole,name:'super_admin',description:'Super administrator'},{id:staffRole,name:'foundation_staff',description:'Staff'}]}});
+    if(path.endsWith('/admin/audit-logs')){requestedAuditCategory=url.searchParams.get('category')||'all';return route.fulfill({json:{total:2,logs:[{created_at:new Date().toISOString(),action:'login.success',actor_email:'qa-admin@example.com',resource_type:'user',resource_id:userId,result:'success'},{created_at:new Date().toISOString(),action:'login.failure',actor_email:'unknown@example.com',resource_type:'user',result:'failure',metadata:{reason:'invalid_credentials'}}]}});}
+    if(path.endsWith('/roles')&&request.method()==='PATCH'){savedRoles=request.postDataJSON().role_ids;return route.fulfill({json:{updated:true}});}
+    if(path.endsWith('/status')&&request.method()==='PATCH')return route.fulfill({json:{updated:true,is_active:false}});
+    return route.fulfill({status:404,json:{error:{message:'Unmocked test route'}}});
+  });
+  await manage.goto(origin+'/manage/index.html');
+  await manage.getByRole('heading',{name:'System Infrastructure Overview'}).waitFor();
+  assert.equal(await manage.getByText('Active Campaigns',{exact:true}).count(),0);
+  await manage.getByRole('button',{name:'User Accounts'}).click();
+  await manage.locator(`#user-roles-${userId}`).waitFor();
+  await manage.locator(`#user-roles-${userId}`).selectOption([superRole,staffRole]);
+  const rolesResponse=manage.waitForResponse(response=>response.url().includes(`/admin/users/${userId}/roles`)&&response.request().method()==='PATCH');
+  await manage.getByRole('button',{name:'Save roles'}).click();
+  await rolesResponse;
+  assert.deepEqual(savedRoles,[superRole,staffRole]);
+  await manage.getByRole('button',{name:'Create New User'}).click();
+  const newPassword=manage.locator('#newPassword');
+  await manage.locator('#toggleNewPassword').click();assert.equal(await newPassword.getAttribute('type'),'text');
+  await manage.locator('#toggleNewPassword').click();assert.equal(await newPassword.getAttribute('type'),'password');
+  await manage.getByRole('button',{name:'Cancel'}).click();
+  await manage.getByRole('button',{name:'Audit Telemetry'}).click();
+  await manage.locator('#auditCategoryFilter').selectOption('login');
+  await manage.locator('#auditTableBody').getByText('login.failure',{exact:true}).waitFor();
+  assert.equal(requestedAuditCategory,'login');
+  assert.equal(await manage.locator('#auditTableBody tr').count(),2);
+  await manage.close();
+
+  const inactive=await browser.newPage();
+  await inactive.addInitScript(({token})=>localStorage.setItem('swan_admin_token',token),{token:manageToken});
+  await inactive.route('**/functions/v1/api/api/v1/auth/me',route=>route.fulfill({status:403,json:{error:{code:'ACCOUNT_INACTIVE',message:'This staff account is inactive. Please sign in again.'}}}));
+  await inactive.goto(origin+'/manage/index.html');
+  await inactive.waitForURL('**/super-admin/login.html?reason=deactivated');
+  await inactive.getByRole('alert').getByText(/account was deactivated/i).waitFor();
+  assert.equal(await inactive.evaluate(()=>localStorage.getItem('swan_admin_token')),null);
+  await inactive.close();
+  console.log('PASS super-admin categorized audit, role editing, create-user password toggle, campaign removal and deactivated-session redirect');
 }finally{await browser.close();server.close();}

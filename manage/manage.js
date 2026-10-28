@@ -1,7 +1,7 @@
 /**
  * WEBSITTER Manage — Super-Admin Platform Controller
  * Communicates with backend /api/v1/admin and /api/v1/auth services.
- * Features automatic offline/local fallback to window.SwanDB.
+ * Authorization and account data are always server-authoritative.
  */
 
 (function () {
@@ -11,7 +11,9 @@
 
     async function apiFetch(url, options) {
         const opts = options || {};
-        if (window.SwanAuth && window.SwanAuth.authorizedFetch) return window.SwanAuth.authorizedFetch(url, opts);
+        let response;
+        if (window.SwanAuth && window.SwanAuth.authorizedFetch) response = await window.SwanAuth.authorizedFetch(url, opts);
+        else {
         const headers = new Headers(opts.headers || {});
         try {
             const token = localStorage.getItem('swan_admin_token');
@@ -19,22 +21,52 @@
         } catch (_) {}
         opts.headers = headers;
         opts.credentials = 'include';
-        return fetch(url, opts);
+            response = await fetch(url, opts);
+        }
+        try {
+            if (localStorage.getItem('swan_admin_inactive') === '1') {
+                localStorage.removeItem('swan_admin_inactive');
+                window.WebsitterManage?.redirectInactive();
+            }
+        } catch (_) {}
+        if (response.status === 403 && !url.includes('/api/v1/auth/me')) {
+            try {
+                const token = localStorage.getItem('swan_admin_token');
+                const headers = token ? { Authorization: 'Bearer ' + token } : {};
+                const check = await fetch(`${API_BASE}/api/v1/auth/me`, { headers, credentials: 'include' });
+                const body = check.ok ? await check.json() : await check.json().catch(() => ({}));
+                if (body.error?.code === 'ACCOUNT_INACTIVE') window.WebsitterManage?.redirectInactive();
+                else if (check.ok && !body.role_names?.includes('super_admin')) window.location.replace('../super-admin/login.html?reason=access-changed');
+            } catch (_) {}
+        }
+        return response;
     }
-
-    const FALLBACK_ROLES = [
-        { id: 'role_super', name: 'super_admin', description: 'WEBSITTER Super Administrator with full unrestricted access', permissions: ['*'] },
-        { id: 'role_fadmin', name: 'foundation_admin', description: 'Foundation Executive / Administrator', permissions: ['campaigns.*', 'requests.*', 'documents.*', 'contact.*', 'audit.read'] },
-        { id: 'role_staff', name: 'websitter_staff', description: 'WEBSITTER Technical Staff', permissions: ['audit.read', 'users.read', 'roles.read'] },
-        { id: 'role_reviewer', name: 'foundation_reviewer', description: 'Case Reviewer & Verification Officer', permissions: ['requests.read', 'requests.manage', 'documents.read'] }
-    ];
 
     let currentUser = null;
     let cachedUsers = [];
-    let cachedRoles = FALLBACK_ROLES;
+    let cachedRoles = [];
 
     const WebsitterManage = {
         async init() {
+            try {
+                if (localStorage.getItem('swan_admin_inactive') === '1') {
+                    localStorage.removeItem('swan_admin_inactive');
+                    this.redirectInactive();
+                    return;
+                }
+            } catch (_) {}
+            const passwordToggle = document.getElementById('toggleNewPassword');
+            passwordToggle?.addEventListener('click', () => {
+                const input = document.getElementById('newPassword');
+                const visible = input.type === 'text';
+                input.type = visible ? 'password' : 'text';
+                passwordToggle.setAttribute('aria-label', visible ? 'Show password' : 'Hide password');
+                passwordToggle.title = visible ? 'Show password' : 'Hide password';
+                passwordToggle.setAttribute('aria-pressed', String(!visible));
+                passwordToggle.innerHTML = visible
+                    ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>'
+                    : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 5.2A10.6 10.6 0 0112 5c6.4 0 10 7 10 7a15.5 15.5 0 01-3.1 3.8M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7c1 0 1.9-.2 2.7-.5"/></svg>';
+            });
             // Check session
             try {
                 const meRes = await apiFetch(`${API_BASE}/api/v1/auth/me`, {
@@ -47,17 +79,18 @@
                         this.unlockConsole();
                         return;
                     }
-                }
-            } catch (err) {
-                // If API is down, check local session in SwanDB / SwanAuth
-                if (window.SwanAuth && window.SwanAuth.currentUser) {
-                    const localUser = window.SwanAuth.currentUser();
-                    if (localUser && this.isSuperAdminOrAdmin(localUser)) {
-                        currentUser = localUser;
-                        this.unlockConsole();
+                } else {
+                    const body = await meRes.json().catch(() => ({}));
+                    let refreshDetectedInactive = false;
+                    try { refreshDetectedInactive = localStorage.getItem('swan_admin_inactive') === '1'; } catch (_) {}
+                    if (body.error?.code === 'ACCOUNT_INACTIVE' || refreshDetectedInactive) {
+                        try { localStorage.removeItem('swan_admin_inactive'); } catch (_) {}
+                        this.redirectInactive();
                         return;
                     }
                 }
+            } catch (err) {
+                console.error('[WebsitterManage] Authentication service unavailable.');
             }
 
             // If not logged in, show auth gate
@@ -66,12 +99,15 @@
 
         isSuperAdminOrAdmin(user) {
             if (!user) return false;
-            if (user.role === 'super_admin' || user.role === 'admin') return true;
-            if (Array.isArray(user.role_names) && user.role_names.includes('super_admin')) return true;
-            if (Array.isArray(user.permissions) && (user.permissions.includes('*') || user.permissions.includes('users.read'))) {
-                return true;
-            }
-            return false;
+            return Array.isArray(user.role_names) && user.role_names.includes('super_admin');
+        },
+
+        redirectInactive() {
+            try {
+                localStorage.removeItem('swan_admin_token');
+                localStorage.removeItem('swan_admin_refresh_token');
+            } catch (_) {}
+            window.location.replace('../super-admin/login.html?reason=deactivated');
         },
 
         unlockConsole() {
@@ -82,6 +118,15 @@
             }
             this.refreshOverview();
             this.loadRoles();
+            if (!this.sessionCheckTimer) {
+                this.sessionCheckTimer = window.setInterval(async () => {
+                    try {
+                        const response = await apiFetch(`${API_BASE}/api/v1/auth/me`, { credentials: 'include' });
+                        const body = response.ok ? null : await response.json().catch(() => ({}));
+                        if (body?.error?.code === 'ACCOUNT_INACTIVE') this.redirectInactive();
+                    } catch (_) {}
+                }, 30000);
+            }
             const requestedTab = window.location.hash.replace(/^#/, '');
             if (['overview', 'users', 'roles', 'audit', 'system'].includes(requestedTab)) {
                 this.switchTab(requestedTab);
@@ -147,9 +192,11 @@
             } catch (e) {
                 // Ignore network errors on logout
             }
-            try { localStorage.removeItem('swan_admin_token'); } catch (_) {}
-            if (window.SwanAuth) window.SwanAuth.logout();
-            window.location.href = '../super-admin/login.html';
+            try {
+                localStorage.removeItem('swan_admin_token');
+                localStorage.removeItem('swan_admin_refresh_token');
+            } catch (_) {}
+            window.location.replace('../super-admin/login.html');
         },
 
         switchTab(tabName) {
@@ -169,7 +216,6 @@
 
         async refreshOverview() {
             let requestsCount = 0;
-            let campaignsCount = 8;
             let usersCount = 0;
             let auditCount = 0;
             let recentLogs = [];
@@ -184,7 +230,6 @@
                 if (dashRes && dashRes.ok) {
                     const dash = await dashRes.json();
                     requestsCount = dash.requests?.total ?? 0;
-                    campaignsCount = dash.campaigns?.active ?? 8;
                 }
 
                 if (usersRes && usersRes.ok) {
@@ -199,40 +244,12 @@
                     recentLogs = aData.logs || [];
                 }
             } catch (err) {
-                console.warn('[WebsitterManage] Using local overview metrics');
-            }
-
-            // Fallback metrics if empty
-            if (!usersCount && window.SwanDB && window.SwanDB.getUsers) {
-                const localUsers = window.SwanDB.getUsers();
-                cachedUsers = localUsers.map(u => ({
-                    id: u.id,
-                    full_name: u.full_name,
-                    email: u.email,
-                    role_ids: [u.role || 'staff'],
-                    is_active: true,
-                    created_at: u.created_at
-                }));
-                usersCount = cachedUsers.length;
-            }
-
-            if (!requestsCount && window.SwanDB && window.SwanDB.getHelpRequests) {
-                requestsCount = window.SwanDB.getHelpRequests().length;
-            }
-
-            if (!recentLogs.length) {
-                recentLogs = [
-                    { created_at: new Date().toISOString(), actor_id: 'usr_super', action: 'auth.login', entity_type: 'user', entity_id: 'usr_super', ip_address: '127.0.0.1' },
-                    { created_at: new Date(Date.now() - 3600000).toISOString(), actor_id: 'usr_admin', action: 'request.status_changed', entity_type: 'help_request', entity_id: 'STF-2026-000001', ip_address: '127.0.0.1' },
-                    { created_at: new Date(Date.now() - 7200000).toISOString(), actor_id: 'system', action: 'request.created', entity_type: 'help_request', entity_id: 'STF-2026-000001', ip_address: '127.0.0.1' }
-                ];
-                auditCount = 12;
+                console.error('[WebsitterManage] Overview data could not be loaded.');
             }
 
             document.getElementById('statRequestsCount').textContent = requestsCount;
-            document.getElementById('statCampaignsCount').textContent = campaignsCount;
-            document.getElementById('statUsersCount').textContent = usersCount || 3;
-            document.getElementById('statAuditCount').textContent = auditCount || recentLogs.length;
+            document.getElementById('statUsersCount').textContent = usersCount;
+            document.getElementById('statAuditCount').textContent = auditCount;
 
             this.renderRecentLogs(recentLogs);
         },
@@ -251,8 +268,8 @@
                     <td class="code-cell">${new Date(log.created_at).toLocaleString()}</td>
                     <td class="code-cell">${escapeHtml(log.actor_id || 'system')}</td>
                     <td><span class="role-badge">${escapeHtml(log.action || 'unknown')}</span></td>
-                    <td>${escapeHtml(log.entity_type || '-')} ${log.entity_id ? `(${log.entity_id})` : ''}</td>
-                    <td class="code-cell">${escapeHtml(log.ip_address || '-')}</td>
+                    <td>${escapeHtml(log.resource_type || '-')} ${log.resource_id ? `(${log.resource_id})` : ''}</td>
+                    <td class="code-cell">${escapeHtml(log.result || '-')}</td>
                 </tr>
             `).join('');
         },
@@ -263,26 +280,15 @@
 
             try {
                 const res = await apiFetch(`${API_BASE}/api/v1/admin/users`);
-                if (res.ok) {
-                    const data = await res.json();
-                    cachedUsers = data.users || [];
-                } else {
-                    throw new Error('API offline');
-                }
+                if (!res.ok) throw new Error('Unable to load accounts from the server.');
+                const data = await res.json();
+                cachedUsers = data.users || [];
+                this.renderUsers(cachedUsers);
             } catch (err) {
-                if (window.SwanDB && window.SwanDB.getUsers) {
-                    cachedUsers = window.SwanDB.getUsers().map(u => ({
-                        id: u.id,
-                        full_name: u.full_name,
-                        email: u.email,
-                        role_ids: [u.role || 'staff'],
-                        is_active: true,
-                        created_at: u.created_at
-                    }));
-                }
+                cachedUsers = [];
+                document.getElementById('userCountIndicator').textContent = 'Unavailable';
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#ff8a8a;">${escapeHtml(err.message || 'Account service unavailable.')} No local or stale data was substituted.</td></tr>`;
             }
-
-            this.renderUsers(cachedUsers);
         },
 
         renderUsers(users) {
@@ -298,15 +304,16 @@
             cachedRoles.forEach(r => { roleNameMap[r.id] = r.name; roleNameMap[r.name] = r.name; });
 
             tbody.innerHTML = users.map(u => {
-                const roleNames = (u.role_ids || []).map(rId => roleNameMap[rId] || rId).join(', ') || 'Staff';
+                const roleNames = (u.role_ids || []).map(rId => roleNameMap[rId] || rId).join(', ') || 'No role';
                 const roleClass = (u.role_ids && u.role_ids.length && u.role_ids[0].includes('super')) ? 'super_admin' : 'admin';
                 const isActive = u.is_active !== false;
+                const roleOptions = cachedRoles.map(role => `<option value="${escapeHtml(role.id)}" ${(u.role_ids || []).includes(role.id) ? 'selected' : ''}>${escapeHtml(role.name)}</option>`).join('');
 
                 return `
                     <tr>
                         <td><strong>${escapeHtml(u.full_name || 'Unnamed')}</strong></td>
                         <td class="code-cell">${escapeHtml(u.email)}</td>
-                        <td><span class="role-badge ${roleClass}">${escapeHtml(roleNames)}</span></td>
+                        <td><span class="role-badge ${roleClass}">${escapeHtml(roleNames)}</span><div style="display:flex;gap:6px;align-items:center;margin-top:8px;"><select id="user-roles-${escapeHtml(u.id)}" class="form-input" multiple size="3" aria-label="Roles for ${escapeHtml(u.email)}" style="min-width:150px;">${roleOptions}</select><button class="btn-action" onclick="WebsitterManage.saveUserRoles('${escapeHtml(u.id)}')" ${cachedRoles.length ? '' : 'disabled'}>Save roles</button></div></td>
                         <td>
                             <span class="status-badge ${isActive ? 'active' : 'inactive'}">
                                 ${isActive ? 'ACTIVE' : 'SUSPENDED'}
@@ -349,29 +356,58 @@
                     body: JSON.stringify({ is_active: targetActive })
                 });
 
-                if (!res.ok) throw new Error(`Failed to ${verb} user via API.`);
+                if (!res.ok) {
+                    const body = await res.json().catch(() => ({}));
+                    throw new Error(body.error?.message || `Failed to ${verb} user via API.`);
+                }
             } catch (err) {
-                // Update in cached list locally
-                const user = cachedUsers.find(u => u.id === userId);
-                if (user) user.is_active = targetActive;
+                alert(err.message || `Unable to ${verb} the account. No local changes were made.`);
+                return;
             }
             this.loadUsers();
+        },
+
+        async saveUserRoles(userId) {
+            const select = document.getElementById(`user-roles-${userId}`);
+            const roleIds = Array.from(select?.selectedOptions || []).map(option => option.value);
+            try {
+                const res = await apiFetch(`${API_BASE}/api/v1/admin/users/${encodeURIComponent(userId)}/roles`, {
+                    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role_ids: roleIds })
+                });
+                if (!res.ok) {
+                    const body = await res.json().catch(() => ({}));
+                    throw new Error(body.error?.message || 'Unable to update roles.');
+                }
+                const meRes = await apiFetch(`${API_BASE}/api/v1/auth/me`);
+                if (meRes.ok) {
+                    currentUser = await meRes.json();
+                    if (!this.isSuperAdminOrAdmin(currentUser)) {
+                        window.location.replace('../super-admin/login.html?reason=access-changed');
+                        return;
+                    }
+                }
+                await this.loadUsers();
+                this.refreshOverview();
+            } catch (err) {
+                alert(err.message || 'Unable to update roles. No local changes were made.');
+            }
         },
 
         async loadRoles() {
             try {
                 const res = await apiFetch(`${API_BASE}/api/v1/admin/roles`);
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.roles && data.roles.length) cachedRoles = data.roles;
-                }
+                if (!res.ok) throw new Error('Unable to load roles from the server.');
+                const data = await res.json();
+                cachedRoles = data.roles || [];
             } catch (err) {
-                // Uses FALLBACK_ROLES
+                cachedRoles = [];
+                console.error('[WebsitterManage] Role definitions unavailable.');
             }
 
             const tbody = document.getElementById('rolesTableBody');
             if (tbody) {
-                tbody.innerHTML = cachedRoles.map(r => `
+                tbody.innerHTML = cachedRoles.length ? cachedRoles.map(r => `
                     <tr>
                         <td><strong>${escapeHtml(r.name)}</strong></td>
                         <td style="color:var(--text-muted);">${escapeHtml(r.description || '-')}</td>
@@ -383,7 +419,7 @@
                             </div>
                         </td>
                     </tr>
-                `).join('');
+                `).join('') : '<tr><td colspan="3" style="text-align:center;color:var(--text-dim);">Role definitions could not be loaded.</td></tr>';
             }
 
             // Populate modal role dropdown
@@ -397,6 +433,10 @@
 
         openCreateUserModal() {
             document.getElementById('createUserForm').reset();
+            const password = document.getElementById('newPassword');
+            const toggle = document.getElementById('toggleNewPassword');
+            if (password) password.type = 'password';
+            if (toggle) { toggle.setAttribute('aria-pressed', 'false'); toggle.setAttribute('aria-label', 'Show password'); toggle.title = 'Show password'; }
             document.getElementById('createUserModal').classList.remove('hidden');
         },
 
@@ -432,77 +472,45 @@
                     const errData = await res.json().catch(() => ({}));
                     throw new Error((errData.error && errData.error.message) || 'Failed to create user account.');
                 }
+                this.closeCreateUserModal();
+                alert(`Account registered successfully for ${email}`);
+                this.loadUsers();
+                this.refreshOverview();
             } catch (err) {
-                // Fallback store in SwanDB
-                if (window.SwanDB && window.SwanDB.createUser) {
-                    window.SwanDB.createUser({
-                        full_name: fullName,
-                        email: email,
-                        password_hash: password,
-                        role: 'staff'
-                    });
-                } else {
-                    cachedUsers.push({
-                        id: 'usr_' + Date.now(),
-                        full_name: fullName,
-                        email: email,
-                        role_ids: [roleId],
-                        is_active: true,
-                        created_at: new Date().toISOString()
-                    });
-                }
+                alert(err.message || 'The account was not created. No local account was substituted.');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Create Account';
             }
-
-            this.closeCreateUserModal();
-            alert(`Account registered successfully for ${email}`);
-            this.loadUsers();
-            this.refreshOverview();
         },
 
         async loadAuditLogs() {
             const tbody = document.getElementById('auditTableBody');
             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);">Loading audit trail...</td></tr>';
-
-            let logs = [];
+            const category = document.getElementById('auditCategoryFilter')?.value || 'all';
             try {
-                const res = await apiFetch(`${API_BASE}/api/v1/admin/audit-logs?page=1&page_size=50`);
-                if (res.ok) {
-                    const data = await res.json();
-                    logs = data.logs || [];
+                const res = await apiFetch(`${API_BASE}/api/v1/admin/audit-logs?page=1&page_size=100&category=${encodeURIComponent(category)}`);
+                if (!res.ok) throw new Error('Unable to load audit records.');
+                const data = await res.json();
+                const logs = data.logs || [];
+                if (!logs.length) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);">No audit records match this filter.</td></tr>';
+                    return;
                 }
+                tbody.innerHTML = logs.map(log => {
+                    const details = log.metadata ? JSON.stringify(log.metadata) : '-';
+                    return `<tr>
+                        <td class="code-cell">${new Date(log.created_at).toLocaleString()}</td>
+                        <td><span class="role-badge">${escapeHtml(log.action || 'ACTION')}</span></td>
+                        <td class="code-cell">${escapeHtml(log.actor_email || log.actor_id || 'system')}</td>
+                        <td>${escapeHtml(log.resource_type || '-')} ${log.resource_id ? `(${escapeHtml(log.resource_id)})` : ''}</td>
+                        <td>${escapeHtml(log.result || '-')}</td>
+                        <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text-muted);" title="${escapeHtml(details)}">${escapeHtml(details)}</td>
+                    </tr>`;
+                }).join('');
             } catch (err) {
-                // Fallback audit entries
-                logs = [
-                    { created_at: new Date().toISOString(), action: 'auth.login', actor_id: 'usr_super', entity_type: 'user', entity_id: 'usr_super', ip_address: '127.0.0.1', details: { method: 'credential_auth' } },
-                    { created_at: new Date(Date.now() - 1800000).toISOString(), action: 'request.status_changed', actor_id: 'usr_admin', entity_type: 'help_request', entity_id: 'STF-2026-000001', ip_address: '127.0.0.1', details: { from: 'pending', to: 'under_review' } },
-                    { created_at: new Date(Date.now() - 3600000).toISOString(), action: 'user.created', actor_id: 'usr_super', entity_type: 'user', entity_id: 'usr_admin', ip_address: '127.0.0.1', details: { email: 'admin@swanturbinesfoundation.com' } },
-                    { created_at: new Date(Date.now() - 7200000).toISOString(), action: 'request.created', actor_id: 'anonymous', entity_type: 'help_request', entity_id: 'STF-2026-000001', ip_address: '127.0.0.1', details: { urgency: 'urgent' } }
-                ];
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#ff8a8a;">${escapeHtml(err.message || 'Audit service unavailable.')}</td></tr>`;
             }
-
-            if (!logs.length) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);">No audit records found.</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = logs.map(l => {
-                const detailsStr = l.details ? JSON.stringify(l.details) : '-';
-                return `
-                    <tr>
-                        <td class="code-cell">${new Date(l.created_at).toLocaleString()}</td>
-                        <td><span class="role-badge">${escapeHtml(l.action || 'ACTION')}</span></td>
-                        <td class="code-cell">${escapeHtml(l.actor_id || 'system')}</td>
-                        <td>${escapeHtml(l.entity_type || '-')} ${l.entity_id ? `(${l.entity_id})` : ''}</td>
-                        <td class="code-cell">${escapeHtml(l.ip_address || '-')}</td>
-                        <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text-muted);" title="${escapeHtml(detailsStr)}">
-                            ${escapeHtml(detailsStr)}
-                        </td>
-                    </tr>
-                `;
-            }).join('');
         }
     };
 
