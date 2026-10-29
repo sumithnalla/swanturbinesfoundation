@@ -67,6 +67,11 @@
                     ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>'
                     : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 5.2A10.6 10.6 0 0112 5c6.4 0 10 7 10 7a15.5 15.5 0 01-3.1 3.8M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7c1 0 1.9-.2 2.7-.5"/></svg>';
             });
+            this.initMobileNavigation();
+            document.getElementById('newRoleOptions')?.addEventListener('change', () => {
+                const roleError = document.getElementById('newRoleError');
+                if (roleError) roleError.hidden = true;
+            });
             // Check session
             try {
                 const meRes = await apiFetch(`${API_BASE}/api/v1/auth/me`, {
@@ -208,6 +213,7 @@
 
             const targetBtn = document.querySelector(`.nav-item[data-tab="${tabName}"]`);
             if (targetBtn) targetBtn.classList.add('active');
+            this.closeMobileNavigation();
 
             if (tabName === 'users') this.loadUsers();
             if (tabName === 'roles') this.loadRoles();
@@ -305,22 +311,22 @@
 
             tbody.innerHTML = users.map(u => {
                 const roleNames = (u.role_ids || []).map(rId => roleNameMap[rId] || rId).join(', ') || 'No role';
-                const roleClass = (u.role_ids && u.role_ids.length && u.role_ids[0].includes('super')) ? 'super_admin' : 'admin';
+                const roleClass = (u.role_ids || []).some(id => (roleNameMap[id] || '').toLowerCase() === 'super_admin') ? 'super_admin' : 'admin';
                 const isActive = u.is_active !== false;
-                const roleOptions = cachedRoles.map(role => `<option value="${escapeHtml(role.id)}" ${(u.role_ids || []).includes(role.id) ? 'selected' : ''}>${escapeHtml(role.name)}</option>`).join('');
+                const roleOptions = cachedRoles.map(role => `<label class="role-choice"><input class="user-role-checkbox" type="checkbox" data-user-id="${escapeHtml(u.id)}" value="${escapeHtml(role.id)}" ${(u.role_ids || []).includes(role.id) ? 'checked' : ''}><span><strong>${escapeHtml(role.name)}</strong><small>${escapeHtml(role.description || '')}</small></span></label>`).join('');
 
                 return `
                     <tr>
-                        <td><strong>${escapeHtml(u.full_name || 'Unnamed')}</strong></td>
-                        <td class="code-cell">${escapeHtml(u.email)}</td>
-                        <td><span class="role-badge ${roleClass}">${escapeHtml(roleNames)}</span><div style="display:flex;gap:6px;align-items:center;margin-top:8px;"><select id="user-roles-${escapeHtml(u.id)}" class="form-input" multiple size="3" aria-label="Roles for ${escapeHtml(u.email)}" style="min-width:150px;">${roleOptions}</select><button class="btn-action" onclick="WebsitterManage.saveUserRoles('${escapeHtml(u.id)}')" ${cachedRoles.length ? '' : 'disabled'}>Save roles</button></div></td>
-                        <td>
+                        <td data-label="User"><strong>${escapeHtml(u.full_name || 'Unnamed')}</strong></td>
+                        <td data-label="Email" class="code-cell">${escapeHtml(u.email)}</td>
+                        <td data-label="Roles"><span class="role-badge ${roleClass}">${escapeHtml(roleNames)}</span><details class="role-editor"><summary>Edit roles</summary><div class="role-choice-list" aria-label="Roles for ${escapeHtml(u.email)}">${roleOptions}</div><button class="btn-action" type="button" onclick="WebsitterManage.saveUserRoles('${escapeHtml(u.id)}')" ${cachedRoles.length ? '' : 'disabled'}>Save roles</button></details></td>
+                        <td data-label="Status">
                             <span class="status-badge ${isActive ? 'active' : 'inactive'}">
                                 ${isActive ? 'ACTIVE' : 'SUSPENDED'}
                             </span>
                         </td>
-                        <td>${u.created_at ? new Date(u.created_at).toLocaleDateString() : '-'}</td>
-                        <td>
+                        <td data-label="Created">${u.created_at ? new Date(u.created_at).toLocaleDateString() : '-'}</td>
+                        <td data-label="Actions" class="user-actions-cell">
                             <button class="btn-action ${isActive ? 'toggle-off' : ''}" onclick="WebsitterManage.toggleUserStatus('${u.id}', ${isActive})">
                                 ${isActive ? 'Deactivate' : 'Activate'}
                             </button>
@@ -368,8 +374,8 @@
         },
 
         async saveUserRoles(userId) {
-            const select = document.getElementById(`user-roles-${userId}`);
-            const roleIds = Array.from(select?.selectedOptions || []).map(option => option.value);
+            const roleIds = Array.from(document.querySelectorAll('.user-role-checkbox:checked')).filter(input => input.dataset.userId === userId).map(input => input.value);
+            if (!roleIds.length) { alert('Assign at least one role to the account.'); return; }
             try {
                 const res = await apiFetch(`${API_BASE}/api/v1/admin/users/${encodeURIComponent(userId)}/roles`, {
                     method: 'PATCH', headers: { 'Content-Type': 'application/json' },
@@ -423,16 +429,18 @@
             }
 
             // Populate modal role dropdown
-            const select = document.getElementById('newRoleSelect');
-            if (select) {
-                select.innerHTML = cachedRoles.map(r => `
-                    <option value="${r.id}">${escapeHtml(r.name)} (${escapeHtml(r.description || '')})</option>
-                `).join('');
+            const roleOptions = document.getElementById('newRoleOptions');
+            if (roleOptions) {
+                roleOptions.innerHTML = cachedRoles.map(r => `
+                    <label class="role-choice"><input type="checkbox" name="newRoleIds" value="${escapeHtml(r.id)}"><span><strong>${escapeHtml(r.name)}</strong><small>${escapeHtml(r.description || '')}</small></span></label>
+                `).join('') || '<p class="role-empty">No roles are available.</p>';
             }
         },
 
         openCreateUserModal() {
             document.getElementById('createUserForm').reset();
+            const roleError = document.getElementById('newRoleError');
+            if (roleError) { roleError.hidden = true; roleError.textContent = ''; }
             const password = document.getElementById('newPassword');
             const toggle = document.getElementById('toggleNewPassword');
             if (password) password.type = 'password';
@@ -453,7 +461,14 @@
             const fullName = document.getElementById('newFullName').value.trim();
             const email = document.getElementById('newEmail').value.trim().toLowerCase();
             const password = document.getElementById('newPassword').value;
-            const roleId = document.getElementById('newRoleSelect').value;
+            const roleIds = Array.from(document.querySelectorAll('input[name="newRoleIds"]:checked')).map(input => input.value);
+            if (!roleIds.length) {
+                document.getElementById('newRoleError').textContent = 'Choose at least one role for this user.';
+                document.getElementById('newRoleError').hidden = false;
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Account';
+                return;
+            }
 
             try {
                 const res = await apiFetch(`${API_BASE}/api/v1/admin/users`, {
@@ -464,7 +479,7 @@
                         full_name: fullName,
                         email: email,
                         password: password,
-                        role_ids: roleId ? [roleId] : []
+                        role_ids: roleIds
                     })
                 });
 
@@ -512,6 +527,43 @@
                 tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#ff8a8a;">${escapeHtml(err.message || 'Audit service unavailable.')}</td></tr>`;
             }
         }
+    };
+
+    WebsitterManage.initMobileNavigation = function () {
+        const sidebar = document.querySelector('.manage-sidebar');
+        const header = document.querySelector('.manage-header');
+        if (!sidebar || !header || document.getElementById('manageNavToggle')) return;
+        const button = document.createElement('button');
+        button.id = 'manageNavToggle';
+        button.className = 'manage-menu-toggle';
+        button.type = 'button';
+        button.setAttribute('aria-controls', 'manageSidebar');
+        button.setAttribute('aria-expanded', 'false');
+        button.setAttribute('aria-label', 'Open navigation');
+        button.innerHTML = '<span></span><span></span><span></span>';
+        sidebar.id = 'manageSidebar';
+        header.querySelector('.brand-cluster')?.prepend(button);
+        const backdrop = document.createElement('button');
+        backdrop.className = 'manage-nav-backdrop';
+        backdrop.type = 'button';
+        backdrop.setAttribute('aria-label', 'Close navigation');
+        document.body.append(backdrop);
+        button.addEventListener('click', () => {
+            const open = sidebar.classList.toggle('open');
+            backdrop.classList.toggle('open', open);
+            button.setAttribute('aria-expanded', String(open));
+            button.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+        });
+        backdrop.addEventListener('click', () => this.closeMobileNavigation());
+        document.addEventListener('keydown', event => { if (event.key === 'Escape') this.closeMobileNavigation(); });
+    };
+
+    WebsitterManage.closeMobileNavigation = function () {
+        document.querySelector('.manage-sidebar')?.classList.remove('open');
+        document.querySelector('.manage-nav-backdrop')?.classList.remove('open');
+        const button = document.getElementById('manageNavToggle');
+        button?.setAttribute('aria-expanded', 'false');
+        button?.setAttribute('aria-label', 'Open navigation');
     };
 
     function escapeHtml(str) {

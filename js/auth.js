@@ -657,7 +657,49 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         Auth.updateHeaderUI();
+        Auth.initAdminMobileNavigation();
     });
+
+    Auth.initAdminMobileNavigation = function () {
+        const sidebar = document.getElementById('admSidebar');
+        const topbar = document.querySelector('.adm-topbar');
+        const shell = document.querySelector('.adm-shell');
+        if (!sidebar || !topbar || !shell || document.getElementById('admMobileMenuToggle')) return;
+
+        const toggle = document.createElement('button');
+        toggle.id = 'admMobileMenuToggle';
+        toggle.className = 'adm-mobile-menu-toggle';
+        toggle.type = 'button';
+        toggle.setAttribute('aria-controls', sidebar.id);
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.setAttribute('aria-label', 'Open navigation');
+        toggle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
+        topbar.prepend(toggle);
+
+        const backdrop = document.createElement('button');
+        backdrop.className = 'adm-sidebar-backdrop';
+        backdrop.type = 'button';
+        backdrop.setAttribute('aria-label', 'Close navigation');
+        shell.append(backdrop);
+
+        const close = () => {
+            sidebar.classList.remove('open');
+            backdrop.classList.remove('open');
+            toggle.setAttribute('aria-expanded', 'false');
+            toggle.setAttribute('aria-label', 'Open navigation');
+        };
+        toggle.addEventListener('click', () => {
+            const open = sidebar.classList.toggle('open');
+            backdrop.classList.toggle('open', open);
+            toggle.setAttribute('aria-expanded', String(open));
+            toggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+        });
+        backdrop.addEventListener('click', close);
+        sidebar.addEventListener('click', event => {
+            if (event.target.closest('a.adm-nav-item')) close();
+        });
+        document.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
+    };
 
     window.SwanAuth = Auth;
 })();

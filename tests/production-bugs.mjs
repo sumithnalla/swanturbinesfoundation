@@ -46,7 +46,17 @@ async function upload(request,files,token=request.document_upload_token) {
 try {
   const pre=await fetch(api+'/requests',{method:'OPTIONS',headers:{Origin:origin,'Access-Control-Request-Method':'POST'}});
   assert.equal(pre.headers.get('access-control-allow-origin'),origin);pass('production-origin CORS');
-  staff=await staffUser('foundation_admin');const reviewer=await staffUser('foundation_reviewer');
+  staff=await staffUser('foundation_admin');const reviewer=await staffUser('foundation_reviewer');const superAdmin=await staffUser('super_admin');
+  const roleResponse=await call('/admin/roles',{token:superAdmin.token});assert.equal(roleResponse.status,200);
+  const adminRole=roleResponse.data.roles.find(r=>r.name==='foundation_admin')?.id,reviewerRole=roleResponse.data.roles.find(r=>r.name==='foundation_reviewer')?.id;assert.ok(adminRole&&reviewerRole);
+  const multiEmail='swan-bugs-multi-'+randomUUID()+'@example.com',multiPassword=randomBytes(24).toString('base64url')+'aA1!';
+  assert.equal((await call('/admin/users',{method:'POST',token:reviewer.token,body:{full_name:'Unauthorized Multi Role QA',email:multiEmail,password:multiPassword,role_ids:[adminRole,reviewerRole]}})).status,403,'reviewer cannot create accounts');
+  const multiCreated=await call('/admin/users',{method:'POST',token:superAdmin.token,body:{full_name:'Disposable Multi Role QA',email:multiEmail,password:multiPassword,role_ids:[adminRole,reviewerRole]}});assert.equal(multiCreated.status,201);users.push(multiCreated.data.user.id);
+  const multiLogin=await call('/auth/login',{method:'POST',body:{email:multiEmail,password:multiPassword}});assert.equal(multiLogin.status,200);assert.deepEqual([...multiLogin.data.user.role_names].sort(),['foundation_admin','foundation_reviewer'].sort());
+  const multiDetail=await call('/contact/admin',{token:multiLogin.data.access_token});assert.equal(multiDetail.status,200,'combined account retains permissions granted by assigned roles');
+  assert.equal((await call('/admin/users/'+multiCreated.data.user.id+'/roles',{method:'PATCH',token:superAdmin.token,body:{role_ids:[reviewerRole,adminRole]}})).status,200,'authorized role set can be replaced');
+  assert.equal((await call('/admin/users',{method:'POST',token:superAdmin.token,body:{full_name:'Invalid Multi Role QA',email:'swan-bugs-invalid-'+randomUUID()+'@example.com',password:multiPassword,role_ids:[adminRole,'00000000-0000-0000-0000-000000000000']}})).status,422,'invalid roles rejected and account creation rolled back');
+  pass('multi-role account creation/editing, combined role claims, authorization boundary and invalid-role rollback');
   for(const path of ['/contact/admin','/requests/admin']) assert.equal((await call(path)).status,403);
   assert.equal((await call('/contact/admin',{token:reviewer.token})).status,403);
   pass('anonymous denied; reviewer cannot access contacts');
@@ -158,7 +168,7 @@ try {
     }catch(error){clean=false;console.error('CLEANUP requires inspection for disposable request '+request.reference+': '+error.message);}
   }
   for(const id of contacts){await rest('/rest/v1/contact_submissions?id=eq.'+id,{method:'DELETE'});await rest('/rest/v1/audit_logs?resource_id=eq.'+id,{method:'DELETE'});}
-  for(const id of users){await rest('/rest/v1/audit_logs?actor_id=eq.'+id,{method:'DELETE'});await rest('/rest/v1/user_roles?user_id=eq.'+id,{method:'DELETE'});const result=await rest('/auth/v1/admin/users/'+id,{method:'DELETE'});if(result.status!==200)clean=false;}
+  for(const id of users){await rest('/rest/v1/audit_logs?actor_id=eq.'+id,{method:'DELETE'});await rest('/rest/v1/audit_logs?resource_id=eq.'+id,{method:'DELETE'});await rest('/rest/v1/user_roles?user_id=eq.'+id,{method:'DELETE'});const result=await rest('/auth/v1/admin/users/'+id,{method:'DELETE'});if(result.status!==200)clean=false;}
   if(!clean)throw new Error('Disposable cleanup incomplete; see exact references above.');
   pass('disposable documents/folders, requests, messages, auth accounts and test-only audit cleanup');
 }

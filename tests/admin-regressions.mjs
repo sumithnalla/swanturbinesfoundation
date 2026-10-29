@@ -34,6 +34,12 @@ try{
     await button.click({force:true});await page.getByRole('alert').waitFor({state:'visible'});
     assert.equal(logins,1,'busy form must not issue duplicate authentication requests');
     assert.equal(await button.isEnabled(),true);assert.equal(await button.innerText(),route.includes('super-admin')?'Authorize Super Admin':'Sign in to Company Admin');
+    for(const width of [320,375,390,430,600,768,900,1024,1366,1920]){
+      await page.setViewportSize({width,height:900});
+      const overflow=await page.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,card:document.querySelector('main').getBoundingClientRect().toJSON()}));
+      assert.ok(overflow.scrollWidth<=overflow.width+1,`${route} horizontal overflow at ${width}px: ${overflow.scrollWidth}`);
+      assert.ok(overflow.card.left>=-1&&overflow.card.right<=width+1,`${route} card clipped at ${width}px`);
+    }
     await page.close();
   }
   console.log('PASS company and super-admin password visibility, busy state, duplicate prevention, error recovery');
@@ -54,6 +60,14 @@ try{
   await page.getByRole('columnheader',{name:'Contact'}).waitFor();
   assert.equal(await page.locator('.custom-data-table').count(),1);
   assert.ok(await page.locator('.table-responsive-wrapper').evaluate(el=>el.scrollWidth>=el.clientWidth));
+  for(const width of [320,375,390,430,600,768,900,1024,1366,1920]){
+    await page.setViewportSize({width,height:900});
+    const sizing=await page.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,menu:getComputedStyle(document.querySelector('.adm-mobile-menu-toggle')).display,table:getComputedStyle(document.querySelector('.contact-data-table')).display}));
+    assert.ok(sizing.scrollWidth<=width+1,`company admin horizontal overflow at ${width}px: ${sizing.scrollWidth}`);
+    if(width<=768)assert.notEqual(sizing.menu,'none',`company mobile navigation missing at ${width}px`);
+    if(width<=600)assert.equal(sizing.table,'block',`contact table did not transform to cards at ${width}px`);
+  }
+  await page.setViewportSize({width:375,height:812});
   await page.goto(origin+'/admin-contact-detail.html?id='+id);
   await page.getByRole('heading',{name:'Contact Message'}).waitFor();
   await page.getByRole('link',{name:'Reply by Email'}).waitFor();
@@ -64,38 +78,58 @@ try{
   const manageToken='header.'+Buffer.from(JSON.stringify({exp:Math.floor(Date.now()/1000)+3600})).toString('base64url')+'.signature';
   await manage.addInitScript(({token})=>{localStorage.setItem('swan_admin_token',token);window.confirm=()=>true;window.alert=()=>{};},{token:manageToken});
   const userId='3c9c2e84-64c1-4f77-8fa3-732ff36c5f5b',superRole='d29a2471-84de-4fc9-9f53-46f7c1f5cb15',staffRole='70ed1b2c-074e-4665-b0be-2688cd6550a3';
-  let requestedAuditCategory='';let savedRoles=null;
+  let requestedAuditCategory='';let savedRoles=null;let createdRoles=null;
   await manage.route('**/functions/v1/api/api/v1/**',async route=>{
     const request=route.request(),url=new URL(request.url()),path=url.pathname;
     if(path.endsWith('/auth/me'))return route.fulfill({json:{id:userId,email:'qa-admin@example.com',full_name:'QA Admin',is_active:true,role_ids:[superRole],role_names:['super_admin']}});
     if(path.endsWith('/admin/dashboard'))return route.fulfill({json:{requests:{total:7}}});
     if(path.endsWith('/admin/users')&&request.method()==='GET')return route.fulfill({json:{users:[{id:userId,email:'qa-admin@example.com',full_name:'QA Admin',is_active:true,role_ids:[superRole],created_at:'2026-10-01T00:00:00Z'}]}});
+    if(path.endsWith('/admin/users')&&request.method()==='POST'){createdRoles=request.postDataJSON().role_ids;return route.fulfill({status:201,json:{user:{id:'qa-created',role_ids:createdRoles}}});}
     if(path.endsWith('/admin/roles'))return route.fulfill({json:{roles:[{id:superRole,name:'super_admin',description:'Super administrator'},{id:staffRole,name:'foundation_staff',description:'Staff'}]}});
     if(path.endsWith('/admin/audit-logs')){requestedAuditCategory=url.searchParams.get('category')||'all';return route.fulfill({json:{total:2,logs:[{created_at:new Date().toISOString(),action:'login.success',actor_email:'qa-admin@example.com',resource_type:'user',resource_id:userId,result:'success'},{created_at:new Date().toISOString(),action:'login.failure',actor_email:'unknown@example.com',resource_type:'user',result:'failure',metadata:{reason:'invalid_credentials'}}]}});}
     if(path.endsWith('/roles')&&request.method()==='PATCH'){savedRoles=request.postDataJSON().role_ids;return route.fulfill({json:{updated:true}});}
     if(path.endsWith('/status')&&request.method()==='PATCH')return route.fulfill({json:{updated:true,is_active:false}});
+    if(path.endsWith('/auth/logout'))return route.fulfill({json:{message:'Logged out'}});
     return route.fulfill({status:404,json:{error:{message:'Unmocked test route'}}});
   });
   await manage.goto(origin+'/manage/index.html');
   await manage.getByRole('heading',{name:'System Infrastructure Overview'}).waitFor();
   assert.equal(await manage.getByText('Active Campaigns',{exact:true}).count(),0);
-  await manage.getByRole('button',{name:'User Accounts'}).click();
-  await manage.locator(`#user-roles-${userId}`).waitFor();
-  await manage.locator(`#user-roles-${userId}`).selectOption([superRole,staffRole]);
+  for(const width of [320,375,390,430,600,768,900,1024,1366,1920]){
+    await manage.setViewportSize({width,height:900});
+    const sizing=await manage.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,menu:getComputedStyle(document.querySelector('.manage-menu-toggle')).display}));
+    assert.ok(sizing.scrollWidth<=width+1,`super-admin horizontal overflow at ${width}px: ${sizing.scrollWidth}`);
+    if(width<=900)assert.notEqual(sizing.menu,'none',`super-admin mobile navigation missing at ${width}px`);
+  }
+  await manage.setViewportSize({width:375,height:812});
+  await manage.locator('#manageNavToggle').click();assert.equal(await manage.locator('.manage-sidebar').evaluate(el=>el.classList.contains('open')),true);
+  await manage.getByRole('button',{name:'User Accounts'}).click();assert.equal(await manage.locator('.manage-sidebar').evaluate(el=>el.classList.contains('open')),false);
+  await manage.locator(`#usersTable tr:has([data-user-id="${userId}"])`).getByText('Edit roles').click();
+  await manage.locator(`.user-role-checkbox[data-user-id="${userId}"][value="${staffRole}"]`).check();
   const rolesResponse=manage.waitForResponse(response=>response.url().includes(`/admin/users/${userId}/roles`)&&response.request().method()==='PATCH');
   await manage.getByRole('button',{name:'Save roles'}).click();
   await rolesResponse;
   assert.deepEqual(savedRoles,[superRole,staffRole]);
   await manage.getByRole('button',{name:'Create New User'}).click();
+  await manage.setViewportSize({width:320,height:812});
+  assert.ok(await manage.locator('#createUserModal .modal-content').evaluate(el=>el.getBoundingClientRect().right<=innerWidth+1));
   const newPassword=manage.locator('#newPassword');
   await manage.locator('#toggleNewPassword').click();assert.equal(await newPassword.getAttribute('type'),'text');
   await manage.locator('#toggleNewPassword').click();assert.equal(await newPassword.getAttribute('type'),'password');
-  await manage.getByRole('button',{name:'Cancel'}).click();
+  await manage.locator('#newFullName').fill('QA Created User');await manage.locator('#newEmail').fill('qa-created@example.com');await newPassword.fill('Disposable-QA-Password1');
+  await manage.locator('input[name="newRoleIds"]').nth(0).check();await manage.locator('input[name="newRoleIds"]').nth(1).check();
+  const createResponse=manage.waitForResponse(response=>response.url().endsWith('/admin/users')&&response.request().method()==='POST');
+  await manage.getByRole('button',{name:'Create Account'}).click();await createResponse;assert.deepEqual(createdRoles,[superRole,staffRole]);
+  await manage.locator('#manageNavToggle').click();
   await manage.getByRole('button',{name:'Audit Telemetry'}).click();
   await manage.locator('#auditCategoryFilter').selectOption('login');
   await manage.locator('#auditTableBody').getByText('login.failure',{exact:true}).waitFor();
   assert.equal(requestedAuditCategory,'login');
   assert.equal(await manage.locator('#auditTableBody tr').count(),2);
+  await manage.getByRole('button',{name:'Log out'}).click();await manage.waitForURL('**/super-admin/login.html');
+  const loginToggle=manage.locator('#togglePassword'),loginPassword=manage.locator('#password');
+  assert.equal(await loginPassword.getAttribute('type'),'password');await loginToggle.click();assert.equal(await loginPassword.getAttribute('type'),'text');
+  await manage.reload();assert.equal(await manage.locator('#password').getAttribute('type'),'password');
   await manage.close();
 
   const inactive=await browser.newPage();
@@ -106,5 +140,5 @@ try{
   await inactive.getByRole('alert').getByText(/account was deactivated/i).waitFor();
   assert.equal(await inactive.evaluate(()=>localStorage.getItem('swan_admin_token')),null);
   await inactive.close();
-  console.log('PASS super-admin categorized audit, role editing, create-user password toggle, campaign removal and deactivated-session redirect');
+  console.log('PASS super-admin categorized audit, multi-role create/edit, mobile nav, post-logout password toggle, campaign removal and deactivated-session redirect');
 }finally{await browser.close();server.close();}
