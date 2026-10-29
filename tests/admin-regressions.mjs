@@ -34,7 +34,7 @@ try{
     await button.click({force:true});await page.getByRole('alert').waitFor({state:'visible'});
     assert.equal(logins,1,'busy form must not issue duplicate authentication requests');
     assert.equal(await button.isEnabled(),true);assert.equal(await button.innerText(),route.includes('super-admin')?'Authorize Super Admin':'Sign in to Company Admin');
-    for(const width of [320,375,390,430,600,768,900,1024,1366,1920]){
+    for(const width of [320,375,390,430,600,712,768,884,900,1024,1366,1920]){
       await page.setViewportSize({width,height:900});
       const overflow=await page.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,card:document.querySelector('main').getBoundingClientRect().toJSON()}));
       assert.ok(overflow.scrollWidth<=overflow.width+1,`${route} horizontal overflow at ${width}px: ${overflow.scrollWidth}`);
@@ -60,7 +60,7 @@ try{
   await page.getByRole('columnheader',{name:'Contact'}).waitFor();
   assert.equal(await page.locator('.custom-data-table').count(),1);
   assert.ok(await page.locator('.table-responsive-wrapper').evaluate(el=>el.scrollWidth>=el.clientWidth));
-  for(const width of [320,375,390,430,600,768,900,1024,1366,1920]){
+  for(const width of [320,375,390,430,600,712,768,884,900,1024,1366,1920]){
     await page.setViewportSize({width,height:900});
     const sizing=await page.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,menu:getComputedStyle(document.querySelector('.adm-mobile-menu-toggle')).display,table:getComputedStyle(document.querySelector('.contact-data-table')).display}));
     assert.ok(sizing.scrollWidth<=width+1,`company admin horizontal overflow at ${width}px: ${sizing.scrollWidth}`);
@@ -95,7 +95,7 @@ try{
   await manage.goto(origin+'/manage/index.html');
   await manage.getByRole('heading',{name:'System Infrastructure Overview'}).waitFor();
   assert.equal(await manage.getByText('Active Campaigns',{exact:true}).count(),0);
-  for(const width of [320,375,390,430,600,768,900,1024,1366,1920]){
+  for(const width of [320,375,390,430,600,712,768,884,900,1024,1366,1920]){
     await manage.setViewportSize({width,height:900});
     const sizing=await manage.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,menu:getComputedStyle(document.querySelector('.manage-menu-toggle')).display}));
     assert.ok(sizing.scrollWidth<=width+1,`super-admin horizontal overflow at ${width}px: ${sizing.scrollWidth}`);
