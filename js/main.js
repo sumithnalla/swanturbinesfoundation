@@ -267,7 +267,8 @@ function applyPublicSiteCleanup() {
         } else if (/how\.html/i.test(onClick + ' ' + href)) {
             element.remove();
         } else if (/refund-policy\.html/i.test(onClick + ' ' + href)) {
-            if (element.tagName === 'A') element.replaceWith(document.createTextNode(text.trim()));
+            if (element.closest('footer, .footer, .footer-bottom')) element.remove();
+            else if (element.tagName === 'A') element.replaceWith(document.createTextNode(text.trim()));
             else element.remove();
         } else if (/^resources$/i.test(text.trim())) {
             element.textContent = 'Our Works';

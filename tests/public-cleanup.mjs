@@ -43,6 +43,7 @@ try {
         prominentRequestHelp: Array.from(document.querySelectorAll('.site-nav .start-btn')).filter(el => visible(el) && /request help/i.test(el.textContent)),
         howLinks: Array.from(document.querySelectorAll('a[href],button[onclick]')).filter(el => /how\.html/i.test((el.getAttribute('href') || '') + ' ' + (el.getAttribute('onclick') || ''))),
         refundLinks: Array.from(document.querySelectorAll('a[href],button[onclick]')).filter(el => /refund-policy\.html/i.test((el.getAttribute('href') || '') + ' ' + (el.getAttribute('onclick') || ''))),
+        footerRefundLabels: Array.from(document.querySelectorAll('footer, .footer, .footer-bottom')).filter(el => /refund\s*(?:\/|and)?\s*cancellation\s*policy|refund policy/i.test(el.textContent)),
         learnColumns: Array.from(document.querySelectorAll('.footer-col')).filter(el => /^learn$/i.test(el.querySelector('h4')?.textContent.trim() || '')),
         adminPortalLinks: Array.from(document.querySelectorAll('footer a,footer button')).filter(el => /^admin portal$/i.test(el.textContent.trim())),
         oldResourceLabels: labels.filter(label => /^resources$/i.test(label)),
@@ -56,6 +57,7 @@ try {
     if (path !== 'request-help.html') assert.ok(state.prominentRequestHelp.length > 0, `${path}: prominent Request Help navigation CTA is missing`);
     assert.deepEqual(state.howLinks, [], `${path}: public How It Works link remains`);
     assert.deepEqual(state.refundLinks, [], `${path}: public refund-policy link remains`);
+    assert.deepEqual(state.footerRefundLabels, [], `${path}: refund policy label remains in the footer`);
     assert.deepEqual(state.learnColumns, [], `${path}: Learn footer column remains`);
     assert.deepEqual(state.adminPortalLinks, [], `${path}: public footer Admin Portal link remains`);
     assert.deepEqual(state.oldResourceLabels, [], `${path}: old Resources UI label remains`);
