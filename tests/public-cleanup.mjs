@@ -39,6 +39,8 @@ try {
       return {
         path: location.pathname,
         donationActions: Array.from(document.querySelectorAll('button,a')).filter(el => visible(el) && /donate now|donate to this fund/i.test(el.textContent)),
+        requestHelpActions: Array.from(document.querySelectorAll('button,a')).filter(el => visible(el) && /^request help$/i.test(el.textContent.trim())),
+        prominentRequestHelp: Array.from(document.querySelectorAll('.site-nav .start-btn')).filter(el => visible(el) && /request help/i.test(el.textContent)),
         howLinks: Array.from(document.querySelectorAll('a[href],button[onclick]')).filter(el => /how\.html/i.test((el.getAttribute('href') || '') + ' ' + (el.getAttribute('onclick') || ''))),
         refundLinks: Array.from(document.querySelectorAll('a[href],button[onclick]')).filter(el => /refund-policy\.html/i.test((el.getAttribute('href') || '') + ' ' + (el.getAttribute('onclick') || ''))),
         learnColumns: Array.from(document.querySelectorAll('.footer-col')).filter(el => /^learn$/i.test(el.querySelector('h4')?.textContent.trim() || '')),
@@ -50,6 +52,8 @@ try {
       };
     });
     assert.deepEqual(state.donationActions, [], `${path}: public donation CTA remains visible`);
+    assert.ok(state.requestHelpActions.length > 0, `${path}: Request Help action is missing`);
+    if (path !== 'request-help.html') assert.ok(state.prominentRequestHelp.length > 0, `${path}: prominent Request Help navigation CTA is missing`);
     assert.deepEqual(state.howLinks, [], `${path}: public How It Works link remains`);
     assert.deepEqual(state.refundLinks, [], `${path}: public refund-policy link remains`);
     assert.deepEqual(state.learnColumns, [], `${path}: Learn footer column remains`);
@@ -63,6 +67,10 @@ try {
   await page.goto(`${origin}/donation-details.html`, { waitUntil: 'domcontentloaded' });
   await page.waitForURL('**/campaigns.html');
 
+  await page.goto(`${origin}/contact.html`);
+  assert.ok(await page.locator('.site-nav .start-btn').filter({ hasText: 'Request Help' }).count(), 'contact page should retain the prominent Request Help CTA');
+  await page.locator('.site-nav .start-btn').filter({ hasText: 'Request Help' }).click();
+  await page.waitForURL('**/request-help.html');
   await page.goto(`${origin}/contact.html`);
   assert.equal(await page.locator('#contactForm').count(), 1);
   assert.equal(await page.locator('#contact_mobile').getAttribute('type'), 'tel');
@@ -85,6 +93,7 @@ try {
   const loaderSize = await page.locator('.loader-logo').evaluate(el => ({ size: getComputedStyle(el).width, ringAnimation: getComputedStyle(el.querySelector('.loader-brand-ring')).animationName }));
   assert.equal(loaderSize.size, '236px', 'mobile logo loader should scale to approximately twice its previous size');
   assert.equal(loaderSize.ringAnimation, 'loader-brand-ring-spin', 'logo ring animation remains enabled');
+  assert.ok(await page.locator('.site-nav .start-btn').filter({ hasText: 'Request Help' }).count(), 'homepage should retain the prominent Request Help CTA');
   await page.setViewportSize({ width: 1366, height: 900 });
   assert.equal(await page.locator('.loader-logo').evaluate(el => getComputedStyle(el).width), '276px');
 

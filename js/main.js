@@ -202,7 +202,29 @@ function animateStartButton(button) {
 }
 
 function openDonation(button) {
-    window.location.href = 'campaigns.html';
+    window.location.href = '/request-help.html';
+}
+
+function convertToRequestHelpAction(element) {
+    if (!element) return;
+    const icon = element.querySelector('.icon');
+    Array.from(element.childNodes).forEach(node => {
+        if (node !== icon) node.remove();
+    });
+    const label = document.createElement('span');
+    label.className = 'request-help-label';
+    label.textContent = 'Request Help';
+    if (icon) element.insertBefore(label, icon);
+    else element.appendChild(label);
+
+    element.removeAttribute('onclick');
+    if (element.tagName === 'A') {
+        element.setAttribute('href', '/request-help.html');
+    } else {
+        element.type = 'button';
+        element.onclick = () => { window.location.href = '/request-help.html'; };
+    }
+    element.setAttribute('aria-label', 'Request Help');
 }
 
 // Keep the repeated legacy page shells consistent while public donations are disabled.
@@ -241,7 +263,7 @@ function applyPublicSiteCleanup() {
             element.textContent = 'Explore this work';
             if (/openDonation/i.test(onClick)) element.setAttribute('onclick', "window.location.href='resources.html'");
         } else if (/openDonation|donate\.html|donation-details\.html/i.test(onClick + ' ' + href) || /\bdonate now\b/i.test(text)) {
-            element.remove();
+            convertToRequestHelpAction(element);
         } else if (/how\.html/i.test(onClick + ' ' + href)) {
             element.remove();
         } else if (/refund-policy\.html/i.test(onClick + ' ' + href)) {
@@ -512,20 +534,25 @@ window.addEventListener("DOMContentLoaded", () => {
 
     const existingActions = document.querySelector(".campaign-detail-actions");
     if (!existingActions) {
-        const donateButton = document.querySelector(".campaign-detail-copy .start-btn, .campaign-detail-copy .campaign-donate-button");
-        if (donateButton) {
-            donateButton.outerHTML = `
-                <div class="campaign-detail-actions">
-                    <button class="campaign-back-button" type="button" onclick="goBackFromCampaign(this)" aria-label="Go back to campaigns">
-                        <span class="campaign-back-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                        </span>
-                        <span>Back</span>
-                    </button>
-                </div>`;
+        const requestButton = document.querySelector(".campaign-detail-copy .start-btn, .campaign-detail-copy .campaign-donate-button");
+        if (requestButton) {
+            const actions = document.createElement('div');
+            actions.className = 'campaign-detail-actions';
+            const backButton = document.createElement('button');
+            backButton.className = 'campaign-back-button';
+            backButton.type = 'button';
+            backButton.setAttribute('aria-label', 'Go back to campaigns');
+            backButton.onclick = () => goBackFromCampaign(backButton);
+            backButton.innerHTML = '<span class="campaign-back-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></span><span>Back</span>';
+            requestButton.classList.add('start-btn');
+            convertToRequestHelpAction(requestButton);
+            actions.append(backButton, requestButton);
+            requestButton.before(actions);
+            actions.append(requestButton);
         }
     } else {
-        existingActions.querySelectorAll(".start-btn, .campaign-donate-button").forEach(button => button.remove());
+        const requestButton = existingActions.querySelector('.start-btn, .campaign-donate-button');
+        if (requestButton) convertToRequestHelpAction(requestButton);
     }
 
     const factSection = document.querySelector(".campaign-detail-facts");
