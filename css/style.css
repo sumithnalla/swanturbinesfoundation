@@ -2694,7 +2694,7 @@ body.request-modal-open { overflow:hidden; }
 
     display: grid;
 
-    grid-template-columns: 45% 55%;
+    grid-template-columns: minmax(0, .82fr) minmax(0, 1fr);
 
     gap: 70px;
 }
@@ -2718,6 +2718,19 @@ body.request-modal-open { overflow:hidden; }
 
     line-height: 1.6;
 }
+
+.contact-company-info {
+    display: grid;
+    gap: 14px;
+    margin-top: 30px;
+    color: var(--text-primary, #18344f);
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.contact-company-info p { display: grid; gap: 3px; margin: 0; }
+.contact-company-info strong { color: #536b83; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.contact-company-info a { color: var(--green, #0b416f); overflow-wrap: anywhere; }
 
 .contact-form {
     background: #f5f5f3;
@@ -4614,20 +4627,20 @@ body.auth-modal-open {
 
 /* Circular brand ring used by the shared page loader. */
 .loader-logo {
-    width: 138px !important;
-    height: 138px !important;
-    min-width: 138px !important;
-    min-height: 138px !important;
+    width: 276px !important;
+    height: 276px !important;
+    min-width: 276px !important;
+    min-height: 276px !important;
     position: relative !important;
     margin: auto !important;
     color: transparent !important;
 }
 
 .loader-logo img {
-    width: 62px !important;
-    height: 62px !important;
-    min-width: 62px !important;
-    min-height: 62px !important;
+    width: 124px !important;
+    height: 124px !important;
+    min-width: 124px !important;
+    min-height: 124px !important;
     position: absolute !important;
     top: 50% !important;
     left: 50% !important;
@@ -4652,14 +4665,14 @@ body.auth-modal-open {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 12px;
-    margin: -7px 0 0 -6px;
+    width: 24px;
+    margin: -14px 0 0 -12px;
     color: #ffffff;
-    font-size: 9px;
+    font-size: 18px;
     font-weight: 800;
-    line-height: 14px;
+    line-height: 28px;
     text-align: center;
-    transform: rotate(var(--angle)) translateY(-61px) rotate(calc(-1 * var(--angle)));
+    transform: rotate(var(--angle)) translateY(-122px) rotate(calc(-1 * var(--angle)));
 }
 
 @keyframes loader-brand-ring-spin {
@@ -4670,22 +4683,22 @@ body.auth-modal-open {
 /* On mobile, use a clear photographic dashboard header instead of the moving ribbon. */
 @media (max-width: 640px) {
     .loader-logo {
-        width: 118px !important;
-        height: 118px !important;
-        min-width: 118px !important;
-        min-height: 118px !important;
+        width: 236px !important;
+        height: 236px !important;
+        min-width: 236px !important;
+        min-height: 236px !important;
     }
 
     .loader-logo img {
-        width: 52px !important;
-        height: 52px !important;
-        min-width: 52px !important;
-        min-height: 52px !important;
+        width: 104px !important;
+        height: 104px !important;
+        min-width: 104px !important;
+        min-height: 104px !important;
     }
 
     .loader-brand-ring span {
-        transform: rotate(var(--angle)) translateY(-51px) rotate(calc(-1 * var(--angle)));
-        font-size: 8px;
+        transform: rotate(var(--angle)) translateY(-104px) rotate(calc(-1 * var(--angle)));
+        font-size: 16px;
     }
 
     .dashboard-page .dashboard-header-card {

@@ -1484,3 +1484,35 @@ input, select, textarea {
 }
 
 @media (prefers-reduced-motion: reduce) { .adm-sidebar, .adm-mobile-menu-toggle { transition: none; } }
+
+/* Keep administrator profile content readable on narrow phones. */
+.adm-profile-container,
+.adm-profile-banner,
+.adm-profile-banner > div:last-child,
+.adm-info-grid,
+.adm-info-field,
+.adm-card { min-width: 0; max-width: 100%; }
+.adm-profile-banner p,
+.adm-profile-banner h2,
+.adm-field-value { overflow-wrap: anywhere; word-break: break-word; }
+.adm-profile-banner { flex-wrap: wrap; }
+
+@media (max-width: 600px) {
+    .adm-profile-container { width: 100%; }
+    .adm-profile-banner { align-items: flex-start; gap: 14px; padding: 20px 16px; margin-bottom: 16px; }
+    .adm-profile-avatar-big { width: 56px; height: 56px; flex: 0 0 56px; font-size: 24px; }
+    .adm-profile-banner h2 { font-size: clamp(19px, 6vw, 24px); line-height: 1.2; }
+    .adm-profile-banner p { font-size: 13px; }
+    .adm-profile-banner span { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+    .adm-profile-container .adm-card { padding: 14px; margin-bottom: 14px; }
+    .adm-profile-container .adm-card-title { align-items: flex-start; gap: 8px; line-height: 1.35; }
+    .adm-profile-container .adm-card > div[style*="display:flex"] { flex-wrap: wrap; }
+    .adm-profile-container .adm-card button { min-height: 44px; max-width: 100%; white-space: normal; }
+    .adm-profile-container .adm-info-field { padding: 12px; }
+}
+
+@media (max-width: 360px) {
+    .adm-profile-banner { padding: 16px 12px; gap: 10px; }
+    .adm-profile-avatar-big { width: 48px; height: 48px; flex-basis: 48px; font-size: 21px; }
+    .adm-profile-container .adm-card { padding: 12px; }
+}

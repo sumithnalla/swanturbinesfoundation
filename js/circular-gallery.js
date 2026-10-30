@@ -533,7 +533,7 @@
     return lines;
   }
 
-  function getDonateButtonBounds() {
+  function getExploreButtonBounds() {
     const width = 750;
     const height = 1000;
     const padding = 48;
@@ -591,9 +591,9 @@
 
     const titleLineH = 48;
     const descLineH = 30;
-    const btnText = 'Donate Now  →';
-    const donateButton = getDonateButtonBounds();
-    const pillH = donateButton.bottom - donateButton.top;
+    const btnText = 'Explore this work  →';
+    const exploreButton = getExploreButtonBounds();
+    const pillH = exploreButton.bottom - exploreButton.top;
 
     // Wrap text
     ctx.font = titleFont;
@@ -605,8 +605,8 @@
     const gap1 = 18;
     const gap2 = 14;
 
-    const btnBottom = donateButton.bottom;
-    const btnTop = donateButton.top;
+    const btnBottom = exploreButton.bottom;
+    const btnTop = exploreButton.top;
     const descBottom = btnTop - gap1;
     const descTop = descBottom - descLines.length * descLineH;
     const titleBottom = descTop - gap2;
@@ -633,9 +633,9 @@
       ctx.fillText(descLines[i], pad, descTop + (i + 1) * descLineH);
     }
 
-    // Draw "Donate Now →" pill button
+    // Draw a non-donation campaign exploration control.
     ctx.font = btnFont;
-    const pillW = donateButton.right - donateButton.left;
+    const pillW = exploreButton.right - exploreButton.left;
     const pillR = pillH / 2;
 
     ctx.shadowColor = 'rgba(0,0,0,0.3)';
@@ -643,7 +643,7 @@
     ctx.shadowOffsetY = 3;
     ctx.fillStyle = 'rgba(255,255,255,0.18)';
     ctx.beginPath();
-    ctx.roundRect(donateButton.left, btnTop, pillW, pillH, pillR);
+    ctx.roundRect(exploreButton.left, btnTop, pillW, pillH, pillR);
     ctx.fill();
     ctx.strokeStyle = 'rgba(255,255,255,0.4)';
     ctx.lineWidth = 1.8;
@@ -655,7 +655,7 @@
     ctx.fillStyle = '#ffffff';
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'center';
-    ctx.fillText(btnText, donateButton.left + pillW / 2, btnTop + pillH / 2);
+    ctx.fillText(btnText, exploreButton.left + pillW / 2, btnTop + pillH / 2);
 
     const texture = new Texture(gl, { generateMipmaps: true });
     texture.image = canvas;
@@ -934,7 +934,7 @@
           screen: this.screen,
           text: data.text,
           description: data.description || '',
-          url: data.url || 'donate.html',
+          url: data.url || 'campaigns.html',
           viewport: this.viewport,
           bend,
           textColor,
@@ -959,7 +959,7 @@
         const planeXNorm = (media.plane.position.x / (this.viewport.width / 2));
         const dist = Math.abs(planeXNorm - xRel);
         // Use the card's real width instead of a fixed narrow center zone,
-        // so the complete visible Donate Now button can be tapped.
+        // so the full campaign card remains an easy navigation target.
         const hitWidth = media.plane.scale.x / this.viewport.width;
         if (dist < minDistance && dist < hitWidth) {
           minDistance = dist;
@@ -968,27 +968,22 @@
       });
 
       if (closestMedia && closestMedia.url) {
-        if (this.isDonateButtonTap(closestMedia, clientX, clientY, rect)) {
-          // The CTA opens the campaign represented by this card. Donation is
-          // then available from the campaign page rather than sending mobile
-          // visitors straight into the donation/login flow.
+        if (this.isExploreButtonTap(closestMedia, clientX, clientY, rect)) {
           window.location.href = closestMedia.url;
           return;
         }
         window.location.href = closestMedia.url;
       }
     }
-    isDonateButtonTap(media, clientX, clientY, rect) {
-      // The CTA is painted into the WebGL card. On mobile, map the pointer
-      // back into that card's 750×1000 artwork so its visible button is also
-      // its real donation tap target.
+    isExploreButtonTap(media, clientX, clientY, rect) {
+      // The campaign exploration control is painted into each WebGL card.
       if (this.screen.width > 640 || !media.plane.scale.x || !media.plane.scale.y) return false;
 
       const worldX = ((clientX - rect.left) / rect.width - 0.5) * this.viewport.width;
       const worldY = (0.5 - (clientY - rect.top) / rect.height) * this.viewport.height;
       const cardX = ((worldX - media.plane.position.x) / media.plane.scale.x + 0.5) * 750;
       const cardY = (0.5 - (worldY - media.plane.position.y) / media.plane.scale.y) * 1000;
-      const button = getDonateButtonBounds();
+      const button = getExploreButtonBounds();
 
       return cardX >= button.left && cardX <= button.right && cardY >= button.top && cardY <= button.bottom;
     }

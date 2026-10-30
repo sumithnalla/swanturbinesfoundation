@@ -122,7 +122,7 @@
                         <span>₹${raised.toLocaleString('en-IN')} raised</span>
                         <span>${pct}%</span>
                     </div>
-                    <button class="campaign-explore" type="button" onclick="openDonation()">Donate to this fund <span aria-hidden="true">&#8594;</span></button>
+                    <button class="campaign-explore" type="button" onclick="window.location.href='resources.html'">Explore this work <span aria-hidden="true">&#8594;</span></button>
                 </div>
             `;
             return article;

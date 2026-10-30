@@ -397,9 +397,6 @@
                             <button type="button" class="nav-profile-item" onclick="window.location.href='profile.html'">
                                 ${isAdmin ? 'Profile & Signature' : 'Profile'}
                             </button>
-                            <button type="button" class="nav-profile-item" onclick="window.location.href='donate.html'">
-                                Donate Now
-                            </button>
                             <button type="button" class="nav-profile-item logout" onclick="SwanAuth.logout()">
                                 Logout
                             </button>

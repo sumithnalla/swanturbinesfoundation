@@ -202,21 +202,14 @@ function animateStartButton(button) {
 }
 
 function openDonation(button) {
-    const trigger = button || document.activeElement;
-    if (animateStartButton(trigger)) {
-        window.setTimeout(() => { window.location.href = 'request-help.html'; }, 220);
-    } else {
-        window.location.href = 'request-help.html';
-    }
-
+    window.location.href = 'campaigns.html';
 }
 
-// Retire the public donation and account CTAs across the existing public pages.
-// Their action now routes people to the confidential help-request form instead.
-function replacePublicDonationActions() {
-    const pageName = window.location.pathname.split('/').pop();
-    if (pageName === 'donate.html' || pageName === 'donation-details.html') {
-        window.location.replace('request-help.html');
+// Keep the repeated legacy page shells consistent while public donations are disabled.
+function applyPublicSiteCleanup() {
+    const pageName = window.location.pathname.replace(/\/+$/, '').split('/').pop();
+    if (['donate', 'donate.html', 'donation-details', 'donation-details.html'].includes(pageName)) {
+        window.location.replace('campaigns.html');
         return;
     }
 
@@ -240,34 +233,43 @@ function replacePublicDonationActions() {
         }
     }
 
-    const updateLabel = (element, label) => {
-        let replaced = false;
-        Array.from(element.childNodes).forEach(node => {
-            if (node.nodeType === Node.TEXT_NODE && /donate|get started/i.test(node.nodeValue)) {
-                node.nodeValue = node.nodeValue.replace(/donate now|donate to this fund|donate|get started/ig, label);
-                replaced = true;
-            }
-        });
-        if (!replaced && /donate|get started/i.test(element.textContent)) element.setAttribute('aria-label', label);
-    };
-
     document.querySelectorAll('button, a').forEach(element => {
         const onClick = element.getAttribute('onclick') || '';
         const href = element.getAttribute('href') || '';
         const text = element.textContent || '';
-        if (/openDonation|donate\.html|donation-details\.html/i.test(onClick + ' ' + href)) {
-            updateLabel(element, 'Request Help');
-            element.removeAttribute('onclick');
-            if (element.tagName === 'A') element.setAttribute('href', 'request-help.html');
-            else element.addEventListener('click', () => { window.location.href = 'request-help.html'; });
-        } else if (/donate to this fund/i.test(text)) {
-            updateLabel(element, 'Explore this work');
+        if (/donate to this fund/i.test(text)) {
+            element.textContent = 'Explore this work';
+            if (/openDonation/i.test(onClick)) element.setAttribute('onclick', "window.location.href='resources.html'");
+        } else if (/openDonation|donate\.html|donation-details\.html/i.test(onClick + ' ' + href) || /\bdonate now\b/i.test(text)) {
+            element.remove();
+        } else if (/how\.html/i.test(onClick + ' ' + href)) {
+            element.remove();
+        } else if (/refund-policy\.html/i.test(onClick + ' ' + href)) {
+            if (element.tagName === 'A') element.replaceWith(document.createTextNode(text.trim()));
+            else element.remove();
+        } else if (/^resources$/i.test(text.trim())) {
+            element.textContent = 'Our Works';
         }
     });
-    document.querySelectorAll('#donationModal').forEach(modal => modal.remove());
+    document.querySelectorAll('#donationModal, .donation-modal, .donation-modal-overlay').forEach(modal => modal.remove());
+    document.querySelectorAll('.footer-col').forEach(column => {
+        if (/^learn$/i.test(column.querySelector('h4')?.textContent.trim() || '')) column.remove();
+        if (/^support$/i.test(column.querySelector('h4')?.textContent.trim() || '')) {
+            column.querySelectorAll('button, a').forEach(link => {
+                if (/donat|refund-policy\.html/i.test((link.textContent || '') + ' ' + (link.getAttribute('href') || '') + ' ' + (link.getAttribute('onclick') || ''))) link.remove();
+            });
+        }
+    });
+    document.querySelectorAll('a, button').forEach(element => {
+        if (/^admin portal$/i.test(element.textContent.trim())) element.remove();
+    });
+    document.querySelectorAll('h1, h2, h3, h4, h5, h6, a, button').forEach(element => {
+        if (/^resources$/i.test(element.textContent.trim())) element.textContent = 'Our Works';
+    });
+    document.title = document.title.replace(/\bResources\b/g, 'Our Works');
 }
 
-window.addEventListener('DOMContentLoaded', replacePublicDonationActions);
+window.addEventListener('DOMContentLoaded', applyPublicSiteCleanup);
 
 function goBackFromCampaign(button) {
     const sourcePage = new URLSearchParams(window.location.search).get("from");
@@ -520,19 +522,10 @@ window.addEventListener("DOMContentLoaded", () => {
                         </span>
                         <span>Back</span>
                     </button>
-                    <button class="campaign-donate-button" type="button" onclick="openDonation(this)">
-                        <span>Donate Now</span>
-                        <span class="campaign-donate-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-                        </span>
-                    </button>
                 </div>`;
         }
     } else {
-        const oldDonate = existingActions.querySelector(".start-btn");
-        if (oldDonate) {
-            oldDonate.outerHTML = `<button class="campaign-donate-button" type="button" onclick="openDonation(this)"><span>Donate Now</span><span class="campaign-donate-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></button>`;
-        }
+        existingActions.querySelectorAll(".start-btn, .campaign-donate-button").forEach(button => button.remove());
     }
 
     const factSection = document.querySelector(".campaign-detail-facts");
