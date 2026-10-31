@@ -56,8 +56,10 @@ try{
     if(url.pathname.endsWith('/'+id))await route.fulfill({json:{id,full_name:'Disposable Applicant',email:'qa@example.com',mobile:'9876543210',message:'A longer sample contact message to verify responsive wrapping and safe text rendering.',created_at:'2026-10-25T08:00:00Z'}});
     else await route.fulfill({json:{messages:[{id,full_name:'Disposable Applicant',email:'qa@example.com',mobile:'9876543210',message:'A longer sample contact message to verify responsive wrapping and safe text rendering.',created_at:'2026-10-25T08:00:00Z'}],total:1,page:1,page_size:50}});
   });
+  await page.route('**/functions/v1/api/api/v1/requests/admin/stats',route=>route.fulfill({json:{total:9,by_status:{pending:3,new:1,under_review:2,accepted:2,rejected:1}}}));
   await page.goto(origin+'/admin-contacts.html');
   await page.getByRole('columnheader',{name:'Contact'}).waitFor();
+  await page.waitForFunction(()=>document.getElementById('sidebarRequestsBadge')?.textContent==='4');
   assert.equal(await page.locator('.custom-data-table').count(),1);
   assert.ok(await page.locator('.table-responsive-wrapper').evaluate(el=>el.scrollWidth>=el.clientWidth));
   for(const width of [320,375,390,430,600,712,768,884,900,1024,1366,1920]){
@@ -72,6 +74,8 @@ try{
   await page.getByRole('heading',{name:'Contact Message'}).waitFor();
   await page.getByRole('link',{name:'Reply by Email'}).waitFor();
   assert.ok(await page.locator('.adm-detail-grid').evaluate(el=>el.getBoundingClientRect().width<=innerWidth));
+  await page.goto(origin+'/admin-profile.html');
+  await page.waitForFunction(()=>document.getElementById('sidebarRequestsBadge')?.textContent==='4');
   console.log('PASS contact list/detail layout, responsive rendering and authorized message display at mobile width');
 
   const manage=await browser.newPage();

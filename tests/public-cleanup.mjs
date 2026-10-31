@@ -110,6 +110,37 @@ try {
   await page.getByText('Effective Date: November 1, 2026', { exact: true }).waitFor();
   await page.goto(`${origin}/terms-and-conditions.html`);
   await page.getByText('Effective Date: November 1, 2026', { exact: true }).waitFor();
+  const termsHeadings = await page.locator('main h2').allTextContents();
+  assert.deepEqual(termsHeadings.map(text => text.trim().match(/^(\d+)\./)?.[1]), ['1','2','3','4','5','6','7'], 'terms sections should be cleanly renumbered after removing sections 5–11');
+
+  await page.goto(`${origin}/campaigns.html`);
+  assert.equal(await page.locator('.campaign-grid > article.campaign').count(), 8, 'all campaign cards should remain');
+  assert.equal(await page.locator('.campaign-metrics-spacer').count(), 8, 'campaign cards should preserve the former metrics area height');
+  assert.equal(await page.locator('.campaign-grid progress, .campaign-grid .progress-bar, .campaign-grid .campaign-progress').count(), 0, 'campaign cards should not show fundraising progress');
+  assert.equal(await page.locator('.campaign-grid article.campaign img').count(), 8, 'campaign images should remain');
+  for (const width of [320, 390, 768, 1366]) {
+    await page.setViewportSize({ width, height: 900 });
+    const sizing = await page.evaluate(() => ({ cardWidths: Array.from(document.querySelectorAll('.campaign-grid > article.campaign')).map(card => card.getBoundingClientRect().width), spacerHeights: Array.from(document.querySelectorAll('.campaign-metrics-spacer')).map(el => getComputedStyle(el).height) }));
+    assert.ok(sizing.cardWidths.every(cardWidth => cardWidth > 0), `campaign cards should remain visible at ${width}px`);
+    assert.ok(sizing.cardWidths.every(cardWidth => cardWidth > 0), `campaign cards should remain visible at ${width}px`);
+    assert.ok(sizing.spacerHeights.every(height => parseFloat(height) >= 54), `campaign card metrics spacing should be preserved at ${width}px`);
+  }
+
+  await page.goto(`${origin}/request-help.html`);
+  await page.evaluate(() => window.HelpWizard.goToStep(2, true));
+  const amount = page.locator('#field_amount');
+  await amount.fill('12');
+  await amount.pressSequentially('abc3');
+  assert.equal(await amount.inputValue(), '123', 'amount input should strip non-digits');
+  await amount.fill('0');
+  assert.equal(await amount.evaluate(el => el.checkValidity()), false, 'zero is not a valid assistance amount');
+  await amount.fill('25000');
+  assert.equal(await amount.evaluate(el => el.checkValidity()), true, 'positive whole-number assistance amount should pass');
+  assert.equal(await page.locator('footer.footer').count(), 1, 'Request Help should include the global site footer');
+  await page.setViewportSize({ width: 320, height: 700 });
+  assert.ok(await page.locator('footer.footer').evaluate(el => getComputedStyle(el).display !== 'none'), 'Request Help footer should be visible on mobile');
+  await page.setViewportSize({ width: 1366, height: 900 });
+  assert.ok(await page.locator('footer.footer').evaluate(el => getComputedStyle(el).display !== 'none'), 'Request Help footer should be visible on desktop');
 
   const admin = await browser.newPage({ viewport: { width: 320, height: 700 } });
   const token = 'header.' + Buffer.from(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 })).toString('base64url') + '.signature';
@@ -132,7 +163,7 @@ try {
   assert.equal(await admin.locator('.adm-sidebar').evaluate(el => el.classList.contains('open')), true);
   await admin.close();
 
-  console.log('PASS public CTAs/navigation/footer cleanup, contact form/details, policy dates, disabled donation routes, reversible hero stats, logo animation and responsive widths');
+  console.log('PASS public CTAs/navigation/footer cleanup, contact form/details, amount validation, campaign metrics removal, terms renumbering, policy dates, disabled donation routes, reversible hero stats, logo animation and responsive widths');
 } finally {
   await browser.close();
   server.close();

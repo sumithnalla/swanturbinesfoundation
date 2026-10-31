@@ -328,7 +328,7 @@
                             <input name="beneficiaries" id="field_beneficiaries" type="number" min="1" max="1000" value="1" required placeholder="e.g. 4 family members">
                         </label>
                         <label>Estimated assistance amount *
-                            <input name="estimated_amount" id="field_amount" required maxlength="40" placeholder="e.g. ₹25,000">
+                            <input name="estimated_amount" id="field_amount" type="text" inputmode="numeric" pattern="[1-9][0-9]{0,11}" minlength="1" maxlength="12" autocomplete="off" required placeholder="e.g. 25000" title="Enter a positive amount using digits only, up to 12 digits.">
                         </label>
                         <label>Urgency level *
                             <select name="urgency" id="field_urgency" required>
@@ -417,7 +417,34 @@
         </section>
     </main>
 
-    <footer class="footer"><div class="footer-bottom">© 2026 Swan Turbines Foundation. Support begins with listening.</div></footer>
+    <footer class="footer">
+        <div class="footer-top">
+            <div class="footer-brand">
+                <div class="footer-brand-title">
+                    <img src="logo.png" alt="Swan Turbines Foundation" width="48" height="48">
+                    Swan Turbines Foundation
+                </div>
+                <p>Every act of kindness brings comfort, relief and hope to people who need it most.</p>
+            </div>
+            <div class="footer-col">
+                <h4>EXPLORE</h4>
+                <button type="button" onclick="window.location.href='index.html'">Home</button>
+                <button type="button" onclick="window.location.href='campaigns.html'">Campaigns</button>
+                <button type="button" onclick="window.location.href='about.html'">About Us</button>
+            </div>
+            <div class="footer-col">
+                <h4>LEGAL &amp; COMPLIANCE</h4>
+                <button type="button" onclick="window.location.href='terms-and-conditions.html'">Terms &amp; Conditions</button>
+                <button type="button" onclick="window.location.href='privacy-policy.html'">Privacy Policy</button>
+            </div>
+            <div class="footer-col">
+                <h4>SUPPORT</h4>
+                <button type="button" onclick="window.location.href='request-help.html'">Request Help</button>
+                <button type="button" onclick="window.location.href='campaigns.html'">View Campaigns</button>
+            </div>
+        </div>
+        <div class="footer-bottom">© 2026 Swan Turbines Foundation. Impact Through Kindness. &nbsp;|&nbsp; <a href="terms-and-conditions.html">Terms &amp; Conditions</a> &nbsp;|&nbsp; <a href="privacy-policy.html">Privacy Policy</a></div>
+    </footer>
 
     <script src="js/db.js"></script>
     <script src="js/main.js"></script>

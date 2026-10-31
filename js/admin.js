@@ -230,8 +230,9 @@
             setTxt('pillCountAccepted', accepted);
             setTxt('pillCountRejected', rejected);
 
-            const badge = document.getElementById('sidebarRequestsBadge');
-            if (badge) badge.textContent = pending;
+            if (window.SwanAuth && window.SwanAuth.refreshPendingRequestsBadge) {
+                window.SwanAuth.refreshPendingRequestsBadge();
+            }
         },
 
         renderCampaigns: function () {

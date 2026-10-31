@@ -589,6 +589,10 @@
 
             toast('Case decision saved successfully!', 'success');
 
+            if (window.SwanAuth && window.SwanAuth.refreshPendingRequestsBadge) {
+                await window.SwanAuth.refreshPendingRequestsBadge();
+            }
+
             if (btn) {
                 btn.disabled = false;
                 btn.innerHTML = ICONS.save + ' Save Case Decision';

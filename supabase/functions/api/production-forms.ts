@@ -1,6 +1,7 @@
 // All mutations use the service client only after validation/authorization here.
 export const validEmail = (v: unknown) => typeof v === 'string' && v.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 export const validMobile = (v: unknown) => typeof v === 'string' && /^[0-9]{10}$/.test(v);
+export const validAmount = (v: unknown) => typeof v === 'string' && /^[1-9][0-9]{0,11}$/.test(v);
 export const bounded = (v: unknown, min: number, max: number) => typeof v === 'string' && v.trim().length >= min && v.trim().length <= max;
 export const requestLookup = (value: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value) ? 'id' : 'reference';
 
@@ -70,8 +71,8 @@ export async function productionForms(req: Request, path: string, c: any): Promi
     const b=await req.json(),a=b.applicant||{},r=b.request||{};
     if(b.consent!==true || !bounded(a.full_name,2,120) || !validMobile(a.mobile) || !validEmail(a.email) ||
       !bounded(a.address,2,300) || !bounded(a.city,2,80) || !bounded(a.state,2,80) || !bounded(r.description,10,1000) ||
-      !bounded(r.amount_required,1,100) || !Number.isInteger(r.beneficiaries) || r.beneficiaries<1 || r.beneficiaries>1000)
-      return fail(req,422,'VALIDATION_ERROR','Check all required fields: mobile must be exactly 10 digits, email valid, and description 10–1,000 characters.');
+      !validAmount(r.amount_required) || !Number.isInteger(r.beneficiaries) || r.beneficiaries<1 || r.beneficiaries>1000)
+      return fail(req,422,'VALIDATION_ERROR','Check all required fields. The assistance amount must be a positive whole number of up to 12 digits.');
     if(b.submission_key!==undefined && !/^[0-9a-f]{64}$/.test(b.submission_key)) return fail(req,422,'VALIDATION_ERROR','Invalid submission key.');
     const rawToken=b.submission_key||tokenValue(),hash=await hex(new TextEncoder().encode(rawToken));
     const row={applicant_full_name:a.full_name.trim(),applicant_mobile:a.mobile,applicant_email:a.email,applicant_address:a.address.trim(),applicant_city:a.city.trim(),applicant_state:a.state.trim(),support_type:support(r.support_type),description:r.description.trim(),beneficiaries:r.beneficiaries,amount_required:r.amount_required.trim(),urgency:urgency(r.urgency),consent:true};

@@ -253,6 +253,22 @@
             return response;
         },
 
+        refreshPendingRequestsBadge: async function () {
+            const badge = document.getElementById('sidebarRequestsBadge');
+            if (!badge || !Auth.isAdmin()) return;
+            try {
+                const response = await Auth.authorizedFetch(API_BASE + '/api/v1/requests/admin/stats');
+                if (!response.ok) return;
+                const data = await response.json();
+                const pending = Object.entries(data.by_status || {}).reduce((count, [status, value]) => {
+                    return count + (['pending', 'new'].includes(String(status).toLowerCase()) ? Number(value) || 0 : 0);
+                }, 0);
+                badge.textContent = String(pending);
+            } catch (_) {
+                // Keep the last verified count rather than replacing it with a misleading zero.
+            }
+        },
+
         // Password Reset Request
         requestPasswordReset: function (email) {
             if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
@@ -655,6 +671,15 @@
     document.addEventListener('DOMContentLoaded', () => {
         Auth.updateHeaderUI();
         Auth.initAdminMobileNavigation();
+        if (document.getElementById('sidebarRequestsBadge')) {
+            Auth.refreshPendingRequestsBadge();
+            window.setInterval(() => {
+                if (document.visibilityState === 'visible') Auth.refreshPendingRequestsBadge();
+            }, 60000);
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') Auth.refreshPendingRequestsBadge();
+            });
+        }
     });
 
     Auth.initAdminMobileNavigation = function () {

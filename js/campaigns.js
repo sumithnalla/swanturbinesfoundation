@@ -1,6 +1,6 @@
 /**
  * Swan Turbines Foundation — Public Campaigns Dynamic Loader
- * Enriches static campaign cards with live database metrics from GET /api/v1/campaigns.
+ * Enriches static campaign cards with live campaign descriptions/status from GET /api/v1/campaigns.
  * Gracefully preserves existing cards if API is unreachable.
  */
 
@@ -76,35 +76,12 @@
                 statusEl.textContent = campaign.status.toUpperCase();
             }
 
-            // Calculate progress
-            const target = campaign.target_amount || 0;
-            const raised = campaign.raised_amount || 0;
-            const pct = target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0;
-
-            // Update progress bar
-            const progressSpan = article.querySelector('.campaign-progress span');
-            if (progressSpan) {
-                progressSpan.style.width = `${pct}%`;
-            }
-
-            // Update footer metrics
-            const footer = article.querySelector('.campaign-footer');
-            if (footer) {
-                const spans = footer.querySelectorAll('span');
-                if (spans.length >= 2) {
-                    spans[0].textContent = `₹${raised.toLocaleString('en-IN')} raised`;
-                    spans[1].textContent = `${pct}%`;
-                }
-            }
         },
 
         renderNewCard(campaign) {
             const article = document.createElement('article');
             article.className = 'campaign';
 
-            const target = campaign.target_amount || 0;
-            const raised = campaign.raised_amount || 0;
-            const pct = target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0;
             const imgUrl = campaign.image_url || 'swan_foundation_img/Clean%20Water%20%26%20Sanitation%20Initiative.png';
 
             article.innerHTML = `
@@ -115,13 +92,7 @@
                     <span class="campaign-status">${(campaign.status || 'ACTIVE').toUpperCase()}</span>
                     <h3>${campaign.title}</h3>
                     <p>${campaign.short_description || campaign.description || ''}</p>
-                    <div class="campaign-progress">
-                        <span style="width:${pct}%"></span>
-                    </div>
-                    <div class="campaign-footer">
-                        <span>₹${raised.toLocaleString('en-IN')} raised</span>
-                        <span>${pct}%</span>
-                    </div>
+                    <div class="campaign-metrics-spacer" aria-hidden="true"></div>
                     <button class="campaign-explore" type="button" onclick="window.location.href='resources.html'">Explore this work <span aria-hidden="true">&#8594;</span></button>
                 </div>
             `;

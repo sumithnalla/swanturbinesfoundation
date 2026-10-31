@@ -6378,6 +6378,11 @@ main + .footer,
     margin-bottom: 18px;
 }
 
+.campaigns-section .campaign-metrics-spacer {
+    flex: 0 0 54px;
+    height: 54px;
+}
+
 .campaigns-section .campaign-explore {
     width: 100%;
     padding: 12px 18px;

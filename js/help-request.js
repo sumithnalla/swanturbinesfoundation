@@ -26,6 +26,7 @@
             get('phone').setCustomValidity(/^[0-9]{10}$/.test(val('phone')) ? '' : 'Enter exactly 10 digits, without spaces or country code.');
             get('email').setCustomValidity(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val('email')) ? '' : 'Enter a valid email address.');
             get('description').setCustomValidity(val('description').length >= 10 && val('description').length <= 1000 ? '' : 'Enter 10–1,000 characters.');
+            get('estimated_amount').setCustomValidity(/^[1-9][0-9]{0,11}$/.test(val('estimated_amount')) ? '' : 'Enter a positive amount using digits only, up to 12 digits.');
             for (const field of document.querySelectorAll('#stepSection' + n + ' input, #stepSection' + n + ' select, #stepSection' + n + ' textarea')) {
                 if (!field.checkValidity()) { wizard.showError(field.validationMessage); field.reportValidity(); return false; }
             }
@@ -68,6 +69,22 @@
     window.HelpWizard = wizard;
     form.noValidate = true;
     key = newKey();
+    const amountField = get('estimated_amount');
+    amountField.addEventListener('beforeinput', event => {
+        if (event.data && /[^0-9]/.test(event.data)) event.preventDefault();
+    });
+    amountField.addEventListener('paste', event => {
+        const pasted = event.clipboardData?.getData('text') || '';
+        if (!/^[0-9]+$/.test(pasted)) {
+            event.preventDefault();
+            wizard.showError('Estimated assistance amount must contain digits only.');
+        }
+    });
+    amountField.addEventListener('input', () => {
+        amountField.value = amountField.value.replace(/[^0-9]/g, '').slice(0, 12);
+        amountField.setCustomValidity('');
+        saveDraft();
+    });
     try {
         const draft = JSON.parse(sessionStorage.getItem(draftKey));
         if (draft && !history.state?.swanHelpCompleted) {
