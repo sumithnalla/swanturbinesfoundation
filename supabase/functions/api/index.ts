@@ -2,8 +2,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Buffer } from "node:buffer";
 import { productionForms, requestLookup } from "./production-forms.ts";
-import { randomStorageName, withinTotalSize } from "./upload-security.ts";
+import { withinTotalSize } from "./upload-security.ts";
 import { checkPublicRateLimit } from "./public-rate-limit.ts";
+import { appsScriptOriginals, directDriveOriginals } from "./private-drive-adapters.ts";
+import { workloadAssertion, googleIdToken, requestRebuild } from "./cloud-run-auth.ts";
+import { rebuildForUpload } from "./synchronous-rebuild.ts";
 
 const url = Deno.env.get("SUPABASE_URL")!;
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -77,11 +80,37 @@ function pemBytes(pem: string) { const text=pem.replace(/-----BEGIN PRIVATE KEY-
 async function driveAccessToken() { const raw=Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON"); if(!raw) throw new Error("Google Drive service account is not configured."); const account=JSON.parse(raw), now=Math.floor(Date.now()/1000), head=base64Url(JSON.stringify({alg:"RS256",typ:"JWT"})), claim=base64Url(JSON.stringify({iss:account.client_email,scope:"https://www.googleapis.com/auth/drive",aud:"https://oauth2.googleapis.com/token",iat:now,exp:now+3300})); const key=await crypto.subtle.importKey("pkcs8",pemBytes(account.private_key),{name:"RSASSA-PKCS1-v1_5",hash:"SHA-256"},false,["sign"]); const signature=new Uint8Array(await crypto.subtle.sign("RSASSA-PKCS1-v1_5",key,new TextEncoder().encode(`${head}.${claim}`))); const response=await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({grant_type:"urn:ietf:params:oauth:grant-type:jwt-bearer",assertion:`${head}.${claim}.${base64Url(signature)}`})}); if(!response.ok) throw new Error(`Google token request failed (${response.status}).`); return (await response.json()).access_token as string; }
 async function driveFetch(token: string, path: string, init: RequestInit = {}) { const response=await fetch(`https://www.googleapis.com/drive/v3/${path}`,{...init,headers:{Authorization:`Bearer ${token}`,...init.headers}}); if(!response.ok) throw new Error(`Google Drive request failed (${response.status}).`); return response; }
 async function driveFolder(token: string, name: string, parent: string) { const response=await driveFetch(token,"files?fields=id",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:cleanName(name),mimeType:driveFolderMime,parents:[parent]})}); return (await response.json()).id as string; }
+async function privateRequestFolder(token:string,parent:string,reference:string){
+  if(!/^[A-Za-z0-9_-]{10,255}$/.test(parent)||!/^STF-[0-9]{4}-[0-9]{6,}$/.test(reference))throw new Error('Invalid private folder');
+  const q=`'${parent}' in parents and name = '${reference}' and mimeType = '${driveFolderMime}' and trashed = false`;
+  const listing=await (await driveFetch(token,`files?${new URLSearchParams({q,fields:'files(id),nextPageToken',pageSize:'2'})}`)).json();
+  if(listing.nextPageToken||listing.files?.length>1)throw new Error('Duplicate private request folders');
+  return listing.files?.[0]?.id||await driveFolder(token,reference,parent);
+}
 async function driveUpload(token: string, parent: string, file: File, storageName: string) { const boundary=`swan-${crypto.randomUUID()}`, metadata=JSON.stringify({name:storageName,parents:[parent]}), body=new Blob([`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n--${boundary}\r\nContent-Type: ${file.type}\r\n\r\n`,await file.arrayBuffer(),`\r\n--${boundary}--`]); const response=await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType,size,webViewLink",{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":`multipart/related; boundary=${boundary}`},body}); if(!response.ok) throw new Error(`Google Drive upload failed (${response.status}).`); return await response.json(); }
 async function deleteDriveFile(token: string, id: string) { try { await driveFetch(token,`files/${encodeURIComponent(id)}`,{method:"DELETE"}); } catch (_) {} }
 async function driveDownload(token: string, id: string) { return fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}?alt=media`,{headers:{Authorization:`Bearer ${token}`}}); }
 async function appsScriptSignature(timestamp: string, body: string, secret: string) { const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign"]); return Array.from(new Uint8Array(await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(`${timestamp}.${body}`)))).map((x)=>x.toString(16).padStart(2,"0")).join(""); }
 async function appsScriptCall(operation: string, payload: Record<string, unknown>) { const endpoint=Deno.env.get("GOOGLE_APPS_SCRIPT_URL"),secret=Deno.env.get("GOOGLE_APPS_SCRIPT_SHARED_SECRET"); if(!endpoint||!secret) throw new Error("Google Apps Script is not configured."); const body=JSON.stringify({operation,...payload}),timestamp=Math.floor(Date.now()/1000).toString(),signature=await appsScriptSignature(timestamp,body,secret),response=await fetch(`${endpoint}?timestamp=${timestamp}&signature=${signature}`,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body}); if(!response.ok) throw new Error(`Apps Script request failed (${response.status}).`); const result=await response.json(); if(result.error) throw new Error(String(result.error)); return result; }
+async function privateStore(token:string|null){
+  if(Deno.env.get('GOOGLE_APPS_SCRIPT_URL'))return appsScriptOriginals(appsScriptCall,base64Std);
+  const rootId=Deno.env.get('GOOGLE_DRIVE_ORIGINALS_FOLDER_ID'),cleanRootId=Deno.env.get('GOOGLE_DRIVE_CHARITY_REQUESTS_FOLDER_ID');
+  if(!rootId||!cleanRootId||!token)throw new Error('Private originals storage unavailable');
+  const root=await (await driveFetch(token,'files/root?fields=id')).json();
+  return directDriveOriginals({rootId,cleanRootId,myDriveRootId:root.id},{
+    getFile:async(id)=>await (await driveFetch(token,`files/${encodeURIComponent(id)}?fields=id,mimeType,parents,ownedByMe,shared,trashed,driveId`)).json(),
+    listPermissions:async(id)=>await (await driveFetch(token,`files/${encodeURIComponent(id)}/permissions?fields=nextPageToken,permissions(type,role,deleted,permissionDetails(inherited))&pageSize=100`)).json(),
+    putInRequestFolder:async(parent,reference,name,mime,bytes)=>{const folderId=await privateRequestFolder(token,parent,reference);const file=new File([Uint8Array.from(bytes).buffer],name,{type:mime});const saved=await driveUpload(token,folderId,file,name);return {fileId:saved.id,folderId};}
+  });
+}
+async function convertDocument(bytes:Uint8Array,mime:string){
+  const email=Deno.env.get('CONVERTER_WORKLOAD_EMAIL'),password=Deno.env.get('CONVERTER_WORKLOAD_PASSWORD'),subject=Deno.env.get('CONVERTER_WORKLOAD_SUBJECT');
+  const providerAudience=Deno.env.get('CONVERTER_WIF_PROVIDER_AUDIENCE'),serviceAccountEmail=Deno.env.get('CONVERTER_INVOKER_SERVICE_ACCOUNT'),cloudRunAudience=Deno.env.get('CONVERTER_CLOUD_RUN_URL');
+  if(!email||!password||!subject||!providerAudience||!serviceAccountEmail||!cloudRunAudience)throw new Error('Converter identity unavailable');
+  const assertion=await workloadAssertion(async(e,p)=>await authClient().auth.signInWithPassword({email:e,password:p}),email,password,subject,`${url.replace(/\/$/,'')}/auth/v1`);
+  const config={providerAudience,serviceAccountEmail,cloudRunAudience};const token=await googleIdToken(assertion,config);
+  return await requestRebuild(bytes,mime,config,token);
+}
 const storageDocumentPrefix = "supabase-storage:";
 const requestDocumentBucket = "request-documents";
 async function downloadStoredRequestDocument(path: string) { const { data,error }=await db.storage.from(requestDocumentBucket).download(path); if(error||!data)throw error||new Error("Stored document not found."); return data; }
@@ -103,6 +132,18 @@ Deno.serve(async (req) => {
     const handled = await productionForms(req,path,{db,json,fail,permitted,audit,hex,tokenValue,support,urgency,email,requestOut,fileSignatureIsValid,base64Std});
     if(handled) return handled;
     if (path === "/health" || path === "/api/health") return json(req, { status:"ok", version:"3.0.0", environment:Deno.env.get("DENO_DEPLOYMENT_ID") ? "production" : "development", database:"ok" });
+    if(method==='GET'){
+      const m=path.match(/^\/api\/v1\/requests\/admin\/([^/]+)\/documents\/([^/]+)\/preview$/);
+      if(m){
+        if(!await permitted(req,'requests.view_documents'))return fail(req,403,'FORBIDDEN','Insufficient permission.');
+        const {data:request}=await db.from('help_requests').select('id').eq(requestLookup(m[1]),m[1]).maybeSingle();
+        if(!request)return fail(req,404,'NOT_FOUND','Help request not found.');
+        const {data:doc,error}=await db.from('request_documents').select('google_drive_file_id,is_rebuilt,storage_status').eq('id',m[2]).eq('request_id',request.id).maybeSingle();
+        if(error)throw error;
+        if(!doc||!doc.is_rebuilt||doc.storage_status!=='uploaded'||!/^[A-Za-z0-9_-]{10,255}$/.test(doc.google_drive_file_id||''))return fail(req,404,'NOT_FOUND','Rebuilt document not available.');
+        return json(req,{url:`https://drive.google.com/file/d/${encodeURIComponent(doc.google_drive_file_id)}/view`});
+      }
+    }
     if(Deno.env.get("GOOGLE_APPS_SCRIPT_URL")&&method==="GET"){const m=path.match(/^\/api\/v1\/requests\/admin\/([^/]+)\/documents\/check-folder$/);if(m){const p=await permitted(req,"documents.manage");if(!p)return fail(req,403,"FORBIDDEN","Insufficient permission.");const {data:request}=await db.from("help_requests").select("id,reference").eq(requestLookup(m[1]),m[1]).maybeSingle();if(!request)return fail(req,404,"NOT_FOUND","Help request not found.");try{return json(req,await appsScriptCall("check",{reference:request.reference}));}catch(_){return fail(req,503,"DOCUMENT_STORAGE_UNAVAILABLE","Folder cleanup verification is temporarily unavailable.");}}}
     if(Deno.env.get("GOOGLE_APPS_SCRIPT_URL")&&method==="DELETE"){const m=path.match(/^\/api\/v1\/requests\/admin\/([^/]+)\/documents\/([^/]+)$/);if(m){const p=await permitted(req,"documents.manage");if(!p)return fail(req,403,"FORBIDDEN","Insufficient permission.");const {data:request}=await db.from("help_requests").select("id,reference").eq(requestLookup(m[1]),m[1]).maybeSingle();if(!request)return fail(req,404,"NOT_FOUND","Help request not found.");const {data:doc}=await db.from("request_documents").select("id,google_drive_file_id").eq("id",m[2]).eq("request_id",request.id).maybeSingle();if(!doc)return fail(req,404,"NOT_FOUND","Document not found.");try{await appsScriptCall("delete",{reference:request.reference,file_id:doc.google_drive_file_id});const {error}=await db.from("request_documents").delete().eq("id",doc.id);if(error)throw error;await audit(p,"request.document_deleted","help_request",request.id,"success",{document_id:doc.id,storage:"apps_script"});return new Response(null,{status:204,headers:cors(req)});}catch(_){return fail(req,503,"DOCUMENT_STORAGE_UNAVAILABLE","Document deletion is temporarily unavailable.");}}}
     if(method==="GET"){const m=path.match(/^\/api\/v1\/requests\/admin\/([^/]+)\/documents\/([^/]+)\/download$/);if(m){const p=await permitted(req,"requests.view_documents");if(!p)return fail(req,403,"FORBIDDEN","Insufficient permission.");const {data:request}=await db.from("help_requests").select("id,reference").eq(requestLookup(m[1]),m[1]).maybeSingle();if(!request)return fail(req,404,"NOT_FOUND","Help request not found.");const {data:doc}=await db.from("request_documents").select("id,google_drive_file_id,original_filename,mime_type").eq("id",m[2]).eq("request_id",request.id).maybeSingle();if(!doc||!doc.google_drive_file_id)return fail(req,404,"NOT_FOUND","Document not found.");const headers=new Headers({...cors(req),"Cache-Control":"private, no-store","X-Content-Type-Options":"nosniff"});headers.set("Content-Type",doc.mime_type||"application/octet-stream");headers.set("Content-Disposition",`attachment; filename*=UTF-8''${encodeURIComponent(doc.original_filename)}`);try{if(doc.google_drive_file_id.startsWith(storageDocumentPrefix)){const blob=await downloadStoredRequestDocument(doc.google_drive_file_id.slice(storageDocumentPrefix.length));return new Response(blob,{status:200,headers});}if(Deno.env.get("GOOGLE_APPS_SCRIPT_URL")){const result=await appsScriptCall("download",{reference:request.reference,file_id:doc.google_drive_file_id}),bytes=Buffer.from(result.content_base64,"base64");return new Response(bytes,{status:200,headers});}const token=await driveAccessToken(),response=await driveDownload(token,doc.google_drive_file_id);if(!response.ok)return fail(req,503,"DOCUMENT_STORAGE_UNAVAILABLE","Document download is temporarily unavailable.");return new Response(await response.arrayBuffer(),{status:200,headers});}catch(_){return fail(req,503,"DOCUMENT_STORAGE_UNAVAILABLE","Document download is temporarily unavailable.");}}}
@@ -161,22 +202,23 @@ Deno.serve(async (req) => {
             folderId=await driveFolder(driveToken,request.reference,parent);
           }
         }
+        const originals=await privateStore(driveToken);
         for(const {file,digest} of uploads){
-          let driveFile:any;
-          let fileBytes:ArrayBuffer|undefined;
-          const storageName=randomStorageName(file.type);
-          if(Deno.env.get("GOOGLE_APPS_SCRIPT_URL")){
-            fileBytes=await file.arrayBuffer();
-            const bytes=new Uint8Array(fileBytes);
-            driveFile=await appsScriptCall("upload",{reference:request.reference,name:storageName,mime_type:file.type,content_base64:base64Std(bytes)});
-            folderId=driveFile.folder_id;
-          }else{
-            driveFile=await driveUpload(driveToken!,folderId!,file,storageName);
-          }
+          const bytes=new Uint8Array(await file.arrayBuffer());
+          const stored=await rebuildForUpload(request.reference,file.type,bytes,{
+            original:(reference,name,mime,raw)=>originals.uploadOriginal(reference,name,mime,raw),
+            rebuild:convertDocument,
+            clean:async(reference,name,mime,raw)=>{
+              if(Deno.env.get('GOOGLE_APPS_SCRIPT_URL')){const result=await appsScriptCall('upload',{storage:'clean',reference,name,mime_type:mime,content_base64:base64Std(raw)});return {fileId:result.id,folderId:result.folder_id};}
+              const cleanFile=new File([Uint8Array.from(raw).buffer],name,{type:mime});const result=await driveUpload(driveToken!,folderId!,cleanFile,name);return {fileId:result.id,folderId:folderId!};
+            }
+          });
+          const driveFile={id:stored.fileId,folder_id:stored.folderId,web_view_link:`https://drive.google.com/file/d/${encodeURIComponent(stored.fileId)}/view`};
+          folderId=stored.folderId;
           const folderUpdate=await db.from("help_requests").update({google_drive_folder_id:folderId}).eq("id",request.id);
           if(folderUpdate.error){if(Deno.env.get("GOOGLE_APPS_SCRIPT_URL"))await appsScriptCall("delete",{reference:request.reference,file_id:driveFile.id});else await deleteDriveFile(driveToken!,driveFile.id);throw folderUpdate.error;}
-          const fileUrl=driveFile.web_view_link||driveFile.webViewLink||`https://drive.google.com/open?id=${encodeURIComponent(driveFile.id)}`;
-          const {error}=await db.from("request_documents").insert({request_id:request.id,google_drive_file_id:driveFile.id,google_drive_folder_id:folderId,internal_url:fileUrl,original_filename:cleanName(file.name),mime_type:file.type,document_type:documentType(form.get("document_type")),size_bytes:file.size,sha256:digest,storage_status:"uploaded",uploaded_at:new Date().toISOString()});
+          const fileUrl=driveFile.web_view_link;
+          const {error}=await db.from("request_documents").insert({request_id:request.id,google_drive_file_id:driveFile.id,google_drive_folder_id:folderId,internal_url:fileUrl,original_filename:cleanName(file.name),mime_type:file.type,document_type:documentType(form.get("document_type")),size_bytes:file.size,sha256:digest,storage_status:"uploaded",is_rebuilt:true,uploaded_at:new Date().toISOString()});
           if(error){if(Deno.env.get("GOOGLE_APPS_SCRIPT_URL"))await appsScriptCall("delete",{reference:request.reference,file_id:driveFile.id});else await deleteDriveFile(driveToken!,driveFile.id);throw error;}
           uploaded.push({id:driveFile.id,name:cleanName(file.name),size_bytes:file.size});
         }

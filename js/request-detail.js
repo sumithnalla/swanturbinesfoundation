@@ -522,6 +522,16 @@
 
         previewDocument: async function (url, filename) {
             try {
+                const preview = await apiFetch(url.replace(/\/download$/, '/preview'));
+                if (preview.ok) {
+                    const result = await preview.json();
+                    const target = new URL(result.url);
+                    if (target.protocol !== 'https:' || target.hostname !== 'drive.google.com' || !/^\/file\/d\/[A-Za-z0-9_-]+\/view$/.test(target.pathname)) throw new Error('Invalid preview link');
+                    if (window.confirm('Open in Google Drive viewer?')) window.open(target.href, '_blank', 'noopener,noreferrer');
+                    return;
+                }
+                if (preview.status !== 404) throw new Error('Unable to authorize preview');
+                // Historical documents retain their existing authenticated viewer.
                 toast('Opening preview...', 'info', 1800);
                 const r = await apiFetch(url);
                 if (!r.ok) throw new Error('Unable to open preview');

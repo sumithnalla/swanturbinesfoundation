@@ -8,6 +8,7 @@ try {
  await page.evaluate(()=>{
    window.SwanAuth={authorizedFetch:async(url)=>{
      if(url.endsWith('/documents'))return new Response(JSON.stringify([{id:'doc-1',original_filename:'my-original.pdf',mime_type:'application/pdf',size_bytes:8}]),{status:200,headers:{'content-type':'application/json'}});
+     if(url.endsWith('/preview'))return new Response('{}',{status:404,headers:{'content-type':'application/json'}});
      return new Response('%PDF-test',{status:200,headers:{'content-type':'application/pdf'}});
    }};
    window.open=(url)=>{window.__preview=url;};
