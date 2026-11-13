@@ -23,7 +23,7 @@ if (-not $siteKey) {
     if (Test-Path -LiteralPath $localEnv -PathType Leaf) {
         foreach ($line in [IO.File]::ReadLines($localEnv)) {
             if ($line -match '^\s*TURNSTILE_SITE_KEY\s*=\s*["'']?([A-Za-z0-9_-]{10,100})["'']?\s*$' -or
-                $line -match '^\s*([A-Za-z0-9_-]{10,100})\s+Site\s+key\s*$') { $siteKey = $Matches[1]; break }
+                $line -match '^\s*([A-Za-z0-9_-]{10,100})\s*(?:-->)?\s+Site\s+key\s*$') { $siteKey = $Matches[1]; break }
         }
     }
 }
