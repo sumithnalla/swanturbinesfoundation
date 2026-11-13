@@ -31,21 +31,34 @@ function authorized_(event, body) {
   return bytesEqual_(digest, signature.match(/.{2}/g).map(function (x) { return parseInt(x, 16); }));
 }
 
-function root_() { return DriveApp.getFolderById(prop_('ROOT_FOLDER_ID')); }
+function root_(storage) {
+  if (storage !== 'originals') return DriveApp.getFolderById(prop_('ROOT_FOLDER_ID'));
+  const folder = DriveApp.getFolderById(prop_('ORIGINALS_ROOT_FOLDER_ID'));
+  const owner = folder.getOwner();
+  const effective = Session.getEffectiveUser().getEmail();
+  const parent = folder.getParents();
+  if (!effective || !owner || owner.getEmail() !== effective || folder.getSharingAccess() !== DriveApp.Access.PRIVATE ||
+      folder.getEditors().some(function (user) { return user.getEmail() !== effective; }) ||
+      folder.getViewers().some(function (user) { return user.getEmail() !== effective; }) ||
+      !parent.hasNext() || parent.next().getId() !== DriveApp.getRootFolder().getId() || parent.hasNext() ||
+      folder.getId() === prop_('ROOT_FOLDER_ID')) throw new Error('Originals folder is not owner-only in My Drive root');
+  return folder;
+}
 
-function requestFolder_(reference) {
+function requestFolder_(reference, storage) {
   const name = safe_(reference, 'request');
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
-    const folders = root_().getFoldersByName(name);
-    return folders.hasNext() ? folders.next() : root_().createFolder(name);
+    const root = root_(storage);
+    const folders = root.getFoldersByName(name);
+    return folders.hasNext() ? folders.next() : root.createFolder(name);
   } finally { lock.releaseLock(); }
 }
 
-function fileInRequestFolder_(reference, fileId) {
+function fileInRequestFolder_(reference, fileId, storage) {
   const file = DriveApp.getFileById(String(fileId));
-  const folder = requestFolder_(reference);
+  const folder = requestFolder_(reference, storage);
   const parents = file.getParents();
   while (parents.hasNext()) if (parents.next().getId() === folder.getId()) return file;
   throw new Error('File is not in the requested folder');
@@ -58,33 +71,38 @@ function doPost(event) {
     const request = JSON.parse(body);
     const operation = String(request.operation || '');
     if (!request.reference) return json_({ error: 'reference_required' });
+    const storage = request.storage || 'clean';
+    if (storage !== 'clean' && storage !== 'originals') return json_({ error: 'invalid_storage' });
+    if (storage === 'originals' && !/^STF-[0-9]{4}-[0-9]{6,}$/.test(String(request.reference))) return json_({ error: 'invalid_reference' });
+    if (storage === 'originals' && (operation === 'delete' || operation === 'cleanup')) return json_({ error: 'retention_not_configured' });
     if (operation === 'upload') {
       if (!request.name || !request.mime_type || !request.content_base64) return json_({ error: 'invalid_payload' });
       const bytes = Utilities.base64Decode(request.content_base64);
       if (!bytes.length || bytes.length > MAX_BYTES) return json_({ error: 'invalid_size' });
-      const folder = requestFolder_(request.reference);
+      const folder = requestFolder_(request.reference, storage);
       const file = folder.createFile(Utilities.newBlob(bytes, String(request.mime_type), safe_(request.name, 'document')));
       return json_({ id: file.getId(), name: file.getName(), mime_type: file.getMimeType(), size_bytes: file.getSize(), folder_id: folder.getId() });
     }
     if (operation === 'download') {
-      const file = fileInRequestFolder_(request.reference, request.file_id);
+      const file = fileInRequestFolder_(request.reference, request.file_id, storage);
       return json_({ id: file.getId(), name: file.getName(), mime_type: file.getMimeType(), size_bytes: file.getSize(), content_base64: Utilities.base64Encode(file.getBlob().getBytes()) });
     }
     if (operation === 'delete') {
-      const file = fileInRequestFolder_(request.reference, request.file_id);
-      const folder = requestFolder_(request.reference);
+      const file = fileInRequestFolder_(request.reference, request.file_id, storage);
+      const folder = requestFolder_(request.reference, storage);
       file.setTrashed(true);
       let folderCleaned = false;
       if (!folder.getFiles().hasNext() && !folder.getFolders().hasNext()) { folder.setTrashed(true); folderCleaned = true; }
       return json_({ deleted: true, id: file.getId(), folder_cleaned: folderCleaned });
     }
     if (operation === 'cleanup') {
-      const folder = requestFolder_(request.reference);
+      const folder = requestFolder_(request.reference, storage);
       if (folder.getFiles().hasNext() || folder.getFolders().hasNext()) return json_({ cleaned: false, reason: 'folder_not_empty' });
       folder.setTrashed(true);
       return json_({ cleaned: true, folder_id: folder.getId() });
     }
     if (operation === 'check') {
+      if (storage === 'originals') return json_({ error: 'unsupported_operation' });
       const name = safe_(request.reference, 'request');
       const trashed = DriveApp.getTrashedFolders();
       while (trashed.hasNext()) { const folder = trashed.next(); if (folder.getName() === name) return json_({ trashed: true, folder_id: folder.getId() }); }

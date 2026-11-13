@@ -1,0 +1,9 @@
+Analyze and fix the case status update bug where an application's status can be changed only once but cannot be changed again. Investigate the actual cause, including Supabase constraints, database triggers, Edge Functions, and workflow transition logic, and ensure authorized admins can change a case's status multiple times while maintaining proper audit logs and security.
+
+On the individual request detail page, add a **Contact Applicant** box with a **Call Now** button that opens the applicant's phone number and a **Send Email** button that opens a professional email-compose modal with the applicant's email prefilled, editable subject and message fields, file attachments, and a top-right close button. Implement email sending using the existing backend/email (we already have resend) infrastructure where appropriate.
+
+redesign the Company Admin login page to look more modern, polished, and professional while maintaining the foundation's branding. Add an eye icon to toggle password visibility and show a loading spinner with "Signing in, please wait..." when the user clicks the sign-in button, preventing duplicate submissions until authentication completes.
+
+For the WEBSITTER Manage — Super-Admin & Infrastructure Access login page, do not change the existing design; only add the password visibility toggle and the same loading indicator during sign-in. Preserve all existing authentication and security functionality.
+
+Redesign the **Contact Messages** listing and individual message detail pages to match the existing Help Requests listing and individual Request Detail pages in layout, styling, spacing, cards, typography, and responsiveness. Reuse existing design components wherever possible. Identify and fix all necessary frontend, backend, and Supabase changes independently, then test everything end to end without breaking existing functionality or security.

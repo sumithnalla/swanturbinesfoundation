@@ -1,0 +1,23 @@
+Analyze the entire existing Swan Turbines Foundation codebase and implement all five sets of changes described below. **Think critically and independently determine every required frontend, backend, Supabase database, schema, migration, RLS policy, Edge Function, storage, and authentication change.** Do not expect me to identify missing database columns, tables, constraints, or dependencies. Inspect the existing implementation, identify what is missing, and make all necessary changes.
+
+1. **Contact Page:** Merge First Name and Last Name into one mandatory Full Name field. Add a mandatory mobile number field accepting exactly 10 digits. Make email mandatory with proper format validation. Require a message between 10 and 1,000 characters, with a live character counter. Make all fields mandatory and enforce validation on both frontend and backend.
+
+2. **Request Help Page:** Enforce strict 10-digit mobile number validation and make email mandatory in Step 1. In Step 2, enforce a 10–1,000-character limit on the situation description with a live character counter. In Step 3, allow 0–3 optional documents, with a maximum of 10 MB per file. Validate file types, sizes, and counts securely on both frontend and backend. Add a minimalist loading animation and a clear submission message. Prevent duplicate submissions and ensure successfully submitted form data is cleared when the user returns using the browser's Back button, without losing data before successful submission.
+
+3. **Foundation Admin — Contact Messages:** Build a complete admin page to list and view individual Contact Page messages, including name, email, mobile number, message, and submission date/time. Implement all required database changes, message persistence, admin navigation, backend integration, and appropriate access controls.
+
+4. **Admin Requests — Submitted Time:** Add a Submitted Time column immediately beside Submitted Date. Use the actual stored submission timestamp and an appropriate consistent timezone. Preserve existing functionality.
+
+5. **Admin Request Detail — Case Adjudication:** Show which administrator last updated each case's workflow status. Record the administrator's authenticated identity and update timestamp. Implement a proper status-change audit trail containing the previous status, new status, administrator identity, and timestamp wherever feasible. 
+
+**Autonomously investigate and implement every necessary Supabase change**, including schema modifications, new tables or columns, migrations, indexes, constraints, database functions, triggers, RLS policies, grants, Edge Functions, and storage policies as appropriate. For example, if the existing contact messages table lacks a mobile number column, determine the correct migration and update the entire submission and retrieval flow accordingly. If a new table or audit mechanism is required, design and implement it using the existing architecture.
+
+Do not blindly assume the current schema, disable security policies to make things work, expose service-role credentials, or trust frontend-supplied administrator identities. Preserve existing functionality and private document security. Make database changes using the project's established migration workflow and apply them to the linked Supabase project only when authorized and safe to do so. Never silently overwrite or delete existing data.
+
+Before making changes, inspect the complete implementation and identify dependencies. Then implement all changes end to end, run relevant tests and security checks, and fix regressions. Verify database migrations, RLS policies, authenticated access, form submissions, file-upload limits, contact-message persistence, timestamps, audit logging, and browser navigation.
+
+Do not stop at frontend changes or merely provide SQL for me to execute, you have the tools and permissions to implement the changes yourself. If a permission, external service, billing requirement, or infrastructure limitation blocks an action, clearly explain the exact blocker and the manual action required.
+
+Finally, provide a concise report covering changes implemented, Supabase migrations applied or pending, files modified, tests passed or failed, security findings, and unresolved blockers. Mark each requirement as **Implemented, Tested, or Blocked** accurately. Do not claim something works unless it has been verified.
+
+Follow our existing phased workflow. Complete these fixes.

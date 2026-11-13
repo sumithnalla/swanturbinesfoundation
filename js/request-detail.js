@@ -472,6 +472,7 @@
                 + docs.map(function (doc) {
                     const docId = doc.id || doc._id || '';
                     const dlUrl = API_BASE + '/api/v1/requests/admin/' + encodeURIComponent(requestId) + '/documents/' + encodeURIComponent(docId) + '/download';
+                    const previewUrl = API_BASE + '/api/v1/requests/admin/' + encodeURIComponent(requestId) + '/documents/' + encodeURIComponent(docId) + '/preview';
                     const fname = esc(doc.original_filename || 'document');
                     const fsize = fmtSize(doc.size_bytes);
                     const mimeType = doc.mime_type || doc.content_type || '';
@@ -487,8 +488,8 @@
                         + '<div style="font-size:11.5px;color:var(--text-secondary);margin-top:3px;">' + ftype + (fsize ? ' &bull; ' + fsize : '') + '</div>'
                         + '</div></div>'
                         + '<div style="display:flex;align-items:center;gap:8px;">'
-                        + (isImg || isPdf ? '<button class="btn-ghost" style="height:34px;padding:0 12px;font-size:12px;" data-doc-action="preview" data-url="' + esc(dlUrl) + '" data-filename="' + fname + '">' + ICONS.externalLink + ' Preview</button>' : '')
-                        + '<button class="btn-primary" style="height:34px;padding:0 14px;font-size:12px;font-weight:700;" data-doc-action="download" data-url="' + esc(dlUrl) + '" data-filename="' + fname + '">' + ICONS.download + ' Download</button>'
+                        + (doc.security_state === 'ready' ? ((isImg || isPdf ? '<button class="btn-ghost" style="height:34px;padding:0 12px;font-size:12px;" data-doc-action="preview" data-url="' + esc(previewUrl) + '">' + ICONS.externalLink + ' Preview</button>' : '')
+                        + '<button class="btn-primary" style="height:34px;padding:0 14px;font-size:12px;font-weight:700;" data-doc-action="download" data-url="' + esc(dlUrl) + '" data-filename="' + fname + '">' + ICONS.download + ' Download</button>') : '<span>' + (doc.security_state === 'legacy' ? 'Awaiting secure rebuild' : 'Processing') + '</span>')
                         + '</div>'
                         + '</div>';
                 }).join('')
@@ -521,15 +522,19 @@
         },
 
         previewDocument: async function (url, filename) {
+            if (!window.confirm('Open in Google Drive viewer?')) return;
+            const viewer = window.open('about:blank', '_blank');
+            if (!viewer) { toast('Allow pop-ups to open the document viewer.', 'error'); return; }
+            try { viewer.opener = null; } catch (_) {}
             try {
                 toast('Opening preview...', 'info', 1800);
                 const r = await apiFetch(url);
                 if (!r.ok) throw new Error('Unable to open preview');
-                const blob = await r.blob();
-                const blobUrl = URL.createObjectURL(blob);
-                window.open(blobUrl, '_blank');
-                setTimeout(function () { URL.revokeObjectURL(blobUrl); }, 60000);
+                const result = await r.json();
+                if (!/^https:\/\/drive\.google\.com\/file\/d\/[A-Za-z0-9_-]{10,255}\/view$/.test(result.url || '')) throw new Error('Invalid preview link');
+                viewer.location.replace(result.url);
             } catch (e) {
+                viewer.close();
                 toast('Preview failed: ' + e.message, 'error');
             }
         },

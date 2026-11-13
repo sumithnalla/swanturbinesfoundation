@@ -724,7 +724,10 @@ async function submitContact(event) {
 
     try {
         if (fullName.length < 2 || fullName.length > 120 || !/^[0-9]{10}$/.test(mobile) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || message.length < 10 || message.length > 1000) throw new Error('Check all required fields. Message must contain 10–1,000 characters.');
-        const response = await fetch(`${API_BASE}/api/v1/contact`, {
+        const turnstileToken = window.SwanTurnstile?.token();
+        if (!turnstileToken) throw new Error('Please complete the security verification and try again.');
+        let response;
+        try { response = await fetch(`${API_BASE}/api/v1/contact`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -733,9 +736,10 @@ async function submitContact(event) {
                 email: email,
                 phone: '',
                 subject: 'General inquiry from website contact form',
-                message: message
+                message: message,
+                turnstile_token: turnstileToken
             })
-        });
+        }); } finally { window.SwanTurnstile.reset(); }
 
         if (!response.ok) {
             const errData = await response.json().catch(() => ({}));

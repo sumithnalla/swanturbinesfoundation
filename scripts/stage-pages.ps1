@@ -17,6 +17,11 @@ foreach ($folder in @('css','js','manage','super-admin','swan_foundation_img','p
         Copy-Item -LiteralPath $_.FullName -Destination $dest
     }
 }
+if (-not $env:TURNSTILE_SITE_KEY -or $env:TURNSTILE_SITE_KEY -notmatch '^[A-Za-z0-9_-]{10,100}$') {
+    throw 'Set TURNSTILE_SITE_KEY to the public site key before staging this version.'
+}
+$siteKeyJson = ConvertTo-Json -Compress -InputObject $env:TURNSTILE_SITE_KEY
+[IO.File]::WriteAllText((Join-Path $target 'js/turnstile-site-config.js'), "window.__TURNSTILE_SITE_KEY__ = $siteKeyJson;`n", [Text.UTF8Encoding]::new($false))
 $files = Get-ChildItem -LiteralPath $target -Recurse -File
 if ($files | Where-Object { $_.Name -match '(?i)\.env|\.md$|\.sql$|\.toml$' }) { throw 'Non-public file found in staging.' }
 Write-Output "Staged $($files.Count) public assets in $target"
