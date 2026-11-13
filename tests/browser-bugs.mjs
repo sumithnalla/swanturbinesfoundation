@@ -20,6 +20,9 @@ const origin=`http://127.0.0.1:${server.address().port}`;
 const browser=await chromium.launch({channel:'chrome',headless:true});
 try {
   const page=await browser.newPage(); let submitted=0, uploads=0;
+  // This suite tests local UI flow, not the real Cloudflare widget. Tokens are fixtures.
+  await page.route('**/js/turnstile-site-config.js', route=>route.fulfill({contentType:'text/javascript',body:"window.__TURNSTILE_SITE_KEY__='test-site-key';"}));
+  await page.route('https://challenges.cloudflare.com/turnstile/v0/api.js**', route=>route.fulfill({contentType:'text/javascript',body:"window.turnstile={render:(_el,opts)=>{window.__challenge=opts;opts.callback('fixture-token');return 'fixture-widget'},reset:()=>window.__challenge.callback('fixture-token')};"}));
   await page.route('**/functions/v1/api/**',async route=>{
     const url=route.request().url();
     if(url.endsWith('/requests')) {submitted++;await new Promise(r=>setTimeout(r,300));await route.fulfill({json:{id:'d14307e2-bc7a-4463-978b-0f029661c564',reference:'STF-2026-TEST',document_upload_token:'test'}});}

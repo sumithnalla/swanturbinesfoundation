@@ -2,6 +2,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Buffer } from "node:buffer";
 import { productionForms, requestLookup } from "./production-forms.ts";
+import { randomStorageName, withinTotalSize } from "./upload-security.ts";
+import { checkPublicRateLimit } from "./public-rate-limit.ts";
 
 const url = Deno.env.get("SUPABASE_URL")!;
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -75,7 +77,7 @@ function pemBytes(pem: string) { const text=pem.replace(/-----BEGIN PRIVATE KEY-
 async function driveAccessToken() { const raw=Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON"); if(!raw) throw new Error("Google Drive service account is not configured."); const account=JSON.parse(raw), now=Math.floor(Date.now()/1000), head=base64Url(JSON.stringify({alg:"RS256",typ:"JWT"})), claim=base64Url(JSON.stringify({iss:account.client_email,scope:"https://www.googleapis.com/auth/drive",aud:"https://oauth2.googleapis.com/token",iat:now,exp:now+3300})); const key=await crypto.subtle.importKey("pkcs8",pemBytes(account.private_key),{name:"RSASSA-PKCS1-v1_5",hash:"SHA-256"},false,["sign"]); const signature=new Uint8Array(await crypto.subtle.sign("RSASSA-PKCS1-v1_5",key,new TextEncoder().encode(`${head}.${claim}`))); const response=await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({grant_type:"urn:ietf:params:oauth:grant-type:jwt-bearer",assertion:`${head}.${claim}.${base64Url(signature)}`})}); if(!response.ok) throw new Error(`Google token request failed (${response.status}).`); return (await response.json()).access_token as string; }
 async function driveFetch(token: string, path: string, init: RequestInit = {}) { const response=await fetch(`https://www.googleapis.com/drive/v3/${path}`,{...init,headers:{Authorization:`Bearer ${token}`,...init.headers}}); if(!response.ok) throw new Error(`Google Drive request failed (${response.status}).`); return response; }
 async function driveFolder(token: string, name: string, parent: string) { const response=await driveFetch(token,"files?fields=id",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:cleanName(name),mimeType:driveFolderMime,parents:[parent]})}); return (await response.json()).id as string; }
-async function driveUpload(token: string, parent: string, file: File) { const boundary=`swan-${crypto.randomUUID()}`, metadata=JSON.stringify({name:cleanName(file.name),parents:[parent]}), body=new Blob([`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n--${boundary}\r\nContent-Type: ${file.type}\r\n\r\n`,await file.arrayBuffer(),`\r\n--${boundary}--`]); const response=await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType,size,webViewLink",{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":`multipart/related; boundary=${boundary}`},body}); if(!response.ok) throw new Error(`Google Drive upload failed (${response.status}).`); return await response.json(); }
+async function driveUpload(token: string, parent: string, file: File, storageName: string) { const boundary=`swan-${crypto.randomUUID()}`, metadata=JSON.stringify({name:storageName,parents:[parent]}), body=new Blob([`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n--${boundary}\r\nContent-Type: ${file.type}\r\n\r\n`,await file.arrayBuffer(),`\r\n--${boundary}--`]); const response=await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType,size,webViewLink",{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":`multipart/related; boundary=${boundary}`},body}); if(!response.ok) throw new Error(`Google Drive upload failed (${response.status}).`); return await response.json(); }
 async function deleteDriveFile(token: string, id: string) { try { await driveFetch(token,`files/${encodeURIComponent(id)}`,{method:"DELETE"}); } catch (_) {} }
 async function driveDownload(token: string, id: string) { return fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}?alt=media`,{headers:{Authorization:`Bearer ${token}`}}); }
 async function appsScriptSignature(timestamp: string, body: string, secret: string) { const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign"]); return Array.from(new Uint8Array(await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(`${timestamp}.${body}`)))).map((x)=>x.toString(16).padStart(2,"0")).join(""); }
@@ -89,6 +91,15 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors(req) });
   try {
     const u = new URL(req.url), path = basePath(u), method = req.method;
+    const limitEndpoint=method==='POST'?(path==='/api/v1/requests'?'help':path==='/api/v1/contact'?'contact':/^\/api\/v1\/requests\/[^/]+\/documents$/.test(path)?'upload':null):null;
+    if(limitEndpoint){
+      const defaultGlobal={help:40,contact:120,upload:120},defaultIp={help:10,contact:20,upload:30};
+      const setting=(name:string,fallback:number)=>{const raw=Deno.env.get(name);if(!raw)return fallback;const n=Number(raw);return Number.isInteger(n)&&n>=1&&n<=10000?n:0;};
+      const kind=limitEndpoint.toUpperCase();
+      const result=await checkPublicRateLimit(req,limitEndpoint,{salt:Deno.env.get('PUBLIC_RATE_LIMIT_SALT'),globalLimit:setting(`PUBLIC_RATE_${kind}_GLOBAL`,defaultGlobal[limitEndpoint]),ipLimit:setting(`PUBLIC_RATE_${kind}_IP`,defaultIp[limitEndpoint])},args=>db.rpc('take_public_endpoint_limit',args));
+      if(result==='limited')return fail(req,429,'RATE_LIMITED','Too many requests. Please try again later.');
+      if(result==='unavailable')return fail(req,503,'RATE_LIMIT_UNAVAILABLE','This service is temporarily unavailable. Please try again later.');
+    }
     const handled = await productionForms(req,path,{db,json,fail,permitted,audit,hex,tokenValue,support,urgency,email,requestOut,fileSignatureIsValid,base64Std});
     if(handled) return handled;
     if (path === "/health" || path === "/api/health") return json(req, { status:"ok", version:"3.0.0", environment:Deno.env.get("DENO_DEPLOYMENT_ID") ? "production" : "development", database:"ok" });
@@ -118,6 +129,7 @@ Deno.serve(async (req) => {
       if(Number(req.headers.get("content-length"))>32*1024*1024)return fail(req,413,"VALIDATION_ERROR","Upload body is too large.");
       const form=await req.formData(),files=form.getAll("files").filter((x):x is File=>x instanceof File);
       if(!files.length||files.length>3)return fail(req,422,"VALIDATION_ERROR","Upload one to three supported documents (three maximum per application).");
+      if(!withinTotalSize(files))return fail(req,422,"VALIDATION_ERROR","Total document size must not exceed 30 MB.");
       if(files.some((file)=>file.size===0||file.size>10485760||!allowedDocumentTypes.has(file.type)||!(({ "application/pdf":/\.pdf$/i,"image/jpeg":/\.jpe?g$/i,"image/png":/\.png$/i,"image/webp":/\.webp$/i } as Record<string,RegExp>)[file.type]?.test(file.name))))return fail(req,422,"VALIDATION_ERROR","Each file must be an allowed type and no larger than 10 MB.");
       const previews=await Promise.all(files.map(async(file)=>({file,bytes:new Uint8Array((await file.slice(0,16).arrayBuffer()))})));
       if(previews.some(({file,bytes})=>!fileSignatureIsValid(file,bytes)))return fail(req,422,"VALIDATION_ERROR","One or more files failed format validation.");
@@ -152,13 +164,14 @@ Deno.serve(async (req) => {
         for(const {file,digest} of uploads){
           let driveFile:any;
           let fileBytes:ArrayBuffer|undefined;
+          const storageName=randomStorageName(file.type);
           if(Deno.env.get("GOOGLE_APPS_SCRIPT_URL")){
             fileBytes=await file.arrayBuffer();
             const bytes=new Uint8Array(fileBytes);
-            driveFile=await appsScriptCall("upload",{reference:request.reference,name:cleanName(file.name),mime_type:file.type,content_base64:base64Std(bytes)});
+            driveFile=await appsScriptCall("upload",{reference:request.reference,name:storageName,mime_type:file.type,content_base64:base64Std(bytes)});
             folderId=driveFile.folder_id;
           }else{
-            driveFile=await driveUpload(driveToken!,folderId!,file);
+            driveFile=await driveUpload(driveToken!,folderId!,file,storageName);
           }
           const folderUpdate=await db.from("help_requests").update({google_drive_folder_id:folderId}).eq("id",request.id);
           if(folderUpdate.error){if(Deno.env.get("GOOGLE_APPS_SCRIPT_URL"))await appsScriptCall("delete",{reference:request.reference,file_id:driveFile.id});else await deleteDriveFile(driveToken!,driveFile.id);throw folderUpdate.error;}

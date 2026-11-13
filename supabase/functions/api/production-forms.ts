@@ -1,4 +1,5 @@
 // All mutations use the service client only after validation/authorization here.
+import { verifyTurnstile } from './turnstile.ts';
 export const validEmail = (v: unknown) => typeof v === 'string' && v.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 export const validMobile = (v: unknown) => typeof v === 'string' && /^[0-9]{10}$/.test(v);
 export const validAmount = (v: unknown) => typeof v === 'string' && /^[1-9][0-9]{0,11}$/.test(v);
@@ -10,6 +11,8 @@ export async function productionForms(req: Request, path: string, c: any): Promi
   const method = req.method;
   if (path === '/api/v1/contact' && method === 'POST') {
     const b = await req.json();
+    const challenge = await verifyTurnstile(b.turnstile_token, Deno.env.get('TURNSTILE_SECRET_KEY'), (Deno.env.get('TURNSTILE_ALLOWED_HOSTNAMES') || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean));
+    if (!challenge.ok) return fail(req,challenge.unavailable ? 503 : 403,challenge.unavailable ? 'CHALLENGE_UNAVAILABLE' : 'CHALLENGE_FAILED',challenge.unavailable ? 'Security verification is temporarily unavailable. Please try again.' : 'Please complete the security verification and try again.');
     if (!bounded(b.full_name,2,120) || !validMobile(b.mobile) || !validEmail(b.email) || !bounded(b.message,10,1000))
       return fail(req,422,'VALIDATION_ERROR','Full name, a 10-digit mobile number, valid email and a 10–1,000 character message are required.');
     const {data,error} = await db.from('contact_submissions').insert({full_name:b.full_name.trim(),mobile:b.mobile,email:b.email,message:b.message.trim()}).select('id').single();
@@ -69,6 +72,8 @@ export async function productionForms(req: Request, path: string, c: any): Promi
   }
   if(path === '/api/v1/requests' && method === 'POST') {
     const b=await req.json(),a=b.applicant||{},r=b.request||{};
+    const challenge = await verifyTurnstile(b.turnstile_token, Deno.env.get('TURNSTILE_SECRET_KEY'), (Deno.env.get('TURNSTILE_ALLOWED_HOSTNAMES') || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean));
+    if (!challenge.ok) return fail(req,challenge.unavailable ? 503 : 403,challenge.unavailable ? 'CHALLENGE_UNAVAILABLE' : 'CHALLENGE_FAILED',challenge.unavailable ? 'Security verification is temporarily unavailable. Please try again.' : 'Please complete the security verification and try again.');
     if(b.consent!==true || !bounded(a.full_name,2,120) || !validMobile(a.mobile) || !validEmail(a.email) ||
       !bounded(a.address,2,300) || !bounded(a.city,2,80) || !bounded(a.state,2,80) || !bounded(r.description,10,1000) ||
       !validAmount(r.amount_required) || !Number.isInteger(r.beneficiaries) || r.beneficiaries<1 || r.beneficiaries>1000)

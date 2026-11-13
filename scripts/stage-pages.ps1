@@ -17,6 +17,21 @@ foreach ($folder in @('css','js','manage','super-admin','swan_foundation_img','p
         Copy-Item -LiteralPath $_.FullName -Destination $dest
     }
 }
+$siteKey = $env:TURNSTILE_SITE_KEY
+if (-not $siteKey) {
+    $localEnv = Join-Path $repo 'backend/.env'
+    if (Test-Path -LiteralPath $localEnv -PathType Leaf) {
+        foreach ($line in [IO.File]::ReadLines($localEnv)) {
+            if ($line -match '^\s*TURNSTILE_SITE_KEY\s*=\s*["'']?([A-Za-z0-9_-]{10,100})["'']?\s*$' -or
+                $line -match '^\s*([A-Za-z0-9_-]{10,100})\s+Site\s+key\s*$') { $siteKey = $Matches[1]; break }
+        }
+    }
+}
+if (-not $siteKey -or $siteKey -notmatch '^[A-Za-z0-9_-]{10,100}$') {
+    throw 'Set TURNSTILE_SITE_KEY to the public site key before staging this version.'
+}
+$siteKeyJson = ConvertTo-Json -Compress -InputObject $siteKey
+[IO.File]::WriteAllText((Join-Path $target 'js/turnstile-site-config.js'), "window.__TURNSTILE_SITE_KEY__ = $siteKeyJson;`n", [Text.UTF8Encoding]::new($false))
 $files = Get-ChildItem -LiteralPath $target -Recurse -File
 if ($files | Where-Object { $_.Name -match '(?i)\.env|\.md$|\.sql$|\.toml$' }) { throw 'Non-public file found in staging.' }
 Write-Output "Staged $($files.Count) public assets in $target"

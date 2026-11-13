@@ -113,7 +113,11 @@
         let completed = false;
         try {
             if (!pending) {
-                const response = await fetch(API + '/api/v1/requests', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+                payload.turnstile_token = window.SwanTurnstile?.token();
+                if (!payload.turnstile_token) throw new Error('Please complete the security verification and try again.');
+                let response;
+                try { response = await fetch(API + '/api/v1/requests', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); }
+                finally { window.SwanTurnstile.reset(); }
                 const result = await response.json();
                 if (!response.ok) throw new Error(result.error?.message || 'Submission was not confirmed. Please retry.');
                 if (!result.id || !result.reference || !result.document_upload_token) throw new Error('Incomplete confirmation. Please retry this submission.');
