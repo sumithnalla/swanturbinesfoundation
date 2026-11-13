@@ -75,6 +75,25 @@ function doPost(event) {
     if (storage !== 'clean' && storage !== 'originals') return json_({ error: 'invalid_storage' });
     if (storage === 'originals' && !/^STF-[0-9]{4}-[0-9]{6,}$/.test(String(request.reference))) return json_({ error: 'invalid_reference' });
     if (storage === 'originals' && (operation === 'delete' || operation === 'cleanup')) return json_({ error: 'retention_not_configured' });
+    if (operation === 'rebuild') {
+      if (!/^STF-[0-9]{4}-[0-9]{6,}$/.test(String(request.reference)) ||
+          ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'].indexOf(request.mime_type) < 0 ||
+          typeof request.content_base64 !== 'string' || request.content_base64.length > 13981016) return json_({ error: 'invalid_payload' });
+      const input = Utilities.base64Decode(request.content_base64);
+      if (!input.length || input.length > MAX_BYTES) return json_({ error: 'invalid_size' });
+      const target = prop_('CONVERTER_URL');
+      if (!/^https:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.run\.app$/.test(target)) return json_({ error: 'invalid_converter' });
+      const identity = ScriptApp.getIdentityToken();
+      if (!identity) return json_({ error: 'converter_unavailable' });
+      const result = UrlFetchApp.fetch(target + '/rebuild', { method: 'post', contentType: request.mime_type,
+        headers: { Authorization: 'Bearer ' + identity }, payload: input, followRedirects: false, muteHttpExceptions: true });
+      if (result.getResponseCode() !== 200) return json_({ error: 'converter_unavailable' });
+      const headers = result.getHeaders();
+      const type = String(headers['Content-Type'] || headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+      const output = result.getBlob().getBytes();
+      if (type !== request.mime_type || !output.length || output.length > MAX_BYTES) return json_({ error: 'invalid_rebuild' });
+      return json_({ mime_type: type, content_base64: Utilities.base64Encode(output) });
+    }
     if (operation === 'upload') {
       if (!request.name || !request.mime_type || !request.content_base64) return json_({ error: 'invalid_payload' });
       const bytes = Utilities.base64Decode(request.content_base64);

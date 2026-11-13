@@ -3,5 +3,10 @@
   "dependencies": {},
   "exceptionLogging": "CLOUD",
   "runtimeVersion": "V8",
-  "oauthScopes": ["https://www.googleapis.com/auth/drive"]
+  "oauthScopes": [
+    "openid",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/script.external_request"
+  ]
 }

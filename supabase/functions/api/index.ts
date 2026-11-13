@@ -5,7 +5,7 @@ import { productionForms, requestLookup } from "./production-forms.ts";
 import { withinTotalSize } from "./upload-security.ts";
 import { checkPublicRateLimit } from "./public-rate-limit.ts";
 import { appsScriptOriginals, directDriveOriginals } from "./private-drive-adapters.ts";
-import { workloadAssertion, googleIdToken, requestRebuild } from "./cloud-run-auth.ts";
+import { rebuildViaScript } from "./script-rebuild.ts";
 import { rebuildForUpload } from "./synchronous-rebuild.ts";
 
 const url = Deno.env.get("SUPABASE_URL")!;
@@ -91,6 +91,16 @@ async function driveUpload(token: string, parent: string, file: File, storageNam
 async function deleteDriveFile(token: string, id: string) { try { await driveFetch(token,`files/${encodeURIComponent(id)}`,{method:"DELETE"}); } catch (_) {} }
 async function driveDownload(token: string, id: string) { return fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}?alt=media`,{headers:{Authorization:`Bearer ${token}`}}); }
 async function appsScriptSignature(timestamp: string, body: string, secret: string) { const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign"]); return Array.from(new Uint8Array(await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(`${timestamp}.${body}`)))).map((x)=>x.toString(16).padStart(2,"0")).join(""); }
+async function configuredScriptCall(endpoint:string|undefined,secret:string|undefined,operation:string,payload:Record<string,unknown>){
+  if(!endpoint||!secret||!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(endpoint))throw new Error('Google Apps Script is not configured');
+  const body=JSON.stringify({operation,...payload}),timestamp=Math.floor(Date.now()/1000).toString(),signature=await appsScriptSignature(timestamp,body,secret);
+  const response=await fetch(`${endpoint}?timestamp=${timestamp}&signature=${signature}`,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body,signal:AbortSignal.timeout(60000)});
+  if(!response.ok||!response.body||Number(response.headers.get('content-length'))>15000000)throw new Error('Apps Script unavailable');
+  const reader=response.body.getReader(),chunks:Uint8Array[]=[];let size=0;
+  try{while(true){const item=await reader.read();if(item.done)break;size+=item.value.length;if(size>15000000){await reader.cancel();throw new Error('Apps Script response too large');}chunks.push(item.value);}}finally{reader.releaseLock();}
+  const joined=new Uint8Array(size);let offset=0;for(const chunk of chunks){joined.set(chunk,offset);offset+=chunk.length;}
+  const result=JSON.parse(new TextDecoder().decode(joined));if(result.error)throw new Error('Apps Script operation failed');return result;
+}
 async function appsScriptCall(operation: string, payload: Record<string, unknown>) { const endpoint=Deno.env.get("GOOGLE_APPS_SCRIPT_URL"),secret=Deno.env.get("GOOGLE_APPS_SCRIPT_SHARED_SECRET"); if(!endpoint||!secret) throw new Error("Google Apps Script is not configured."); const body=JSON.stringify({operation,...payload}),timestamp=Math.floor(Date.now()/1000).toString(),signature=await appsScriptSignature(timestamp,body,secret),response=await fetch(`${endpoint}?timestamp=${timestamp}&signature=${signature}`,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body}); if(!response.ok) throw new Error(`Apps Script request failed (${response.status}).`); const result=await response.json(); if(result.error) throw new Error(String(result.error)); return result; }
 async function privateStore(token:string|null){
   if(Deno.env.get('GOOGLE_APPS_SCRIPT_URL'))return appsScriptOriginals(appsScriptCall,base64Std);
@@ -103,13 +113,10 @@ async function privateStore(token:string|null){
     putInRequestFolder:async(parent,reference,name,mime,bytes)=>{const folderId=await privateRequestFolder(token,parent,reference);const file=new File([Uint8Array.from(bytes).buffer],name,{type:mime});const saved=await driveUpload(token,folderId,file,name);return {fileId:saved.id,folderId};}
   });
 }
-async function convertDocument(bytes:Uint8Array,mime:string){
-  const email=Deno.env.get('CONVERTER_WORKLOAD_EMAIL'),password=Deno.env.get('CONVERTER_WORKLOAD_PASSWORD'),subject=Deno.env.get('CONVERTER_WORKLOAD_SUBJECT');
-  const providerAudience=Deno.env.get('CONVERTER_WIF_PROVIDER_AUDIENCE'),serviceAccountEmail=Deno.env.get('CONVERTER_INVOKER_SERVICE_ACCOUNT'),cloudRunAudience=Deno.env.get('CONVERTER_CLOUD_RUN_URL');
-  if(!email||!password||!subject||!providerAudience||!serviceAccountEmail||!cloudRunAudience)throw new Error('Converter identity unavailable');
-  const assertion=await workloadAssertion(async(e,p)=>await authClient().auth.signInWithPassword({email:e,password:p}),email,password,subject,`${url.replace(/\/$/,'')}/auth/v1`);
-  const config={providerAudience,serviceAccountEmail,cloudRunAudience};const token=await googleIdToken(assertion,config);
-  return await requestRebuild(bytes,mime,config,token);
+async function convertDocument(reference:string,bytes:Uint8Array,mime:string){
+  const endpoint=Deno.env.get('CONVERTER_APPS_SCRIPT_URL')||Deno.env.get('GOOGLE_APPS_SCRIPT_URL');
+  const secret=Deno.env.get('CONVERTER_APPS_SCRIPT_SHARED_SECRET')||Deno.env.get('GOOGLE_APPS_SCRIPT_SHARED_SECRET');
+  return await rebuildViaScript(reference,mime,bytes,(operation,payload)=>configuredScriptCall(endpoint,secret,operation,payload),base64Std,(value)=>new Uint8Array(Buffer.from(value,'base64')));
 }
 const storageDocumentPrefix = "supabase-storage:";
 const requestDocumentBucket = "request-documents";
@@ -207,7 +214,7 @@ Deno.serve(async (req) => {
           const bytes=new Uint8Array(await file.arrayBuffer());
           const stored=await rebuildForUpload(request.reference,file.type,bytes,{
             original:(reference,name,mime,raw)=>originals.uploadOriginal(reference,name,mime,raw),
-            rebuild:convertDocument,
+            rebuild:(raw,mime)=>convertDocument(request.reference,raw,mime),
             clean:async(reference,name,mime,raw)=>{
               if(Deno.env.get('GOOGLE_APPS_SCRIPT_URL')){const result=await appsScriptCall('upload',{storage:'clean',reference,name,mime_type:mime,content_base64:base64Std(raw)});return {fileId:result.id,folderId:result.folder_id};}
               const cleanFile=new File([Uint8Array.from(raw).buffer],name,{type:mime});const result=await driveUpload(driveToken!,folderId!,cleanFile,name);return {fileId:result.id,folderId:folderId!};
