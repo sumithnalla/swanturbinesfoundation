@@ -4,7 +4,7 @@ import { Buffer } from "node:buffer";
 import { productionForms, requestLookup } from "./production-forms.ts";
 import { withinTotalSize } from "./upload-security.ts";
 import { checkPublicRateLimit } from "./public-rate-limit.ts";
-import { appsScriptOriginals, directDriveOriginals } from "./private-drive-adapters.ts";
+import { appsScriptOriginals } from "./private-drive-adapters.ts";
 import { rebuildViaScript } from "./script-rebuild.ts";
 import { rebuildForUpload } from "./synchronous-rebuild.ts";
 
@@ -80,13 +80,6 @@ function pemBytes(pem: string) { const text=pem.replace(/-----BEGIN PRIVATE KEY-
 async function driveAccessToken() { const raw=Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON"); if(!raw) throw new Error("Google Drive service account is not configured."); const account=JSON.parse(raw), now=Math.floor(Date.now()/1000), head=base64Url(JSON.stringify({alg:"RS256",typ:"JWT"})), claim=base64Url(JSON.stringify({iss:account.client_email,scope:"https://www.googleapis.com/auth/drive",aud:"https://oauth2.googleapis.com/token",iat:now,exp:now+3300})); const key=await crypto.subtle.importKey("pkcs8",pemBytes(account.private_key),{name:"RSASSA-PKCS1-v1_5",hash:"SHA-256"},false,["sign"]); const signature=new Uint8Array(await crypto.subtle.sign("RSASSA-PKCS1-v1_5",key,new TextEncoder().encode(`${head}.${claim}`))); const response=await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({grant_type:"urn:ietf:params:oauth:grant-type:jwt-bearer",assertion:`${head}.${claim}.${base64Url(signature)}`})}); if(!response.ok) throw new Error(`Google token request failed (${response.status}).`); return (await response.json()).access_token as string; }
 async function driveFetch(token: string, path: string, init: RequestInit = {}) { const response=await fetch(`https://www.googleapis.com/drive/v3/${path}`,{...init,headers:{Authorization:`Bearer ${token}`,...init.headers}}); if(!response.ok) throw new Error(`Google Drive request failed (${response.status}).`); return response; }
 async function driveFolder(token: string, name: string, parent: string) { const response=await driveFetch(token,"files?fields=id",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:cleanName(name),mimeType:driveFolderMime,parents:[parent]})}); return (await response.json()).id as string; }
-async function privateRequestFolder(token:string,parent:string,reference:string){
-  if(!/^[A-Za-z0-9_-]{10,255}$/.test(parent)||!/^STF-[0-9]{4}-[0-9]{6,}$/.test(reference))throw new Error('Invalid private folder');
-  const q=`'${parent}' in parents and name = '${reference}' and mimeType = '${driveFolderMime}' and trashed = false`;
-  const listing=await (await driveFetch(token,`files?${new URLSearchParams({q,fields:'files(id),nextPageToken',pageSize:'2'})}`)).json();
-  if(listing.nextPageToken||listing.files?.length>1)throw new Error('Duplicate private request folders');
-  return listing.files?.[0]?.id||await driveFolder(token,reference,parent);
-}
 async function driveUpload(token: string, parent: string, file: File, storageName: string) { const boundary=`swan-${crypto.randomUUID()}`, metadata=JSON.stringify({name:storageName,parents:[parent]}), body=new Blob([`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n--${boundary}\r\nContent-Type: ${file.type}\r\n\r\n`,await file.arrayBuffer(),`\r\n--${boundary}--`]); const response=await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType,size,webViewLink",{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":`multipart/related; boundary=${boundary}`},body}); if(!response.ok) throw new Error(`Google Drive upload failed (${response.status}).`); return await response.json(); }
 async function deleteDriveFile(token: string, id: string) { try { await driveFetch(token,`files/${encodeURIComponent(id)}`,{method:"DELETE"}); } catch (_) {} }
 async function driveDownload(token: string, id: string) { return fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}?alt=media`,{headers:{Authorization:`Bearer ${token}`}}); }
@@ -102,16 +95,13 @@ async function configuredScriptCall(endpoint:string|undefined,secret:string|unde
   const result=JSON.parse(new TextDecoder().decode(joined));if(result.error)throw new Error('Apps Script operation failed');return result;
 }
 async function appsScriptCall(operation: string, payload: Record<string, unknown>) { const endpoint=Deno.env.get("GOOGLE_APPS_SCRIPT_URL"),secret=Deno.env.get("GOOGLE_APPS_SCRIPT_SHARED_SECRET"); if(!endpoint||!secret) throw new Error("Google Apps Script is not configured."); const body=JSON.stringify({operation,...payload}),timestamp=Math.floor(Date.now()/1000).toString(),signature=await appsScriptSignature(timestamp,body,secret),response=await fetch(`${endpoint}?timestamp=${timestamp}&signature=${signature}`,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body}); if(!response.ok) throw new Error(`Apps Script request failed (${response.status}).`); const result=await response.json(); if(result.error) throw new Error(String(result.error)); return result; }
-async function privateStore(token:string|null){
+async function privateStore(){
   if(Deno.env.get('GOOGLE_APPS_SCRIPT_URL'))return appsScriptOriginals(appsScriptCall,base64Std);
-  const rootId=Deno.env.get('GOOGLE_DRIVE_ORIGINALS_FOLDER_ID'),cleanRootId=Deno.env.get('GOOGLE_DRIVE_CHARITY_REQUESTS_FOLDER_ID');
-  if(!rootId||!cleanRootId||!token)throw new Error('Private originals storage unavailable');
-  const root=await (await driveFetch(token,'files/root?fields=id')).json();
-  return directDriveOriginals({rootId,cleanRootId,myDriveRootId:root.id},{
-    getFile:async(id)=>await (await driveFetch(token,`files/${encodeURIComponent(id)}?fields=id,mimeType,parents,ownedByMe,shared,trashed,driveId`)).json(),
-    listPermissions:async(id)=>await (await driveFetch(token,`files/${encodeURIComponent(id)}/permissions?fields=nextPageToken,permissions(type,role,deleted,permissionDetails(inherited))&pageSize=100`)).json(),
-    putInRequestFolder:async(parent,reference,name,mime,bytes)=>{const folderId=await privateRequestFolder(token,parent,reference);const file=new File([Uint8Array.from(bytes).buffer],name,{type:mime});const saved=await driveUpload(token,folderId,file,name);return {fileId:saved.id,folderId};}
-  });
+  // A service account cannot own a My Drive folder. Use the separately configured
+  // owner-executed Apps Script for private originals even when clean files use
+  // the legacy direct Drive adapter. Never share the owner-only root with staff.
+  const endpoint=Deno.env.get('CONVERTER_APPS_SCRIPT_URL'),secret=Deno.env.get('CONVERTER_APPS_SCRIPT_SHARED_SECRET');
+  return appsScriptOriginals((operation,payload)=>configuredScriptCall(endpoint,secret,operation,payload),base64Std);
 }
 async function convertDocument(reference:string,bytes:Uint8Array,mime:string){
   const endpoint=Deno.env.get('CONVERTER_APPS_SCRIPT_URL')||Deno.env.get('GOOGLE_APPS_SCRIPT_URL');
@@ -209,7 +199,7 @@ Deno.serve(async (req) => {
             folderId=await driveFolder(driveToken,request.reference,parent);
           }
         }
-        const originals=await privateStore(driveToken);
+        const originals=await privateStore();
         for(const {file,digest} of uploads){
           const bytes=new Uint8Array(await file.arrayBuffer());
           const stored=await rebuildForUpload(request.reference,file.type,bytes,{
