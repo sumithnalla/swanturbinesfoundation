@@ -1,0 +1,47 @@
+/admin*
+  X-Robots-Tag: noindex, nofollow
+
+/company-admin*
+  X-Robots-Tag: noindex, nofollow
+
+/manage*
+  X-Robots-Tag: noindex, nofollow
+
+/super-admin*
+  X-Robots-Tag: noindex, nofollow
+
+/login*
+  X-Robots-Tag: noindex, nofollow
+
+/dashboard*
+  X-Robots-Tag: noindex, nofollow
+
+/profile*
+  X-Robots-Tag: noindex, nofollow
+
+/donate*
+  X-Robots-Tag: noindex, nofollow
+
+/donation-details*
+  X-Robots-Tag: noindex, nofollow
+
+/how*
+  X-Robots-Tag: noindex, nofollow
+
+/refund-policy*
+  X-Robots-Tag: noindex, nofollow
+
+/requests-thank-you*
+  X-Robots-Tag: noindex, nofollow
+
+/contact-thank-you*
+  X-Robots-Tag: noindex, nofollow
+
+/404*
+  X-Robots-Tag: noindex, nofollow
+
+https://swan-turbines-foundation-11f.pages.dev/*
+  X-Robots-Tag: noindex
+
+https://:version.swan-turbines-foundation-11f.pages.dev/*
+  X-Robots-Tag: noindex

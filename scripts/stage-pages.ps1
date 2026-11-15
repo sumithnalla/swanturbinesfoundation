@@ -6,8 +6,13 @@ if (-not $target.StartsWith((Join-Path $repo '.agent-cache') + [IO.Path]::Direct
 if (Test-Path -LiteralPath $target) { throw 'Use a new staging directory; existing staging will not be overwritten.' }
 New-Item -ItemType Directory -Path $target | Out-Null
 $allowed = @('.html','.css','.js','.png','.jpg','.jpeg','.webp','.svg','.ico','.pdf','.woff','.woff2','.ttf')
-Get-ChildItem -LiteralPath $repo -File | Where-Object { $allowed -contains $_.Extension.ToLower() } | ForEach-Object {
+Get-ChildItem -LiteralPath $repo -File | Where-Object { $allowed -contains $_.Extension.ToLower() -and $_.Name -ne '404.html' } | ForEach-Object {
     Copy-Item -LiteralPath $_.FullName -Destination $target
+}
+foreach ($name in @('_headers', 'robots.txt', 'sitemap.xml', '404.html')) {
+    $source = Join-Path $repo $name
+    if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "Required public file is missing: $name" }
+    Copy-Item -LiteralPath $source -Destination $target
 }
 foreach ($folder in @('css','js','manage','super-admin','swan_foundation_img','pdf_pages')) {
     Get-ChildItem -LiteralPath (Join-Path $repo $folder) -File -Recurse | Where-Object { $allowed -contains $_.Extension.ToLower() } | ForEach-Object {
